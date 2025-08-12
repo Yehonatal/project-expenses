@@ -1,15 +1,23 @@
-import type { Expense } from "../types/expense";
 import { Check, X } from "lucide-react";
 
-type ExpenseRowProps = {
+interface Expense {
+    id: number;
+    date: string;
+    description: string;
+    amount: number;
+    included: boolean;
+    createdAt: string;
+}
+
+interface ExpenseRowProps {
     exp: Expense;
-};
+}
 
 export default function ExpenseRow({ exp }: ExpenseRowProps) {
     return (
         <tr className="hover:bg-sand transition-colors duration-150">
             <td className="p-3 align-top font-mono text-brown/80 w-24">
-                {new Date(exp.date).toLocaleTimeString([], {
+                {new Date(exp.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                 })}

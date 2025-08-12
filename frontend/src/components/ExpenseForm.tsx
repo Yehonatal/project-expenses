@@ -112,7 +112,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                         strokeWidth={3}
                     />
                 </span>
-                ADD TO TOTAL
+                EXCLUDE FROM TOTAL
             </label>
 
             <button
