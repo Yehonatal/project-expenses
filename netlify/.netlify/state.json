@@ -1,0 +1,19 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Addis Ababa",
+			"country": {
+				"code": "ET",
+				"name": "Ethiopia"
+			},
+			"subdivision": {
+				"code": "AA",
+				"name": "Addis Ababa"
+			},
+			"timezone": "Africa/Addis_Ababa",
+			"latitude": 9.0245,
+			"longitude": 38.7485
+		},
+		"timestamp": 1754984722619
+	}
+}

@@ -1,0 +1,52 @@
+# Node modules in all folders
+/frontend/node_modules/
+/backend/node_modules/
+/netlify/node_modules/
+
+# Build output folders
+/frontend/dist/
+/frontend/build/
+/backend/dist/
+/backend/build/
+/netlify/functions-dist/
+
+# Logs
+*.log
+frontend/*.log
+backend/*.log
+netlify/*.log
+
+# Environment variables
+frontend/.env
+backend/.env
+netlify/.env
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# MacOS files
+.DS_Store
+
+# Optional: lock files if you want to ignore them (usually you commit these)
+/frontend/package-lock.json
+/backend/package-lock.json
+/netlify/package-lock.json
+
+# Optional: pnpm specific files
+/frontend/pnpm-lock.yaml
+/backend/pnpm-lock.yaml
+/netlify/pnpm-lock.yaml
+
+# Optional: dotenv local override files
+frontend/.env.local
+backend/.env.local
+netlify/.env.local
+
+# Others
+*.tgz
+*.env.test

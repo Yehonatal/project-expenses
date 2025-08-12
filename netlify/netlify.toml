@@ -1,0 +1,13 @@
+[dev]
+functions = "netlify/functions-dist"
+
+[build]
+functions = "netlify/functions-dist"
+command = "cd frontend && npm run build"
+publish = "frontend/dist"
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200
+methods = ["GET", "POST", "PUT", "DELETE"]
