@@ -13,8 +13,6 @@ export default function ExpensePage() {
             const res = await API.get<Expense[]>("/expenses");
             setExpenses(res.data);
 
-            console.error("Fetched expenses:", res.data);
-
             const includedTotal = res.data
                 .filter((e) => e.included)
                 .reduce((sum, e) => sum + e.amount, 0);
