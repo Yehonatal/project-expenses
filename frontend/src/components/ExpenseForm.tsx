@@ -1,18 +1,11 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import API from "../api/api";
+import type { Expense } from "../types/expense";
 
 type ExpenseFormData = {
     date: string;
     description: string;
     amount: string;
-    included: boolean;
-};
-
-export type Expense = {
-    id: number;
-    date: string;
-    description: string;
-    amount: number;
     included: boolean;
 };
 

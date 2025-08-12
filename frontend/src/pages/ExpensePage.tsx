@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
-import ExpenseForm, { type Expense } from "../components/ExpenseForm";
+import type { Expense } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
+import ExpenseForm from "../components/ExpenseForm";
 
 export default function ExpensePage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);

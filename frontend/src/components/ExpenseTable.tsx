@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-
-export type Expense = {
-    _id: string;
-    date: string;
-    description: string;
-    amount: number;
-    included: boolean;
-};
+import type { Expense } from "../types/expense";
 
 type ExpenseTableProps = {
     expenses: Expense[];
@@ -138,7 +131,7 @@ export default function ExpenseTable({ expenses }: ExpenseTableProps) {
                                 {isExpanded &&
                                     monthExpenses.map((exp) => (
                                         <tr
-                                            key={exp._id}
+                                            key={exp.id}
                                             className="hover:bg-sand"
                                         >
                                             <td className="p-3 align-top">
