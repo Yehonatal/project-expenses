@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+    /* Your custom colors */
+    --color-clay: #d8a48f;
+    --color-olive: #8a9a5b;
+    --color-sand: #e3d4b9;
+    --color-brown: #5c4b3b;
+    --color-taupe: #cfc3b2;
+
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
