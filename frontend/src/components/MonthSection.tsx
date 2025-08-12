@@ -1,5 +1,3 @@
-// MonthSection.tsx
-import React from "react";
 import type { Expense } from "../types/expense";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import DateGroup from "./DateGroup";
