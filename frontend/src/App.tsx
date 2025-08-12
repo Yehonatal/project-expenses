@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { List, PieChart } from "lucide-react";
 import ExpensePage from "./pages/ExpensePage";
 import SummaryPage from "./pages/SummaryPage";
 
@@ -9,15 +10,17 @@ export default function App() {
                 <nav className="p-4 flex gap-6 text-brown font-semibold">
                     <Link
                         to="/"
-                        className="hover:underline hover:text-clay transition-colors duration-200"
+                        className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
+                        aria-label="Expenses"
                     >
-                        Expenses
+                        <List size={20} />
                     </Link>
                     <Link
                         to="/summary"
-                        className="hover:underline hover:text-clay transition-colors duration-200"
+                        className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
+                        aria-label="Summary"
                     >
-                        Summary
+                        <PieChart size={20} />
                     </Link>
                 </nav>
 

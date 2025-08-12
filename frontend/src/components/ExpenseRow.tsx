@@ -22,12 +22,10 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
                 {exp.included ? (
                     <>
                         <Check className="w-4 h-4 text-olive" />
-                        <span>Yes</span>
                     </>
                 ) : (
                     <>
                         <X className="w-4 h-4 text-clay" />
-                        <span>No</span>
                     </>
                 )}
             </td>

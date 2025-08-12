@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
+import { Loader2 } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -93,8 +94,10 @@ export default function SummaryPage() {
 
     if (loading) {
         return (
-            <div className="p-6 max-w-4xl mx-auto">
-                <div className="text-sm text-gray-500">Loading summary…</div>
+            <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
+                <div className="text-sm text-gray-500 animate-spin">
+                    <Loader2 size={45} />
+                </div>
             </div>
         );
     }

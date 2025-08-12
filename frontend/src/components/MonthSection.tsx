@@ -41,7 +41,6 @@ export default function MonthSection({
         .filter((e) => e.included)
         .reduce((sum, e) => sum + e.amount, 0);
 
-    // Group expenses by date
     const groupedByDate = expenses.reduce<Record<string, Expense[]>>(
         (acc, exp) => {
             const d = new Date(exp.date);
@@ -92,9 +91,9 @@ export default function MonthSection({
                         </thead>
                         <tbody>
                             {Object.entries(groupedByDate).map(
-                                ([dateKey, exps]) => (
+                                ([dateKey, exps], idx) => (
                                     <DateGroup
-                                        key={dateKey}
+                                        key={idx}
                                         ym={ym}
                                         dateKey={dateKey}
                                         expenses={exps}
@@ -109,12 +108,11 @@ export default function MonthSection({
                         </tbody>
                     </table>
 
-                    {/* Mobile Cards */}
                     <div className="flex flex-col md:hidden p-4 space-y-3">
                         {Object.entries(groupedByDate).map(
                             ([dateKey, exps]) => {
                                 const isExpandedDate =
-                                    expandedDates[`${ym}|${dateKey}`] ?? false; // <-- and here too
+                                    expandedDates[`${ym}|${dateKey}`] ?? false;
                                 const dayTotal = exps
                                     .filter((e) => e.included)
                                     .reduce((sum, e) => sum + e.amount, 0);
