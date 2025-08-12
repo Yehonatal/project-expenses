@@ -1,13 +1,5 @@
 import { Check, X } from "lucide-react";
-
-interface Expense {
-    id: number;
-    date: string;
-    description: string;
-    amount: number;
-    included: boolean;
-    createdAt: string;
-}
+import type { Expense } from "../types/expense";
 
 interface ExpenseRowProps {
     exp: Expense;
