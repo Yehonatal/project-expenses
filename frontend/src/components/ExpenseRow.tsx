@@ -15,6 +15,9 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
                 })}
             </td>
             <td className="p-3 align-top">{exp.description}</td>
+            <td className="p-3 align-top capitalize text-gray-600">
+                {exp.type}
+            </td>
             <td className="p-3 text-right font-semibold text-brown w-24">
                 Birr {exp.amount.toFixed(2)}
             </td>

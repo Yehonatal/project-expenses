@@ -27,6 +27,7 @@ export default function ExpenseCard({ exp }: ExpenseCardProps) {
                 </span>
             </div>
             <p className="font-semibold text-brown">{exp.description}</p>
+            <p className="text-sm text-gray-600 capitalize">{exp.type}</p>
             <p className="text-right font-semibold text-brown">
                 Birr {exp.amount.toFixed(2)}
             </p>

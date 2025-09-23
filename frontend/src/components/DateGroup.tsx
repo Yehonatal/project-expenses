@@ -50,7 +50,7 @@ export default function DateGroup({
                 className="cursor-pointer bg-sand font-semibold text-brown hover:bg-olive/20 transition-colors duration-200"
             >
                 <td
-                    colSpan={4}
+                    colSpan={5}
                     className="p-3 select-none flex justify-between items-center"
                 >
                     <div className="flex items-center space-x-2">
@@ -68,7 +68,7 @@ export default function DateGroup({
             </tr>
 
             <tr>
-                <td colSpan={4} className="p-0">
+                <td colSpan={5} className="p-0">
                     <div
                         ref={ref}
                         style={{

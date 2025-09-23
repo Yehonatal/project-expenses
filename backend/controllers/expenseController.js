@@ -3,16 +3,16 @@ const mongoose = require("mongoose");
 
 /**
  * Add new expense
- * body: { date, description, amount, included }
+ * body: { date, description, amount, included, type }
  */
 exports.addExpense = async (req, res) => {
     try {
-        const { date, description, amount, included } = req.body;
+        const { date, description, amount, included, type } = req.body;
 
-        if (description == null || amount == null) {
+        if (description == null || amount == null || type == null) {
             return res
                 .status(400)
-                .json({ message: "description and amount required" });
+                .json({ message: "description, amount, and type required" });
         }
 
         const expense = new Expense({
@@ -20,6 +20,7 @@ exports.addExpense = async (req, res) => {
             description,
             amount,
             included: included !== undefined ? !!included : true,
+            type,
         });
 
         const saved = await expense.save();
@@ -191,6 +192,22 @@ exports.getSummary = async (req, res) => {
 
         const monthly = await Expense.aggregate(monthlyPipeline);
 
+        const typePipeline = [];
+        if (Object.keys(match).length) typePipeline.push({ $match: match });
+
+        typePipeline.push(
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { total: -1 } }
+        );
+
+        const typeBreakdown = await Expense.aggregate(typePipeline);
+
         res.json({
             totals: totals[0] || {
                 totalIncluded: 0,
@@ -203,6 +220,11 @@ exports.getSummary = async (req, res) => {
                 month: m._id.month,
                 total: m.total,
                 count: m.count,
+            })),
+            typeBreakdown: typeBreakdown.map((t) => ({
+                type: t._id,
+                total: t.total,
+                count: t.count,
             })),
         });
     } catch (err) {

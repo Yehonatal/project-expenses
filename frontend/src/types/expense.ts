@@ -4,5 +4,6 @@ export interface Expense {
     description: string;
     amount: number;
     included: boolean;
+    type: string;
     createdAt: string;
 }

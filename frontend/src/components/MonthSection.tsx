@@ -85,6 +85,7 @@ export default function MonthSection({
                             <tr>
                                 <th className="p-3">Date</th>
                                 <th className="p-3">Description</th>
+                                <th className="p-3">Type</th>
                                 <th className="p-3 text-right">Amount</th>
                                 <th className="p-3 text-center">Included</th>
                             </tr>

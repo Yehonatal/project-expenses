@@ -8,6 +8,7 @@ type ExpenseFormData = {
     description: string;
     amount: string;
     included: boolean;
+    type: string;
 };
 
 type ExpenseFormProps = {
@@ -17,15 +18,42 @@ type ExpenseFormProps = {
 export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
     const today = new Date().toISOString().split("T")[0];
 
+    const templates = [
+        { description: "taxi to work", type: "transport" },
+        { description: "bus to home", type: "transport" },
+        { description: "lunch at restaurant", type: "food" },
+        { description: "coffee", type: "drink" },
+        { description: "internet bill", type: "internet" },
+        { description: "groceries", type: "food" },
+    ];
+
     const [form, setForm] = useState<ExpenseFormData>({
         date: today,
         description: "",
         amount: "",
         included: true,
+        type: "",
     });
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
+    const handleTemplateChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value) {
+            const template = templates.find((t) => t.description === value);
+            if (template) {
+                setForm((prev) => ({
+                    ...prev,
+                    description: template.description,
+                    type: template.type,
+                }));
+            }
+        }
+    };
+
+    const handleChange = (
+        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
         setForm((prev) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
@@ -45,6 +73,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 description: "",
                 amount: "",
                 included: true,
+                type: "",
             });
         } catch (err) {
             console.error(err);
@@ -65,6 +94,21 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
           shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive transition w-32"
             />
+            <select
+                name="template"
+                onChange={handleTemplateChange}
+                className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
+          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
+          w-40"
+            >
+                <option value="">Templates</option>
+                {templates.map((t) => (
+                    <option key={t.description} value={t.description}>
+                        {t.description}
+                    </option>
+                ))}
+            </select>
+
             <input
                 type="text"
                 name="description"
@@ -75,6 +119,22 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
           shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
           flex-grow min-w-[120px]"
             />
+
+            <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
+          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
+          w-32"
+            >
+                <option value="">Type</option>
+                <option value="transport">Transport</option>
+                <option value="food">Food</option>
+                <option value="drink">Drink</option>
+                <option value="internet">Internet</option>
+                <option value="other">Other</option>
+            </select>
 
             <input
                 type="number"
