@@ -1,5 +1,6 @@
 const Expense = require("../models/expenseModel");
 const mongoose = require("mongoose");
+const Type = require("../models/typeModel");
 
 /**
  * Add new expense
@@ -24,6 +25,19 @@ exports.addExpense = async (req, res) => {
         });
 
         const saved = await expense.save();
+
+        // Ensure the type exists in the types collection (upsert)
+        try {
+            if (type) {
+                await Type.updateOne(
+                    { name: type },
+                    { $setOnInsert: { name: type } },
+                    { upsert: true }
+                );
+            }
+        } catch (tErr) {
+            console.error("Failed to upsert type:", tErr);
+        }
         res.status(201).json(saved);
     } catch (err) {
         console.error("addExpense error:", err);

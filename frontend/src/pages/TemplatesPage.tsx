@@ -12,6 +12,7 @@ type Template = {
 
 export default function TemplatesPage() {
     const [templates, setTemplates] = useState<Template[]>([]);
+    const [types, setTypes] = useState<string[]>([]);
     const [form, setForm] = useState({ description: "", type: "", price: "" });
 
     const load = async () => {
@@ -25,6 +26,20 @@ export default function TemplatesPage() {
 
     useEffect(() => {
         void load();
+        let mounted = true;
+        (async () => {
+            try {
+                const r = await API.get<string[]>("/types");
+                if (!mounted) return;
+                setTypes(r.data || []);
+            } catch {
+                if (!mounted) return;
+                setTypes(["transport", "food", "drink", "internet", "other"]);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     const handleChange = (
@@ -38,9 +53,17 @@ export default function TemplatesPage() {
         e.preventDefault();
         if (!form.description || !form.price) return;
         try {
+            const usedType = form.type || "other";
+            // ensure the type is persisted server-side (non-fatal)
+            try {
+                await API.post("/types", { name: usedType });
+            } catch {
+                // ignore errors creating the type here; server will still accept template
+            }
+
             const res = await API.post<Template>("/templates", {
                 description: form.description,
-                type: form.type || "other",
+                type: usedType,
                 price: Number(form.price),
             });
             // prepend
@@ -77,19 +100,21 @@ export default function TemplatesPage() {
                     className="border border-olive rounded px-3 py-1.5 bg-sand text-brown"
                 />
 
-                <select
-                    name="type"
-                    value={form.type}
-                    onChange={handleChange}
-                    className="border border-olive rounded px-3 py-1.5 bg-sand text-brown"
-                >
-                    <option value="">Type</option>
-                    <option value="transport">Transport</option>
-                    <option value="food">Food</option>
-                    <option value="drink">Drink</option>
-                    <option value="internet">Internet</option>
-                    <option value="other">Other</option>
-                </select>
+                <div className="relative">
+                    <input
+                        list="template-type-suggestions"
+                        name="type"
+                        value={form.type}
+                        onChange={handleChange}
+                        placeholder="Type"
+                        className="border border-olive rounded px-3 py-1.5 bg-sand text-brown"
+                    />
+                    <datalist id="template-type-suggestions">
+                        {types.map((t) => (
+                            <option key={t} value={t} />
+                        ))}
+                    </datalist>
+                </div>
 
                 <input
                     name="price"

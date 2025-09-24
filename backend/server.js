@@ -5,6 +5,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const expenseRoutes = require("./routes/expenseRoutes");
 const templateRoutes = require("./routes/templateRoutes");
+const typesRoutes = require("./routes/typesRoutes");
+const typesController = require("./controllers/typesController");
 
 dotenv.config();
 
@@ -19,6 +21,8 @@ if (!MONGO_URI) {
 
 app.use(express.json());
 
+// Use permissive CORS during local development. If you need stricter rules,
+// replace this with a configured origin list for production.
 app.use(
     cors({
         origin: true,
@@ -28,6 +32,16 @@ app.use(
 
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/types", typesRoutes);
+
+// fallback in case routes wiring fails elsewhere — provide direct endpoint
+app.get("/api/types", async (req, res, next) => {
+    try {
+        await typesController.getTypes(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
 
 app.get("/", (req, res) => {
     res.json({ status: "ok", message: "Expense tracker API" });

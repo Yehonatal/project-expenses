@@ -35,8 +35,8 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 const res = await API.get("/templates");
                 if (!mounted) return;
                 setTemplates(res.data || []);
-            } catch (err) {
-                console.error("Failed to load templates", err);
+            } catch {
+                console.error("Failed to load templates");
             }
         };
         void load();
@@ -53,38 +53,24 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         type: "",
     });
 
-    // types: dropdown options that can be extended by the user and persisted locally
-    const TYPES_KEY = "expense_types_v1";
     const [types, setTypes] = useState<string[]>([]);
-    const [addingType, setAddingType] = useState(false);
-    const [newType, setNewType] = useState("");
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(TYPES_KEY);
-            if (raw) setTypes(JSON.parse(raw));
-            else setTypes(["transport", "food", "drink", "internet", "other"]);
-        } catch (e) {
-            setTypes(["transport", "food", "drink", "internet", "other"]);
-        }
+        let mounted = true;
+        const load = async () => {
+            try {
+                const res = await API.get<string[]>("/types");
+                if (!mounted) return;
+                setTypes(res.data || []);
+            } catch {
+                setTypes(["transport", "food", "drink", "internet", "other"]);
+            }
+        };
+        void load();
+        return () => {
+            mounted = false;
+        };
     }, []);
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(TYPES_KEY, JSON.stringify(types));
-        } catch (e) {
-            /* ignore */
-        }
-    }, [types]);
-
-    const handleAddType = () => {
-        const t = newType.trim();
-        if (!t) return;
-        if (!types.includes(t)) setTypes((s) => [t, ...s]);
-        setForm((prev) => ({ ...prev, type: t }));
-        setNewType("");
-        setAddingType(false);
-    };
 
     const handleTemplateChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
@@ -118,6 +104,17 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
+            // if the entered type is new, persist it to /api/types so it appears in suggestions
+            const enteredType = form.type?.trim();
+            if (enteredType && !types.includes(enteredType)) {
+                try {
+                    await API.post("/types", { name: enteredType });
+                } catch {
+                    // non-fatal — continue to try creating the expense
+                    console.warn("Failed to create type");
+                }
+            }
+
             const res = await API.post<Expense>("/expenses", {
                 ...form,
                 amount: parseFloat(form.amount),
@@ -130,6 +127,15 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 included: true,
                 type: "",
             });
+            // refresh types from server in background
+            void (async () => {
+                try {
+                    const r = await API.get<string[]>("/types");
+                    setTypes(r.data || []);
+                } catch {
+                    // ignore
+                }
+            })();
         } catch (err) {
             console.error(err);
             alert("Failed to add expense");
@@ -179,57 +185,20 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             />
 
             <div className="flex items-center space-x-2">
-                <select
+                {/* allow free text input but suggest existing server-side types */}
+                <input
+                    list="type-suggestions"
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
-          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
-          w-32"
-                >
-                    <option value="">Type</option>
+                    placeholder="Type"
+                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive w-40"
+                />
+                <datalist id="type-suggestions">
                     {types.map((t) => (
-                        <option key={t} value={t}>
-                            {t.charAt(0).toUpperCase() + t.slice(1)}
-                        </option>
+                        <option key={t} value={t} />
                     ))}
-                </select>
-
-                {!addingType ? (
-                    <button
-                        type="button"
-                        onClick={() => setAddingType(true)}
-                        className="text-sm text-olive underline"
-                    >
-                        add type
-                    </button>
-                ) : (
-                    <div className="flex items-center space-x-2">
-                        <input
-                            value={newType}
-                            onChange={(e) => setNewType(e.target.value)}
-                            placeholder="New type"
-                            className="bg-sand border border-olive rounded-md px-2 py-1 text-brown text-sm"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleAddType}
-                            className="bg-olive text-white px-2 py-1 rounded text-sm"
-                        >
-                            Add
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setAddingType(false);
-                                setNewType("");
-                            }}
-                            className="text-sm text-clay"
-                        >
-                            cancel
-                        </button>
-                    </div>
-                )}
+                </datalist>
             </div>
 
             <input
