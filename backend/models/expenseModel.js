@@ -7,6 +7,11 @@ const expenseSchema = new mongoose.Schema(
         amount: { type: Number, required: true, min: 0 },
         included: { type: Boolean, default: true },
         type: { type: String, required: true, trim: true },
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
     },
     {
         timestamps: true,

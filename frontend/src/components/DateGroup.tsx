@@ -66,14 +66,8 @@ export default function DateGroup({
 
             {/* expense rows: render directly as sibling table rows so they align with the parent header columns */}
             {isExpanded &&
-                expenses.map((exp) => (
-                    <ExpenseRow
-                        key={
-                            exp.id ??
-                            `${dateKey}-${exp.amount}-${exp.description}`
-                        }
-                        exp={exp}
-                    />
+                expenses.map((exp, idx) => (
+                    <ExpenseRow key={exp.id || `${dateKey}-${idx}`} exp={exp} />
                 ))}
         </>
     );

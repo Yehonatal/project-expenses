@@ -23,6 +23,7 @@ exports.addExpense = async (req, res) => {
             amount,
             included: included !== undefined ? !!included : true,
             type,
+            userId: req.user._id,
         });
 
         const saved = await expense.save();
@@ -31,8 +32,8 @@ exports.addExpense = async (req, res) => {
         try {
             if (type) {
                 await Type.updateOne(
-                    { name: type },
-                    { $setOnInsert: { name: type } },
+                    { name: type, userId: req.user._id },
+                    { $setOnInsert: { name: type, userId: req.user._id } },
                     { upsert: true }
                 );
             }
@@ -56,7 +57,7 @@ exports.addExpense = async (req, res) => {
 exports.getExpenses = async (req, res) => {
     try {
         const { from, to, included, type } = req.query;
-        const filter = {};
+        const filter = { userId: req.user._id };
 
         if (from || to) {
             filter.date = {};
@@ -102,7 +103,7 @@ exports.updateExpense = async (req, res) => {
         const updated = await Expense.findByIdAndUpdate(id, updates, {
             new: true,
         });
-        if (!updated)
+        if (!updated || updated.userId.toString() !== req.user._id.toString())
             return res.status(404).json({ message: "Expense not found" });
 
         res.json(updated);
@@ -123,7 +124,7 @@ exports.deleteExpense = async (req, res) => {
         }
 
         const deleted = await Expense.findByIdAndDelete(id);
-        if (!deleted)
+        if (!deleted || deleted.userId.toString() !== req.user._id.toString())
             return res.status(404).json({ message: "Expense not found" });
 
         res.json({ message: "Deleted", id: deleted._id });
@@ -147,7 +148,7 @@ exports.deleteExpense = async (req, res) => {
 exports.getSummary = async (req, res) => {
     try {
         const { year, from, to } = req.query;
-        const match = {};
+        const match = { userId: req.user._id };
 
         if (year) {
             // match by year
@@ -248,6 +249,50 @@ exports.getSummary = async (req, res) => {
         });
     } catch (err) {
         console.error("getSummary error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getStats = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const totalExpenses = await Expense.countDocuments({ userId });
+
+        // Count distinct types from expenses instead of types collection
+        const typeResult = await Expense.distinct("type", { userId });
+        const totalTypes = typeResult.length;
+
+        const mostExpensive = await Expense.findOne({ userId })
+            .sort({ amount: -1 })
+            .select("amount description");
+        const cheapest = await Expense.findOne({ userId })
+            .sort({ amount: 1 })
+            .select("amount description");
+
+        const monthlyAssessment = await Expense.aggregate([
+            { $match: { userId } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                    maxExpense: { $max: "$amount" },
+                    minExpense: { $min: "$amount" },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        res.json({
+            totalExpenses,
+            totalTypes,
+            mostExpensive,
+            cheapest,
+            monthlyAssessment,
+        });
+    } catch (err) {
+        console.error("getStats error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };

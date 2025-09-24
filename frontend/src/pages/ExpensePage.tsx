@@ -10,7 +10,7 @@ export default function ExpensePage() {
 
     const fetchExpenses = async () => {
         try {
-            const res = await API.get<Expense[]>("/expenses");
+            const res = await API.get<Expense[]>("/api/expenses");
             setExpenses(res.data);
 
             const includedTotal = res.data

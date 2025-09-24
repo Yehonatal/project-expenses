@@ -3,10 +3,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const passport = require("passport");
+const session = require("express-session");
 const expenseRoutes = require("./routes/expenseRoutes");
 const templateRoutes = require("./routes/templateRoutes");
 const typesRoutes = require("./routes/typesRoutes");
+const authRoutes = require("./routes/authRoutes");
 const typesController = require("./controllers/typesController");
+const User = require("./models/userModel");
 
 dotenv.config();
 
@@ -28,6 +32,64 @@ app.use(
     })
 );
 
+// Session for Passport
+app.use(
+    session({
+        secret: process.env.JWT_SEC,
+        resave: false,
+        saveUninitialized: false,
+    })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport Google Strategy
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_OAUTH2_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_OAUTH2_CLIENT_SECRET,
+            callbackURL: `${
+                process.env.BACKEND_URL || "http://localhost:5000"
+            }/auth/google/callback`,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                let user = await User.findOne({ googleId: profile.id });
+                if (!user) {
+                    user = new User({
+                        googleId: profile.id,
+                        name: profile.displayName,
+                        email: profile.emails[0].value,
+                        picture: profile.photos[0].value,
+                    });
+                    await user.save();
+                }
+                done(null, user);
+            } catch (err) {
+                done(err, null);
+            }
+        }
+    )
+);
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+app.use("/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/types", typesRoutes);

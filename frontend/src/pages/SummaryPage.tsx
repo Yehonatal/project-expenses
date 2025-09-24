@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
-import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import type { Expense } from "../types/expense";
 import ExpandableExpenseTable from "../components/ExpandableExpenseTable";
+import Loading from "../components/Loading";
 
 type Totals = {
     totalIncluded: number;
@@ -73,7 +74,7 @@ export default function SummaryPage() {
     useEffect(() => {
         let mounted = true;
         setLoading(true);
-        API.get<SummaryData>("/expenses/summary")
+        API.get<SummaryData>("/api/expenses/summary")
             .then((res) => {
                 if (!mounted) return;
                 // defensive defaults
@@ -123,7 +124,7 @@ export default function SummaryPage() {
             if (!typeExpenses[type]) {
                 try {
                     const response = await API.get<Expense[]>(
-                        `/expenses?type=${encodeURIComponent(type)}`
+                        `/api/expenses?type=${encodeURIComponent(type)}`
                     );
                     setTypeExpenses((prev) => ({
                         ...prev,
@@ -142,13 +143,7 @@ export default function SummaryPage() {
     };
 
     if (loading) {
-        return (
-            <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
-                <div className="text-sm text-gray-500 animate-spin">
-                    <Loader2 size={45} />
-                </div>
-            </div>
-        );
+        return <Loading />;
     }
 
     if (error || !summary) {

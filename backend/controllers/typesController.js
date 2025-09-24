@@ -5,12 +5,16 @@ const { normalizeType } = require("../utils/normalizeType");
 
 exports.getTypes = async (req, res) => {
     try {
+        const userId = req.user._id;
         // get distinct types from expenses
-        const expenseTypes = await Expense.distinct("type");
+        const expenseTypes = await Expense.distinct("type", { userId });
         // get distinct types from templates
-        const templateTypes = await Template.distinct("type");
+        const templateTypes = await Template.distinct("type", { userId });
         // get explicit saved types
-        const savedTypes = await Type.find({}, { name: 1, _id: 0 }).lean();
+        const savedTypes = await Type.find(
+            { userId },
+            { name: 1, _id: 0 }
+        ).lean();
 
         const savedNames = (savedTypes || []).map((t) => t.name);
 
@@ -30,17 +34,18 @@ exports.getTypes = async (req, res) => {
 
 exports.addType = async (req, res) => {
     try {
+        const userId = req.user._id;
         const raw = req.body.name;
         const name = normalizeType(raw);
         if (!name) return res.status(400).json({ message: "name required" });
         if (name.length > 64)
             return res.status(400).json({ message: "name too long" });
 
-        // upsert by normalized name
-        const existing = await Type.findOne({ name });
+        // upsert by normalized name and userId
+        const existing = await Type.findOne({ name, userId });
         if (existing) return res.status(200).json(existing);
 
-        const t = new Type({ name });
+        const t = new Type({ name, userId });
         const saved = await t.save();
         res.status(201).json(saved);
     } catch (err) {
@@ -49,6 +54,7 @@ exports.addType = async (req, res) => {
         if (err.code === 11000) {
             const existing = await Type.findOne({
                 name: normalizeType(req.body.name),
+                userId: req.user._id,
             });
             return res.status(200).json(existing);
         }

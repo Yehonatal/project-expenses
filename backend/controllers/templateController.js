@@ -3,7 +3,9 @@ const mongoose = require("mongoose");
 
 exports.getTemplates = async (req, res) => {
     try {
-        const templates = await Template.find({}).sort({ createdAt: -1 });
+        const templates = await Template.find({ userId: req.user._id }).sort({
+            createdAt: -1,
+        });
         res.json(templates);
     } catch (err) {
         console.error("getTemplates error:", err);
@@ -20,7 +22,12 @@ exports.addTemplate = async (req, res) => {
                 .json({ message: "description, type and price required" });
         }
 
-        const t = new Template({ description, type, price: Number(price) });
+        const t = new Template({
+            description,
+            type,
+            price: Number(price),
+            userId: req.user._id,
+        });
         const saved = await t.save();
         res.status(201).json(saved);
     } catch (err) {
@@ -35,7 +42,7 @@ exports.deleteTemplate = async (req, res) => {
         if (!mongoose.isValidObjectId(id))
             return res.status(400).json({ message: "Invalid ID" });
         const deleted = await Template.findByIdAndDelete(id);
-        if (!deleted)
+        if (!deleted || deleted.userId.toString() !== req.user._id.toString())
             return res.status(404).json({ message: "Template not found" });
         res.json({ message: "Deleted", id: deleted._id });
     } catch (err) {

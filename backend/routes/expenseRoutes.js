@@ -2,20 +2,24 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/expenseController");
+const auth = require("../middleware/auth");
 
 // POST   /api/expenses        -> add new expense
-router.post("/", controller.addExpense);
+router.post("/", auth, controller.addExpense);
 
 // GET    /api/expenses        -> get all (supports query filters)
-router.get("/", controller.getExpenses);
+router.get("/", auth, controller.getExpenses);
 
 // GET    /api/expenses/summary -> summary data
-router.get("/summary", controller.getSummary);
+router.get("/summary", auth, controller.getSummary);
+
+// GET    /api/expenses/stats -> user stats
+router.get("/stats", auth, controller.getStats);
 
 // PUT    /api/expenses/:id    -> update
-router.put("/:id", controller.updateExpense);
+router.put("/:id", auth, controller.updateExpense);
 
 // DELETE /api/expenses/:id    -> delete
-router.delete("/:id", controller.deleteExpense);
+router.delete("/:id", auth, controller.deleteExpense);
 
 module.exports = router;
