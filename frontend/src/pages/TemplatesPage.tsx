@@ -102,8 +102,8 @@ export default function TemplatesPage() {
     };
 
     return (
-        <div className="p-4">
-            <h1 className="text-xl font-semibold text-brown mb-3">Templates</h1>
+        <div className="p-6 max-w-5xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6 text-brown">Templates</h1>
 
             <form
                 onSubmit={handleAdd}

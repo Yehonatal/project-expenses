@@ -82,10 +82,10 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-8 text-brown">Profile</h1>
+        <div className="max-w-5xl mx-auto p-6">
+            <h1 className="text-2xl font-bold mb-6 text-brown">Profile</h1>
 
-            <div className="p-6 mb-8">
+            <div className="p-6 mb-6">
                 <div className="flex items-center space-x-4 mb-4">
                     {avatarError || !user.picture ? (
                         <div className="w-16 h-16 rounded-full bg-brown flex items-center justify-center text-white text-2xl">
@@ -113,7 +113,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-brown">
+                <h2 className="text-xl font-semibold mb-4 text-brown">
                     Expense Statistics
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -158,7 +158,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <h3 className="text-xl font-semibold mb-4 text-brown">
+                <h3 className="text-lg font-semibold mb-4 text-brown">
                     Monthly Assessment
                 </h3>
                 <div className="space-y-4">

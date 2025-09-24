@@ -37,9 +37,9 @@ export default function ExpensePage() {
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Expense Tracker</h1>
+            <h1 className="text-2xl font-bold mb-6">Expense Tracker</h1>
             <ExpenseForm onAdd={handleAdd} />
-            <div className="mt-4 text-lg font-extralight">
+            <div className="mt-4 text-lg font-medium">
                 Total (Included): Birr {total.toFixed(2)}
             </div>
             <ExpenseTable expenses={expenses} />

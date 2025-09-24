@@ -148,7 +148,7 @@ export default function SummaryPage() {
 
     if (error || !summary) {
         return (
-            <div className="p-6 max-w-4xl mx-auto">
+            <div className="p-6 max-w-5xl mx-auto">
                 <div className="text-red-600">
                     {error ?? "No summary available"}
                 </div>
@@ -166,14 +166,11 @@ export default function SummaryPage() {
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h1
-                className="text-3xl font-semibold mb-6"
-                style={{ color: brown }}
-            >
+            <h1 className="text-2xl font-bold mb-6" style={{ color: brown }}>
                 Summary Dashboard
             </h1>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                 <div
                     className="rounded-lg p-4 shadow-sm"
                     style={{ backgroundColor: "rgba(138,154,91,0.10)" }}
@@ -222,7 +219,7 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 {typeBreakdown.map((t) => (
                     <div
                         key={t.type}
@@ -245,9 +242,9 @@ export default function SummaryPage() {
                 ))}
             </div>
 
-            <div className="mb-4">
+            <div className="mb-6">
                 <h2
-                    className="text-xl font-semibold mb-2"
+                    className="text-xl font-semibold mb-4"
                     style={{ color: brown }}
                 >
                     Monthly Breakdown
@@ -296,9 +293,9 @@ export default function SummaryPage() {
                 )}
             </div>
 
-            <div className="mb-4">
+            <div className="mb-6">
                 <h2
-                    className="text-xl font-semibold mb-2"
+                    className="text-xl font-semibold mb-4"
                     style={{ color: brown }}
                 >
                     Expense Types Breakdown

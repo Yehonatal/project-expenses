@@ -2,4 +2,6 @@
 
 
 ![Homepage](./preview/home.png)
-![Mini Dashboard](./preview/dash.png)
+![Mini Dashboard](./preview/dashboard.png)
+![Template](./preview/template.png)
+![Profile](./preview/profile.png)
