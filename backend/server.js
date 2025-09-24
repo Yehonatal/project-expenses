@@ -21,8 +21,6 @@ if (!MONGO_URI) {
 
 app.use(express.json());
 
-// Use permissive CORS during local development. If you need stricter rules,
-// replace this with a configured origin list for production.
 app.use(
     cors({
         origin: true,

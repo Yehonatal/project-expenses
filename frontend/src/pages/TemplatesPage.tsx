@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Trash2, Plus } from "lucide-react";
 import API from "../api/api";
+import Toast from "../components/Toast";
 
 type Template = {
     id?: string;
@@ -13,6 +14,9 @@ type Template = {
 export default function TemplatesPage() {
     const [templates, setTemplates] = useState<Template[]>([]);
     const [types, setTypes] = useState<string[]>([]);
+    const [toast, setToast] = useState<
+        { message: string; type: "success" | "error" | "info" } | undefined
+    >(undefined);
     const [form, setForm] = useState({ description: "", type: "", price: "" });
 
     const load = async () => {
@@ -56,7 +60,9 @@ export default function TemplatesPage() {
             const usedType = form.type || "other";
             // ensure the type is persisted server-side (non-fatal)
             try {
-                await API.post("/types", { name: usedType });
+                const norm = (usedType || "other").trim().toLowerCase();
+                await API.post("/types", { name: norm });
+                setToast({ message: `Saved type "${norm}"`, type: "info" });
             } catch {
                 // ignore errors creating the type here; server will still accept template
             }
@@ -69,9 +75,13 @@ export default function TemplatesPage() {
             // prepend
             setTemplates((ts) => [res.data, ...ts]);
             setForm({ description: "", type: "", price: "" });
+            setToast({
+                message: "Template added successfully!",
+                type: "success",
+            });
         } catch (err) {
             console.error("Failed to add template", err);
-            alert("Failed to add template");
+            setToast({ message: "Failed to add template", type: "error" });
         }
     };
 
@@ -81,9 +91,13 @@ export default function TemplatesPage() {
             setTemplates((ts) =>
                 ts.filter((t) => String(t._id ?? t.id) !== String(id))
             );
+            setToast({
+                message: "Template deleted successfully!",
+                type: "success",
+            });
         } catch (err) {
             console.error("Failed to delete template", err);
-            alert("Failed to delete template");
+            setToast({ message: "Failed to delete template", type: "error" });
         }
     };
 
@@ -91,13 +105,16 @@ export default function TemplatesPage() {
         <div className="p-4">
             <h1 className="text-xl font-semibold text-brown mb-3">Templates</h1>
 
-            <form onSubmit={handleAdd} className="flex gap-3 items-center mb-4">
+            <form
+                onSubmit={handleAdd}
+                className="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center mb-4"
+            >
                 <input
                     name="description"
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Description"
-                    className="border border-olive rounded px-3 py-1.5 bg-sand text-brown"
+                    className="border border-olive rounded px-3 py-1.5 bg-sand text-brown flex-1 min-w-[140px]"
                 />
 
                 <div className="relative">
@@ -107,7 +124,7 @@ export default function TemplatesPage() {
                         value={form.type}
                         onChange={handleChange}
                         placeholder="Type"
-                        className="border border-olive rounded px-3 py-1.5 bg-sand text-brown"
+                        className="border border-olive rounded px-3 py-1.5 bg-sand text-brown w-40"
                     />
                     <datalist id="template-type-suggestions">
                         {types.map((t) => (
@@ -124,10 +141,13 @@ export default function TemplatesPage() {
                     className="border border-olive rounded px-3 py-1.5 bg-sand text-brown w-24 text-right"
                 />
 
-                <button className="bg-clay text-white px-3 py-1.5 rounded flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Add
-                </button>
+                <div className="w-full sm:w-auto">
+                    <button className="bg-clay text-white px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center">
+                        <Plus className="w-4 h-4" /> Add
+                    </button>
+                </div>
             </form>
+            <Toast message={toast?.message} type={toast?.type} />
 
             <div className="space-y-2">
                 {templates.length === 0 && (
@@ -138,9 +158,9 @@ export default function TemplatesPage() {
                     return (
                         <div
                             key={safeId}
-                            className="flex items-center justify-between bg-white border border-sand rounded p-2"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-sand rounded p-3 gap-2"
                         >
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                                 <div className="font-semibold text-brown">
                                     {t.description}
                                 </div>
@@ -148,13 +168,13 @@ export default function TemplatesPage() {
                                     {t.type}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between sm:justify-end gap-3">
                                 <div className="font-semibold text-brown">
                                     Birr {String(t.price)}
                                 </div>
                                 <button
                                     onClick={() => handleDelete(safeId)}
-                                    className="text-clay"
+                                    className="text-clay hover:text-red-600 transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>

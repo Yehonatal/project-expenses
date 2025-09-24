@@ -227,23 +227,23 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
                 {typeBreakdown.map((t) => (
                     <div
                         key={t.type}
-                        className="rounded-lg p-2 shadow-sm"
-                        style={{ backgroundColor: "rgba(216,164,143,0.10)" }}
+                        className="rounded-md p-3 shadow-sm flex flex-col items-start"
+                        style={{ backgroundColor: "rgba(216,164,143,0.06)" }}
                     >
-                        <div className="text-xs font-medium text-gray-600 capitalize">
+                        <div className="text-sm font-medium text-gray-600 capitalize">
                             {t.type}
                         </div>
                         <div
-                            className="mt-1 text-lg font-bold"
+                            className="mt-1 text-base font-semibold"
                             style={{ color: brown }}
                         >
                             {formatMoney(t.total)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm text-gray-500 mt-0.5">
                             {t.count} items
                         </div>
                     </div>

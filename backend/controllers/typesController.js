@@ -1,6 +1,7 @@
 const Expense = require("../models/expenseModel");
 const Template = require("../models/templateModel");
 const Type = require("../models/typeModel");
+const { normalizeType } = require("../utils/normalizeType");
 
 exports.getTypes = async (req, res) => {
     try {
@@ -29,10 +30,13 @@ exports.getTypes = async (req, res) => {
 
 exports.addType = async (req, res) => {
     try {
-        const { name } = req.body;
+        const raw = req.body.name;
+        const name = normalizeType(raw);
         if (!name) return res.status(400).json({ message: "name required" });
+        if (name.length > 64)
+            return res.status(400).json({ message: "name too long" });
 
-        // upsert by name
+        // upsert by normalized name
         const existing = await Type.findOne({ name });
         if (existing) return res.status(200).json(existing);
 
@@ -43,7 +47,9 @@ exports.addType = async (req, res) => {
         console.error("addType error:", err);
         // unique index error
         if (err.code === 11000) {
-            const existing = await Type.findOne({ name: req.body.name });
+            const existing = await Type.findOne({
+                name: normalizeType(req.body.name),
+            });
             return res.status(200).json(existing);
         }
         res.status(500).json({ message: "Server error", error: err.message });

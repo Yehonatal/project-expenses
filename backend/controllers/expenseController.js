@@ -1,6 +1,7 @@
 const Expense = require("../models/expenseModel");
 const mongoose = require("mongoose");
 const Type = require("../models/typeModel");
+const { normalizeType } = require("../utils/normalizeType");
 
 /**
  * Add new expense
