@@ -7,6 +7,7 @@ import TemplatesPage from "./pages/TemplatesPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import API, { authAPI } from "./api/api";
+import Loading from "./components/Loading";
 
 interface UserData {
     _id: string;
@@ -64,11 +65,7 @@ export default function App() {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                Loading...
-            </div>
-        );
+        return <Loading />;
     }
 
     return (
