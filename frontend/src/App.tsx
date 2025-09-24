@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { List, PieChart } from "lucide-react";
+import { List, PieChart, FileText } from "lucide-react";
 import ExpensePage from "./pages/ExpensePage";
 import SummaryPage from "./pages/SummaryPage";
+import TemplatesPage from "./pages/TemplatesPage";
 
 export default function App() {
     return (
@@ -22,11 +23,19 @@ export default function App() {
                     >
                         <PieChart size={20} />
                     </Link>
+                    <Link
+                        to="/templates"
+                        className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
+                        aria-label="Templates"
+                    >
+                        <FileText size={20} />
+                    </Link>
                 </nav>
 
                 <Routes>
                     <Route path="/" element={<ExpensePage />} />
                     <Route path="/summary" element={<SummaryPage />} />
+                    <Route path="/templates" element={<TemplatesPage />} />
                 </Routes>
             </div>
         </Router>

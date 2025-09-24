@@ -40,7 +40,7 @@ exports.addExpense = async (req, res) => {
  */
 exports.getExpenses = async (req, res) => {
     try {
-        const { from, to, included } = req.query;
+        const { from, to, included, type } = req.query;
         const filter = {};
 
         if (from || to) {
@@ -52,6 +52,10 @@ exports.getExpenses = async (req, res) => {
         if (included !== undefined) {
             if (included === "true") filter.included = true;
             else if (included === "false") filter.included = false;
+        }
+
+        if (type) {
+            filter.type = type;
         }
 
         // By default sort newest first

@@ -80,14 +80,17 @@ export default function MonthSection({
 
             {isExpanded && (
                 <div id={`month-${ym}`} className="border-t border-taupe">
-                    <table className="hidden md:table w-full text-left text-sm text-brown">
+                    {/* desktop table: use fixed layout and explicit widths so headers align with rows */}
+                    <table className="hidden md:table table-fixed w-full text-left text-sm text-brown">
                         <thead className="text-brown/70 font-normal border-b border-taupe">
                             <tr>
-                                <th className="p-3">Date</th>
+                                <th className="p-3 w-24">Date</th>
                                 <th className="p-3">Description</th>
                                 <th className="p-3">Type</th>
-                                <th className="p-3 text-right">Amount</th>
-                                <th className="p-3 text-center">Included</th>
+                                <th className="p-3 text-right w-24">Amount</th>
+                                <th className="p-3 text-center w-20">
+                                    Included
+                                </th>
                             </tr>
                         </thead>
                         <tbody>

@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const expenseRoutes = require("./routes/expenseRoutes");
+const templateRoutes = require("./routes/templateRoutes");
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(
 );
 
 app.use("/api/expenses", expenseRoutes);
+app.use("/api/templates", templateRoutes);
 
 app.get("/", (req, res) => {
     res.json({ status: "ok", message: "Expense tracker API" });

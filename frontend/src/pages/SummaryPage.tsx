@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -13,6 +13,8 @@ import {
     Pie,
     Cell,
 } from "recharts";
+import type { Expense } from "../types/expense";
+import ExpandableExpenseTable from "../components/ExpandableExpenseTable";
 
 type Totals = {
     totalIncluded: number;
@@ -61,6 +63,12 @@ export default function SummaryPage() {
     const [summary, setSummary] = useState<SummaryData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>(
+        {}
+    );
+    const [typeExpenses, setTypeExpenses] = useState<Record<string, Expense[]>>(
+        {}
+    );
 
     useEffect(() => {
         let mounted = true;
@@ -106,6 +114,32 @@ export default function SummaryPage() {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         })} birr`;
+
+    const toggleType = async (type: string) => {
+        const isExpanded = expandedTypes[type];
+        if (isExpanded) {
+            setExpandedTypes((prev) => ({ ...prev, [type]: false }));
+        } else {
+            if (!typeExpenses[type]) {
+                try {
+                    const response = await API.get<Expense[]>(
+                        `/expenses?type=${encodeURIComponent(type)}`
+                    );
+                    setTypeExpenses((prev) => ({
+                        ...prev,
+                        [type]: response.data,
+                    }));
+                } catch (err) {
+                    console.error(
+                        "Failed to fetch expenses for type:",
+                        type,
+                        err
+                    );
+                }
+            }
+            setExpandedTypes((prev) => ({ ...prev, [type]: true }));
+        }
+    };
 
     if (loading) {
         return (
@@ -334,22 +368,42 @@ export default function SummaryPage() {
 
                 <div className="space-y-3">
                     {typeBreakdown.map((t) => (
-                        <div
-                            key={t.type}
-                            className="flex items-center justify-between rounded-lg p-3"
-                            style={{
-                                backgroundColor: "rgba(227,212,185,0.06)",
-                            }}
-                        >
-                            <div className="text-sm text-gray-700 capitalize">
-                                {t.type}
-                            </div>
+                        <div key={t.type}>
                             <div
-                                className="text-sm font-medium"
-                                style={{ color: brown }}
+                                className="w-full flex items-center justify-between rounded-lg p-3 cursor-pointer hover:bg-opacity-20 transition-colors"
+                                style={{
+                                    backgroundColor: "rgba(227,212,185,0.06)",
+                                }}
+                                onClick={() => toggleType(t.type)}
                             >
-                                {formatMoney(t.total)} ({t.count} items)
+                                <div className="flex items-center space-x-2">
+                                    {expandedTypes[t.type] ? (
+                                        <ChevronDown
+                                            size={16}
+                                            className="text-gray-500"
+                                        />
+                                    ) : (
+                                        <ChevronRight
+                                            size={16}
+                                            className="text-gray-500"
+                                        />
+                                    )}
+                                    <div className="text-sm text-gray-700 capitalize">
+                                        {t.type}
+                                    </div>
+                                </div>
+                                <div
+                                    className="text-sm font-medium"
+                                    style={{ color: brown }}
+                                >
+                                    {formatMoney(t.total)} ({t.count} items)
+                                </div>
                             </div>
+                            {expandedTypes[t.type] && typeExpenses[t.type] && (
+                                <ExpandableExpenseTable
+                                    expenses={typeExpenses[t.type]}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>

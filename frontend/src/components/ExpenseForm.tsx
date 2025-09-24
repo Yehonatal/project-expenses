@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import API from "../api/api";
 import type { Expense } from "../types/expense";
 import { Plus, Check } from "lucide-react";
+import { useEffect } from "react";
 
 type ExpenseFormData = {
     date: string;
@@ -18,14 +19,31 @@ type ExpenseFormProps = {
 export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
     const today = new Date().toISOString().split("T")[0];
 
-    const templates = [
-        { description: "taxi to work", type: "transport" },
-        { description: "bus to home", type: "transport" },
-        { description: "lunch at restaurant", type: "food" },
-        { description: "coffee", type: "drink" },
-        { description: "internet bill", type: "internet" },
-        { description: "groceries", type: "food" },
-    ];
+    const [templates, setTemplates] = useState<
+        Array<{
+            description: string;
+            type: string;
+            price: number | string;
+            _id?: string;
+        }>
+    >([]);
+
+    useEffect(() => {
+        let mounted = true;
+        const load = async () => {
+            try {
+                const res = await API.get("/templates");
+                if (!mounted) return;
+                setTemplates(res.data || []);
+            } catch (err) {
+                console.error("Failed to load templates", err);
+            }
+        };
+        void load();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const [form, setForm] = useState<ExpenseFormData>({
         date: today,
@@ -35,15 +53,52 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         type: "",
     });
 
+    // types: dropdown options that can be extended by the user and persisted locally
+    const TYPES_KEY = "expense_types_v1";
+    const [types, setTypes] = useState<string[]>([]);
+    const [addingType, setAddingType] = useState(false);
+    const [newType, setNewType] = useState("");
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(TYPES_KEY);
+            if (raw) setTypes(JSON.parse(raw));
+            else setTypes(["transport", "food", "drink", "internet", "other"]);
+        } catch (e) {
+            setTypes(["transport", "food", "drink", "internet", "other"]);
+        }
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(TYPES_KEY, JSON.stringify(types));
+        } catch (e) {
+            /* ignore */
+        }
+    }, [types]);
+
+    const handleAddType = () => {
+        const t = newType.trim();
+        if (!t) return;
+        if (!types.includes(t)) setTypes((s) => [t, ...s]);
+        setForm((prev) => ({ ...prev, type: t }));
+        setNewType("");
+        setAddingType(false);
+    };
+
     const handleTemplateChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
         if (value) {
-            const template = templates.find((t) => t.description === value);
+            // template select stores template id when loaded from server, or description for older local entries
+            const template = templates.find((t) =>
+                t._id ? t._id === value : t.description === value
+            );
             if (template) {
                 setForm((prev) => ({
                     ...prev,
                     description: template.description,
                     type: template.type,
+                    amount: String(template.price),
                 }));
             }
         }
@@ -103,7 +158,10 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             >
                 <option value="">Templates</option>
                 {templates.map((t) => (
-                    <option key={t.description} value={t.description}>
+                    <option
+                        key={t._id ?? t.description}
+                        value={t._id ?? t.description}
+                    >
                         {t.description}
                     </option>
                 ))}
@@ -120,21 +178,59 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
           flex-grow min-w-[120px]"
             />
 
-            <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
+            <div className="flex items-center space-x-2">
+                <select
+                    name="type"
+                    value={form.type}
+                    onChange={handleChange}
+                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
           shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
           w-32"
-            >
-                <option value="">Type</option>
-                <option value="transport">Transport</option>
-                <option value="food">Food</option>
-                <option value="drink">Drink</option>
-                <option value="internet">Internet</option>
-                <option value="other">Other</option>
-            </select>
+                >
+                    <option value="">Type</option>
+                    {types.map((t) => (
+                        <option key={t} value={t}>
+                            {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </option>
+                    ))}
+                </select>
+
+                {!addingType ? (
+                    <button
+                        type="button"
+                        onClick={() => setAddingType(true)}
+                        className="text-sm text-olive underline"
+                    >
+                        add type
+                    </button>
+                ) : (
+                    <div className="flex items-center space-x-2">
+                        <input
+                            value={newType}
+                            onChange={(e) => setNewType(e.target.value)}
+                            placeholder="New type"
+                            className="bg-sand border border-olive rounded-md px-2 py-1 text-brown text-sm"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAddType}
+                            className="bg-olive text-white px-2 py-1 rounded text-sm"
+                        >
+                            Add
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAddingType(false);
+                                setNewType("");
+                            }}
+                            className="text-sm text-clay"
+                        >
+                            cancel
+                        </button>
+                    </div>
+                )}
+            </div>
 
             <input
                 type="number"
