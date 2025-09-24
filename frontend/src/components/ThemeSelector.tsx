@@ -38,8 +38,11 @@ export default function ThemeSelector() {
             <select
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as Theme)}
-                className="appearance-none bg-transparent border border-[var(--theme-border)] rounded px-2 py-1 pr-6 text-sm text-[var(--theme-text)] hover:bg-[var(--theme-hover)] transition-colors cursor-pointer"
+                className="appearance-none bg-transparent border border-[var(--theme-border)] rounded px-1 py-1 pr-6 text-sm hover:bg-[var(--theme-hover)] transition-colors cursor-pointer text-[var(--theme-text)] md:px-3 md:py-1.5 md:pr-8"
             >
+                <option value="" disabled className="md:hidden">
+                    Theme
+                </option>
                 {themeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                         {option.label}
