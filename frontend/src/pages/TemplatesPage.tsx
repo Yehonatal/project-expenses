@@ -21,7 +21,7 @@ export default function TemplatesPage() {
 
     const load = async () => {
         try {
-            const res = await API.get<Template[]>("/api/templates");
+            const res = await API.get<Template[]>("/templates");
             setTemplates(res.data);
         } catch (err) {
             console.error("Failed to load templates", err);
@@ -33,7 +33,7 @@ export default function TemplatesPage() {
         let mounted = true;
         (async () => {
             try {
-                const r = await API.get<string[]>("/api/types");
+                const r = await API.get<string[]>("/types");
                 if (!mounted) return;
                 setTypes(r.data || []);
             } catch {
@@ -61,13 +61,13 @@ export default function TemplatesPage() {
             // ensure the type is persisted server-side (non-fatal)
             try {
                 const norm = (usedType || "other").trim().toLowerCase();
-                await API.post("/api/types", { name: norm });
+                await API.post("/types", { name: norm });
                 setToast({ message: `Saved type "${norm}"`, type: "info" });
             } catch {
                 // ignore errors creating the type here; server will still accept template
             }
 
-            const res = await API.post<Template>("/api/templates", {
+            const res = await API.post<Template>("/templates", {
                 description: form.description,
                 type: usedType,
                 price: Number(form.price),
@@ -87,7 +87,7 @@ export default function TemplatesPage() {
 
     const handleDelete = async (id: string) => {
         try {
-            await API.delete(`/api/templates/${id}`);
+            await API.delete(`/templates/${id}`);
             setTemplates((ts) =>
                 ts.filter((t) => String(t._id ?? t.id) !== String(id))
             );

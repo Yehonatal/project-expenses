@@ -74,7 +74,7 @@ export default function SummaryPage() {
     useEffect(() => {
         let mounted = true;
         setLoading(true);
-        API.get<SummaryData>("/api/expenses/summary")
+        API.get<SummaryData>("/expenses/summary")
             .then((res) => {
                 if (!mounted) return;
                 // defensive defaults
@@ -124,7 +124,7 @@ export default function SummaryPage() {
             if (!typeExpenses[type]) {
                 try {
                     const response = await API.get<Expense[]>(
-                        `/api/expenses?type=${encodeURIComponent(type)}`
+                        `/expenses?type=${encodeURIComponent(type)}`
                     );
                     setTypeExpenses((prev) => ({
                         ...prev,

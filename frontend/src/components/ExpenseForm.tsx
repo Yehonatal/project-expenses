@@ -32,7 +32,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         let mounted = true;
         const load = async () => {
             try {
-                const res = await API.get("/api/templates");
+                const res = await API.get("/templates");
                 if (!mounted) return;
                 setTemplates(res.data || []);
             } catch {
@@ -62,7 +62,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         let mounted = true;
         const load = async () => {
             try {
-                const res = await API.get<string[]>("/api/types");
+                const res = await API.get<string[]>("/types");
                 if (!mounted) return;
                 setTypes(res.data || []);
             } catch {
@@ -112,7 +112,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             if (enteredType && !types.includes(enteredType)) {
                 const norm = enteredType.trim().toLowerCase();
                 try {
-                    await API.post("/api/types", { name: norm });
+                    await API.post("/types", { name: norm });
                     setToast({ message: `Saved type "${norm}"`, type: "info" });
                 } catch {
                     // non-fatal — continue to try creating the expense
@@ -120,7 +120,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 }
             }
 
-            const res = await API.post<Expense>("/api/expenses", {
+            const res = await API.post<Expense>("/expenses", {
                 ...form,
                 amount: parseFloat(form.amount),
             });
@@ -135,7 +135,7 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             // refresh types from server in background
             void (async () => {
                 try {
-                    const r = await API.get<string[]>("/api/types");
+                    const r = await API.get<string[]>("/types");
                     setTypes(r.data || []);
                 } catch {
                     // ignore

@@ -6,7 +6,7 @@ import SummaryPage from "./pages/SummaryPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
-import API from "./api/api";
+import API, { authAPI } from "./api/api";
 
 interface UserData {
     _id: string;
@@ -39,11 +39,16 @@ export default function App() {
         const token = localStorage.getItem("token");
         if (token) {
             API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-            API.get("/auth/me")
+            authAPI.defaults.headers.common[
+                "Authorization"
+            ] = `Bearer ${token}`;
+            authAPI
+                .get("/auth/me")
                 .then((res) => setUser(res.data))
                 .catch(() => {
                     localStorage.removeItem("token");
                     delete API.defaults.headers.common["Authorization"];
+                    delete authAPI.defaults.headers.common["Authorization"];
                 })
                 .finally(() => setLoading(false));
         } else {
@@ -54,6 +59,7 @@ export default function App() {
     const handleLogout = () => {
         localStorage.removeItem("token");
         delete API.defaults.headers.common["Authorization"];
+        delete authAPI.defaults.headers.common["Authorization"];
         setUser(null);
     };
 

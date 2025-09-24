@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import API from "../api/api";
+import { useNavigate } from "react-router-dom";
+import API, { authAPI } from "../api/api";
 import Loading from "../components/Loading";
 
 interface User {
@@ -32,17 +33,30 @@ interface Stats {
 }
 
 export default function ProfilePage() {
+    const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
     const [avatarError, setAvatarError] = useState(false);
 
     useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.log("No token found, redirecting to login");
+            navigate("/");
+            setLoading(false);
+            return;
+        }
+
+        // Set auth header for API calls
+        authAPI.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
         const fetchData = async () => {
             try {
                 const [userRes, statsRes] = await Promise.all([
-                    API.get("/auth/me"),
-                    API.get("/api/expenses/stats"),
+                    authAPI.get("/auth/me"),
+                    API.get("/expenses/stats"),
                 ]);
                 setUser(userRes.data);
                 setStats(statsRes.data);
@@ -53,7 +67,7 @@ export default function ProfilePage() {
             }
         };
         fetchData();
-    }, []);
+    }, [navigate]);
 
     if (loading) {
         return <Loading />;
