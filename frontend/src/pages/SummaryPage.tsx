@@ -55,10 +55,13 @@ const monthNames = [
     "Dec",
 ];
 
-const clay = "#D8A48F";
-const brown = "#5C4B3B";
-
-const pieColors = ["#D8A48F", "#8A9E5B", "#E3D4B9", "#5C4B3B", "#F4E1D2"];
+const themePieColors = [
+    "var(--theme-secondary)",
+    "var(--theme-accent)",
+    "var(--theme-surface)",
+    "var(--theme-primary)",
+    "var(--theme-text-secondary)",
+];
 
 export default function SummaryPage() {
     const [summary, setSummary] = useState<SummaryData | null>(null);
@@ -149,7 +152,7 @@ export default function SummaryPage() {
     if (error || !summary) {
         return (
             <div className="p-6 max-w-5xl mx-auto">
-                <div className="text-red-600">
+                <div style={{ color: "var(--theme-accent)" }}>
                     {error ?? "No summary available"}
                 </div>
             </div>
@@ -165,8 +168,17 @@ export default function SummaryPage() {
     }));
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6" style={{ color: brown }}>
+        <div
+            className="p-6 max-w-5xl mx-auto"
+            style={{
+                backgroundColor: "var(--theme-background)",
+                color: "var(--theme-text)",
+            }}
+        >
+            <h1
+                className="text-2xl font-bold mb-6"
+                style={{ color: "var(--theme-primary)" }}
+            >
                 Summary Dashboard
             </h1>
 
@@ -175,12 +187,15 @@ export default function SummaryPage() {
                     className="rounded-lg p-4 shadow-sm"
                     style={{ backgroundColor: "rgba(138,154,91,0.10)" }}
                 >
-                    <div className="text-sm font-medium text-gray-600">
+                    <div
+                        className="text-sm font-medium"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
                         Total Included
                     </div>
                     <div
                         className="mt-2 text-2xl font-bold"
-                        style={{ color: brown }}
+                        style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(totals.totalIncluded)}
                     </div>
@@ -190,12 +205,15 @@ export default function SummaryPage() {
                     className="rounded-lg p-4 shadow-sm"
                     style={{ backgroundColor: "rgba(216,164,143,0.10)" }}
                 >
-                    <div className="text-sm font-medium text-gray-600">
+                    <div
+                        className="text-sm font-medium"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
                         Total Excluded
                     </div>
                     <div
                         className="mt-2 text-2xl font-bold"
-                        style={{ color: brown }}
+                        style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(totals.totalExcluded)}
                     </div>
@@ -205,12 +223,15 @@ export default function SummaryPage() {
                     className="rounded-lg p-4 shadow-sm"
                     style={{ backgroundColor: "rgba(92,75,59,0.10)" }}
                 >
-                    <div className="text-sm font-medium text-gray-600">
+                    <div
+                        className="text-sm font-medium"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
                         Total Spent
                     </div>
                     <div
                         className="mt-2 text-2xl font-bold"
-                        style={{ color: brown }}
+                        style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(
                             totals.totalIncluded + totals.totalExcluded
@@ -226,16 +247,22 @@ export default function SummaryPage() {
                         className="rounded-md p-3 shadow-sm flex flex-col items-start"
                         style={{ backgroundColor: "rgba(216,164,143,0.06)" }}
                     >
-                        <div className="text-sm font-medium text-gray-600 capitalize">
+                        <div
+                            className="text-sm font-medium capitalize"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
                             {t.type}
                         </div>
                         <div
                             className="mt-1 text-base font-semibold"
-                            style={{ color: brown }}
+                            style={{ color: "var(--theme-primary)" }}
                         >
                             {formatMoney(t.total)}
                         </div>
-                        <div className="text-sm text-gray-500 mt-0.5">
+                        <div
+                            className="text-sm mt-0.5"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
                             {t.count} items
                         </div>
                     </div>
@@ -245,16 +272,22 @@ export default function SummaryPage() {
             <div className="mb-6">
                 <h2
                     className="text-xl font-semibold mb-4"
-                    style={{ color: brown }}
+                    style={{ color: "var(--theme-primary)" }}
                 >
                     Monthly Breakdown
                 </h2>
                 {chartData.length === 0 ? (
-                    <div className="text-sm text-gray-500">
+                    <div
+                        className="text-sm"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
                         No monthly data to show.
                     </div>
                 ) : (
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div
+                        className="rounded-lg p-4 shadow-sm"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
                         <ResponsiveContainer width="100%" height={320}>
                             <BarChart
                                 data={chartData}
@@ -272,7 +305,7 @@ export default function SummaryPage() {
                                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                                 <YAxis tickFormatter={(value) => `${value}`} />
                                 <Tooltip
-                                    formatter={(value: any) =>
+                                    formatter={(value: number) =>
                                         `${Number(value).toLocaleString(
                                             undefined,
                                             {
@@ -284,7 +317,7 @@ export default function SummaryPage() {
                                 />
                                 <Bar
                                     dataKey="total"
-                                    fill={clay}
+                                    fill="var(--theme-secondary)"
                                     radius={[6, 6, 0, 0]}
                                 />
                             </BarChart>
@@ -296,16 +329,22 @@ export default function SummaryPage() {
             <div className="mb-6">
                 <h2
                     className="text-xl font-semibold mb-4"
-                    style={{ color: brown }}
+                    style={{ color: "var(--theme-primary)" }}
                 >
                     Expense Types Breakdown
                 </h2>
                 {typeBreakdown.length === 0 ? (
-                    <div className="text-sm text-gray-500">
+                    <div
+                        className="text-sm"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
                         No type data to show.
                     </div>
                 ) : (
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div
+                        className="rounded-lg p-4 shadow-sm"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
                         <ResponsiveContainer width="100%" height={320}>
                             <PieChart>
                                 <Pie
@@ -319,22 +358,23 @@ export default function SummaryPage() {
                                         ).toFixed(0)}%`
                                     }
                                     outerRadius={80}
-                                    fill="#8884d8"
+                                    fill="var(--theme-secondary)"
                                     dataKey="total"
                                 >
                                     {typeBreakdown.map((_, index) => (
                                         <Cell
                                             key={`cell-${index}`}
                                             fill={
-                                                pieColors[
-                                                    index % pieColors.length
+                                                themePieColors[
+                                                    index %
+                                                        themePieColors.length
                                                 ]
                                             }
                                         />
                                     ))}
                                 </Pie>
                                 <Tooltip
-                                    formatter={(value: any) =>
+                                    formatter={(value: number) =>
                                         `${Number(value).toLocaleString(
                                             undefined,
                                             {
@@ -353,7 +393,7 @@ export default function SummaryPage() {
             <div className="mt-6">
                 <h2
                     className="text-lg font-semibold mb-3"
-                    style={{ color: brown }}
+                    style={{ color: "var(--theme-primary)" }}
                 >
                     Expense Types
                 </h2>
@@ -362,9 +402,9 @@ export default function SummaryPage() {
                     {typeBreakdown.map((t) => (
                         <div key={t.type}>
                             <div
-                                className="w-full flex items-center justify-between rounded-lg p-3 cursor-pointer hover:bg-opacity-20 transition-colors"
+                                className="w-full flex items-center justify-between rounded-lg p-3 cursor-pointer transition-colors"
                                 style={{
-                                    backgroundColor: "rgba(227,212,185,0.06)",
+                                    backgroundColor: "var(--theme-hover)",
                                 }}
                                 onClick={() => toggleType(t.type)}
                             >
@@ -372,21 +412,28 @@ export default function SummaryPage() {
                                     {expandedTypes[t.type] ? (
                                         <ChevronDown
                                             size={16}
-                                            className="text-gray-500"
+                                            style={{
+                                                color: "var(--theme-textSecondary)",
+                                            }}
                                         />
                                     ) : (
                                         <ChevronRight
                                             size={16}
-                                            className="text-gray-500"
+                                            style={{
+                                                color: "var(--theme-textSecondary)",
+                                            }}
                                         />
                                     )}
-                                    <div className="text-sm text-gray-700 capitalize">
+                                    <div
+                                        className="text-sm capitalize"
+                                        style={{ color: "var(--theme-text)" }}
+                                    >
                                         {t.type}
                                     </div>
                                 </div>
                                 <div
                                     className="text-sm font-medium"
-                                    style={{ color: brown }}
+                                    style={{ color: "var(--theme-primary)" }}
                                 >
                                     {formatMoney(t.total)} ({t.count} items)
                                 </div>
@@ -404,7 +451,7 @@ export default function SummaryPage() {
             <div className="mt-6">
                 <h2
                     className="text-lg font-semibold mb-3"
-                    style={{ color: brown }}
+                    style={{ color: "var(--theme-primary)" }}
                 >
                     Recent months
                 </h2>
@@ -422,16 +469,20 @@ export default function SummaryPage() {
                                     key={`${m.year}-${m.month}`}
                                     className="flex items-center justify-between rounded-lg p-3"
                                     style={{
-                                        backgroundColor:
-                                            "rgba(227,212,185,0.06)",
+                                        backgroundColor: "var(--theme-hover)",
                                     }}
                                 >
-                                    <div className="text-sm text-gray-700">
+                                    <div
+                                        className="text-sm"
+                                        style={{ color: "var(--theme-text)" }}
+                                    >
                                         {label}
                                     </div>
                                     <div
                                         className="text-sm font-medium"
-                                        style={{ color: brown }}
+                                        style={{
+                                            color: "var(--theme-primary)",
+                                        }}
                                     >
                                         {formatMoney(m.total)}
                                     </div>

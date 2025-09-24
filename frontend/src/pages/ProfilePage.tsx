@@ -82,13 +82,27 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6 text-brown">Profile</h1>
+        <div
+            className="max-w-5xl mx-auto p-6"
+            style={{
+                backgroundColor: "var(--theme-background)",
+                color: "var(--theme-text)",
+            }}
+        >
+            <h1
+                className="text-2xl font-bold mb-6"
+                style={{ color: "var(--theme-primary)" }}
+            >
+                Profile
+            </h1>
 
             <div className="p-6 mb-6">
                 <div className="flex items-center space-x-4 mb-4">
                     {avatarError || !user.picture ? (
-                        <div className="w-16 h-16 rounded-full bg-brown flex items-center justify-center text-white text-2xl">
+                        <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl"
+                            style={{ backgroundColor: "var(--theme-primary)" }}
+                        >
                             💰
                         </div>
                     ) : (
@@ -100,106 +114,202 @@ export default function ProfilePage() {
                         />
                     )}
                     <div>
-                        <h3 className="text-xl font-semibold text-brown">
+                        <h3
+                            className="text-xl font-semibold"
+                            style={{ color: "var(--theme-primary)" }}
+                        >
                             {user.name}
                         </h3>
-                        <p className="text-gray-600">{user.email}</p>
+                        <p style={{ color: "var(--theme-textSecondary)" }}>
+                            {user.email}
+                        </p>
                     </div>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p
+                    className="text-sm"
+                    style={{ color: "var(--theme-textSecondary)" }}
+                >
                     Account created:{" "}
                     {new Date(user.createdAt).toLocaleDateString()}
                 </p>
             </div>
 
             <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4 text-brown">
+                <h2
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: "var(--theme-primary)" }}
+                >
                     Expense Statistics
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-sand rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-brown">
+                    <div
+                        className="rounded-lg p-4"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
+                        <h3
+                            className="text-lg font-semibold"
+                            style={{ color: "var(--theme-primary)" }}
+                        >
                             Total Expenses
                         </h3>
-                        <p className="text-2xl font-bold text-olive">
+                        <p
+                            className="text-2xl font-bold"
+                            style={{ color: "var(--theme-accent)" }}
+                        >
                             {stats.totalExpenses}
                         </p>
                     </div>
-                    <div className="bg-sand rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-brown">
+                    <div
+                        className="rounded-lg p-4"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
+                        <h3
+                            className="text-lg font-semibold"
+                            style={{ color: "var(--theme-primary)" }}
+                        >
                             Total Types
                         </h3>
-                        <p className="text-2xl font-bold text-olive">
+                        <p
+                            className="text-2xl font-bold"
+                            style={{ color: "var(--theme-accent)" }}
+                        >
                             {stats.totalTypes}
                         </p>
                     </div>
-                    <div className="bg-sand rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-brown">
+                    <div
+                        className="rounded-lg p-4"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
+                        <h3
+                            className="text-lg font-semibold"
+                            style={{ color: "var(--theme-primary)" }}
+                        >
                             Most Expensive
                         </h3>
-                        <p className="text-xl font-bold text-clay">
+                        <p
+                            className="text-xl font-bold"
+                            style={{ color: "var(--theme-secondary)" }}
+                        >
                             Birr{" "}
                             {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p
+                            className="text-sm"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
                             {stats.mostExpensive?.description || ""}
                         </p>
                     </div>
-                    <div className="bg-sand rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-brown">
+                    <div
+                        className="rounded-lg p-4"
+                        style={{ backgroundColor: "var(--theme-surface)" }}
+                    >
+                        <h3
+                            className="text-lg font-semibold"
+                            style={{ color: "var(--theme-primary)" }}
+                        >
                             Cheapest
                         </h3>
-                        <p className="text-xl font-bold text-olive">
+                        <p
+                            className="text-xl font-bold"
+                            style={{ color: "var(--theme-accent)" }}
+                        >
                             Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p
+                            className="text-sm"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
                             {stats.cheapest?.description || ""}
                         </p>
                     </div>
                 </div>
 
-                <h3 className="text-lg font-semibold mb-4 text-brown">
+                <h3
+                    className="text-lg font-semibold mb-4"
+                    style={{ color: "var(--theme-primary)" }}
+                >
                     Monthly Assessment
                 </h3>
                 <div className="space-y-4">
                     {stats.monthlyAssessment.map((month) => (
                         <div
                             key={month._id}
-                            className="border border-taupe rounded-lg p-4"
+                            className="rounded-lg p-4"
+                            style={{ border: "1px solid var(--theme-border)" }}
                         >
-                            <h4 className="text-lg font-semibold text-brown">
+                            <h4
+                                className="text-lg font-semibold"
+                                style={{ color: "var(--theme-primary)" }}
+                            >
                                 {month._id}
                             </h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p
+                                        className="text-sm"
+                                        style={{
+                                            color: "var(--theme-textSecondary)",
+                                        }}
+                                    >
                                         Total Spent
                                     </p>
-                                    <p className="font-bold text-olive">
+                                    <p
+                                        className="font-bold"
+                                        style={{ color: "var(--theme-accent)" }}
+                                    >
                                         Birr {month.total.toFixed(2)}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p
+                                        className="text-sm"
+                                        style={{
+                                            color: "var(--theme-textSecondary)",
+                                        }}
+                                    >
                                         Expenses Count
                                     </p>
-                                    <p className="font-bold text-brown">
+                                    <p
+                                        className="font-bold"
+                                        style={{
+                                            color: "var(--theme-primary)",
+                                        }}
+                                    >
                                         {month.count}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p
+                                        className="text-sm"
+                                        style={{
+                                            color: "var(--theme-textSecondary)",
+                                        }}
+                                    >
                                         Highest Expense
                                     </p>
-                                    <p className="font-bold text-clay">
+                                    <p
+                                        className="font-bold"
+                                        style={{
+                                            color: "var(--theme-secondary)",
+                                        }}
+                                    >
                                         Birr {month.maxExpense.toFixed(2)}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p
+                                        className="text-sm"
+                                        style={{
+                                            color: "var(--theme-textSecondary)",
+                                        }}
+                                    >
                                         Lowest Expense
                                     </p>
-                                    <p className="font-bold text-olive">
+                                    <p
+                                        className="font-bold"
+                                        style={{ color: "var(--theme-accent)" }}
+                                    >
                                         Birr {month.minExpense.toFixed(2)}
                                     </p>
                                 </div>

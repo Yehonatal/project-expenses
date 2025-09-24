@@ -10,3 +10,46 @@
 
     --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Theme-aware body background */
+body {
+    background-color: var(--theme-background, #f4e1d2);
+    color: var(--theme-text, #5c4b3b);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Button and input styling */
+button,
+input,
+select,
+textarea,
+[role="button"],
+[onclick],
+.cursor-pointer {
+    transition: all 0.2s ease;
+    border: 1px solid var(--theme-border);
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--theme-hover) !important;
+}
+
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    background-color: var(--theme-hover) !important;
+}
+
+input:active,
+select:active,
+textarea:active {
+    background-color: var(--theme-active) !important;
+}

@@ -36,7 +36,13 @@ export default function ExpensePage() {
     };
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
+        <div
+            className="p-6 max-w-5xl mx-auto"
+            style={{
+                backgroundColor: "var(--theme-background)",
+                color: "var(--theme-text)",
+            }}
+        >
             <h1 className="text-2xl font-bold mb-6">Expense Tracker</h1>
             <ExpenseForm onAdd={handleAdd} />
             <div className="mt-4 text-lg font-medium">

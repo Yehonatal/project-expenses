@@ -45,19 +45,32 @@ export default function DateGroup({
             {/* date header row - spans the table but keep it a single td so clickable area covers table width */}
             <tr
                 onClick={onToggle}
-                className="cursor-pointer bg-sand font-semibold text-brown hover:bg-olive/20 transition-colors duration-200"
+                className="cursor-pointer font-semibold transition-colors duration-200"
+                style={{
+                    backgroundColor: "var(--theme-surface)",
+                    color: "var(--theme-text)",
+                }}
             >
                 <td colSpan={5} className="p-0">
                     <div className="flex items-center justify-between p-3 select-none">
                         <div className="flex items-center space-x-2">
                             {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-olive" />
+                                <ChevronDown
+                                    className="w-4 h-4"
+                                    style={{ color: "var(--theme-accent)" }}
+                                />
                             ) : (
-                                <ChevronRight className="w-4 h-4 text-olive" />
+                                <ChevronRight
+                                    className="w-4 h-4"
+                                    style={{ color: "var(--theme-accent)" }}
+                                />
                             )}
                             <span>{formatDateShort(dateKey)}</span>
                         </div>
-                        <div className="text-sm font-normal text-brown/70">
+                        <div
+                            className="text-sm font-normal"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
                             Day Total: Birr {dayTotal.toFixed(2)}
                         </div>
                     </div>

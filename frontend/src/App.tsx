@@ -8,6 +8,8 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import API, { authAPI } from "./api/api";
 import Loading from "./components/Loading";
+import ThemeSelector from "./components/ThemeSelector";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 interface UserData {
     _id: string;
@@ -69,87 +71,135 @@ export default function App() {
     }
 
     return (
-        <Router>
-            {!user ? (
-                <LoginPage />
-            ) : (
-                <div className="max-w-5xl mx-auto">
-                    <nav className="p-4 flex gap-6 justify-between items-center text-brown font-semibold">
-                        <div className="flex gap-6">
-                            <Link
-                                to="/"
-                                className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="Expenses"
-                            >
-                                <List size={20} />
-                            </Link>
-                            <Link
-                                to="/summary"
-                                className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="Summary"
-                            >
-                                <PieChart size={20} />
-                            </Link>
-                            <Link
-                                to="/templates"
-                                className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="Templates"
-                            >
-                                <FileText size={20} />
-                            </Link>
-                            <Link
-                                to="/profile"
-                                className="hover:underline hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="Profile"
-                            >
-                                <User size={20} />
-                            </Link>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <a
-                                href="https://github.com/Yehonatal/project-expenses"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="GitHub Repository"
-                            >
-                                <Github size={20} />
-                            </a>
-                            <button
-                                onClick={handleLogout}
-                                className="hover:text-clay transition-colors duration-200 flex items-center gap-2"
-                                aria-label="Logout"
-                            >
-                                <LogOut size={20} />
-                            </button>
-                            <Link
-                                to="/profile"
-                                className="hover:opacity-80 transition-opacity"
-                            >
-                                {avatarError || !user.picture ? (
-                                    <div className="w-8 h-8 rounded-full bg-brown flex items-center justify-center text-white text-lg cursor-pointer">
-                                        💰
-                                    </div>
-                                ) : (
-                                    <img
-                                        src={user.picture}
-                                        alt={user.name}
-                                        className="w-8 h-8 rounded-full cursor-pointer"
-                                        onError={() => setAvatarError(true)}
-                                    />
-                                )}
-                            </Link>
-                        </div>
-                    </nav>
-
-                    <Routes>
-                        <Route path="/" element={<ExpensePage />} />
-                        <Route path="/summary" element={<SummaryPage />} />
-                        <Route path="/templates" element={<TemplatesPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
-                    </Routes>
-                </div>
-            )}
-        </Router>
+        <ThemeProvider>
+            <Router>
+                {!user ? (
+                    <LoginPage />
+                ) : (
+                    <div
+                        className="max-w-5xl mx-auto"
+                        style={{
+                            backgroundColor: "var(--theme-background)",
+                            color: "var(--theme-text)",
+                        }}
+                    >
+                        <nav
+                            className="p-4 flex gap-6 justify-between items-center font-semibold"
+                            style={{
+                                borderBottom: "1px solid var(--theme-border)",
+                            }}
+                        >
+                            <div className="flex gap-6">
+                                <Link
+                                    to="/"
+                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text)",
+                                        textDecorationColor:
+                                            "var(--theme-accent)",
+                                    }}
+                                    aria-label="Expenses"
+                                >
+                                    <List size={20} />
+                                </Link>
+                                <Link
+                                    to="/summary"
+                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text)",
+                                        textDecorationColor:
+                                            "var(--theme-accent)",
+                                    }}
+                                    aria-label="Summary"
+                                >
+                                    <PieChart size={20} />
+                                </Link>
+                                <Link
+                                    to="/templates"
+                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text)",
+                                        textDecorationColor:
+                                            "var(--theme-accent)",
+                                    }}
+                                    aria-label="Templates"
+                                >
+                                    <FileText size={20} />
+                                </Link>
+                                <Link
+                                    to="/profile"
+                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text)",
+                                        textDecorationColor:
+                                            "var(--theme-accent)",
+                                    }}
+                                    aria-label="Profile"
+                                >
+                                    <User size={20} />
+                                </Link>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <ThemeSelector />
+                                <a
+                                    href="https://github.com/Yehonatal/project-expenses"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
+                                    aria-label="GitHub Repository"
+                                >
+                                    <Github size={20} />
+                                </a>
+                                <button
+                                    onClick={handleLogout}
+                                    className="transition-colors duration-200 flex items-center gap-2"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
+                                    aria-label="Logout"
+                                >
+                                    <LogOut size={20} />
+                                </button>
+                                <Link
+                                    to="/profile"
+                                    className="hover:opacity-80 transition-opacity"
+                                >
+                                    {avatarError || !user.picture ? (
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-lg cursor-pointer"
+                                            style={{
+                                                backgroundColor:
+                                                    "var(--theme-primary)",
+                                            }}
+                                        >
+                                            💰
+                                        </div>
+                                    ) : (
+                                        <img
+                                            src={user.picture}
+                                            alt={user.name}
+                                            className="w-8 h-8 rounded-full cursor-pointer"
+                                            onError={() => setAvatarError(true)}
+                                        />
+                                    )}
+                                </Link>
+                            </div>
+                        </nav>{" "}
+                        <Routes>
+                            <Route path="/" element={<ExpensePage />} />
+                            <Route path="/summary" element={<SummaryPage />} />
+                            <Route
+                                path="/templates"
+                                element={<TemplatesPage />}
+                            />
+                            <Route path="/profile" element={<ProfilePage />} />
+                        </Routes>
+                    </div>
+                )}
+            </Router>
+        </ThemeProvider>
     );
 }

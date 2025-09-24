@@ -50,13 +50,19 @@ export default function ExpenseTable({ expenses }: ExpenseTableProps) {
 
     if (sortedMonths.length === 0)
         return (
-            <p className="text-center text-taupe text-sm mt-6 font-sans ">
+            <p
+                className="text-center text-sm mt-6 font-sans"
+                style={{ color: "var(--theme-text-secondary)" }}
+            >
                 No expenses yet
             </p>
         );
 
     return (
-        <div className="mt-6 space-y-6 font-sans text-brown">
+        <div
+            className="mt-6 space-y-6 font-sans"
+            style={{ color: "var(--theme-text)" }}
+        >
             {sortedMonths.map((ym) => (
                 <MonthSection
                     key={ym}

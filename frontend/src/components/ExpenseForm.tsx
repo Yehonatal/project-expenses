@@ -156,22 +156,34 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             <Toast message={toast?.message} type={toast?.type} />
             <form
                 onSubmit={handleSubmit}
-                className="border-dashed border border-olive rounded-md p-3 flex flex-wrap items-center gap-3 font-sans text-brown"
+                className="rounded-md p-3 flex flex-wrap items-center gap-3 font-sans"
+                style={{
+                    border: "2px dashed var(--theme-border)",
+                    backgroundColor: "var(--theme-surface)",
+                    color: "var(--theme-text)",
+                }}
             >
                 <input
                     type="date"
                     name="date"
                     value={form.date}
                     onChange={handleChange}
-                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
-          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive transition w-32"
+                    className="rounded-md px-3 py-1.5 text-sm transition-all"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 />
                 <select
                     name="template"
                     onChange={handleTemplateChange}
-                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
-          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
-          w-40"
+                    className="rounded-md px-3 py-1.5 text-sm transition-all w-40"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 >
                     <option value="">Templates</option>
                     {templates.map((t) => (
@@ -190,9 +202,12 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                     placeholder="Description"
                     value={form.description}
                     onChange={handleChange}
-                    className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm
-          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
-          flex-grow min-w-[120px]"
+                    className="rounded-md px-3 py-1.5 text-sm transition-all flex-grow min-w-[120px]"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 />
 
                 <div className="flex items-center space-x-2">
@@ -203,7 +218,12 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                         value={form.type}
                         onChange={handleChange}
                         placeholder="Type"
-                        className="bg-sand border border-olive rounded-md px-3 py-1.5 text-brown text-sm shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive w-40"
+                        className="rounded-md px-3 py-1.5 text-sm transition-all w-40"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text)",
+                        }}
                     />
                     <datalist id="type-suggestions">
                         {types.map((t) => (
@@ -219,14 +239,18 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                     value={form.amount}
                     onChange={handleChange}
                     step="1"
-                    className=" border border-olive rounded-md px-3 py-1.5 text-brown text-sm
-          shadow-inner focus:outline-none focus:ring-1 focus:ring-olive focus:border-olive
-          w-20 text-right"
+                    className="rounded-md px-3 py-1.5 text-sm transition-all w-20 text-right"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 />
 
                 <label
                     htmlFor="included"
-                    className="relative flex items-center gap-2 cursor-pointer select-none text-brown text-sm"
+                    className="relative flex items-center gap-2 cursor-pointer select-none text-sm"
+                    style={{ color: "var(--theme-text)" }}
                 >
                     <input
                         id="included"
@@ -237,10 +261,11 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                         className="peer absolute w-5 h-5 opacity-0 cursor-pointer"
                     />
                     <span
-                        className="w-5 h-5 rounded border-2 border-olive bg-sand
-            flex items-center justify-center
-            peer-checked:bg-olive peer-checked:border-olive
-            transition-colors duration-200"
+                        className="w-5 h-5 rounded border-2 bg-surface flex items-center justify-center transition-colors duration-200"
+                        style={{
+                            borderColor: "var(--theme-border)",
+                            backgroundColor: "var(--theme-surface)",
+                        }}
                         aria-hidden="true"
                     >
                         <Check
@@ -254,8 +279,11 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 <button
                     type="submit"
                     aria-label="Add expense"
-                    className="bg-clay text-white px-6 py-1.5 flex items-center gap-2
-          hover:bg-brown transition-colors duration-200 text-sm shadow-sm border-2 border-b-4 rounded-lg"
+                    className="px-6 py-1.5 flex items-center gap-2 text-sm rounded-lg transition-all"
+                    style={{
+                        backgroundColor: "var(--theme-primary)",
+                        color: "white",
+                    }}
                 >
                     <Plus className="w-4 h-4" />
                     Add

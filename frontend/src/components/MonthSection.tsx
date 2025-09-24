@@ -54,7 +54,11 @@ export default function MonthSection({
 
     return (
         <section
-            className="rounded-md border border-sand shadow-sm bg-white"
+            className="rounded-md shadow-sm"
+            style={{
+                border: `1px solid var(--theme-border)`,
+                backgroundColor: "var(--theme-surface)",
+            }}
             key={ym}
         >
             <header
@@ -63,26 +67,49 @@ export default function MonthSection({
                 aria-expanded={isExpanded}
                 aria-controls={`month-${ym}`}
             >
-                <div className="flex items-center space-x-2 font-semibold text-brown text-lg">
+                <div
+                    className="flex items-center space-x-2 font-semibold text-lg"
+                    style={{ color: "var(--theme-text)" }}
+                >
                     {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-olive" />
+                        <ChevronDown
+                            className="w-4 h-4"
+                            style={{ color: "var(--theme-accent)" }}
+                        />
                     ) : (
-                        <ChevronRight className="w-4 h-4 text-olive" />
+                        <ChevronRight
+                            className="w-4 h-4"
+                            style={{ color: "var(--theme-accent)" }}
+                        />
                     )}
                     <span>
                         {monthNames[monthIndex]} {year}
                     </span>
-                    <span className="ml-3 text-sm font-normal text-brown/70">
+                    <span
+                        className="ml-3 text-sm font-normal"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
                         Included: Birr {monthTotal.toFixed(2)}
                     </span>
                 </div>
             </header>
 
             {isExpanded && (
-                <div id={`month-${ym}`} className="border-t border-taupe">
+                <div
+                    id={`month-${ym}`}
+                    style={{ borderTop: `1px solid var(--theme-border)` }}
+                >
                     {/* desktop table: use fixed layout and explicit widths so headers align with rows */}
-                    <table className="hidden md:table table-fixed w-full text-left text-sm text-brown">
-                        <thead className="text-brown/70 font-normal border-b border-taupe">
+                    <table
+                        className="hidden md:table table-fixed w-full text-left text-sm"
+                        style={{ color: "var(--theme-text)" }}
+                    >
+                        <thead
+                            style={{
+                                color: "var(--theme-text-secondary)",
+                                borderBottom: `1px solid var(--theme-border)`,
+                            }}
+                        >
                             <tr>
                                 <th className="p-3 w-24">Date</th>
                                 <th className="p-3">Description</th>

@@ -102,8 +102,19 @@ export default function TemplatesPage() {
     };
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 text-brown">Templates</h1>
+        <div
+            className="p-6 max-w-5xl mx-auto"
+            style={{
+                backgroundColor: "var(--theme-background)",
+                color: "var(--theme-text)",
+            }}
+        >
+            <h1
+                className="text-2xl font-bold mb-6"
+                style={{ color: "var(--theme-text)" }}
+            >
+                Templates
+            </h1>
 
             <form
                 onSubmit={handleAdd}
@@ -114,7 +125,12 @@ export default function TemplatesPage() {
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Description"
-                    className="border border-olive rounded px-3 py-1.5 bg-sand text-brown flex-1 min-w-[140px]"
+                    className="rounded px-3 py-1.5 flex-1 min-w-[140px] transition-all"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 />
 
                 <div className="relative">
@@ -124,7 +140,12 @@ export default function TemplatesPage() {
                         value={form.type}
                         onChange={handleChange}
                         placeholder="Type"
-                        className="border border-olive rounded px-3 py-1.5 bg-sand text-brown w-40"
+                        className="rounded px-3 py-1.5 w-40 transition-all"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text)",
+                        }}
                     />
                     <datalist id="template-type-suggestions">
                         {types.map((t) => (
@@ -138,11 +159,22 @@ export default function TemplatesPage() {
                     value={form.price}
                     onChange={handleChange}
                     placeholder="Price"
-                    className="border border-olive rounded px-3 py-1.5 bg-sand text-brown w-24 text-right"
+                    className="rounded px-3 py-1.5 w-24 text-right transition-all"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        borderColor: "var(--theme-border)",
+                        color: "var(--theme-text)",
+                    }}
                 />
 
                 <div className="w-full sm:w-auto">
-                    <button className="bg-clay text-white px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center">
+                    <button
+                        className="px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center transition-all"
+                        style={{
+                            backgroundColor: "var(--theme-primary)",
+                            color: "white",
+                        }}
+                    >
                         <Plus className="w-4 h-4" /> Add
                     </button>
                 </div>
@@ -151,30 +183,50 @@ export default function TemplatesPage() {
 
             <div className="space-y-2">
                 {templates.length === 0 && (
-                    <div className="text-brown/60">No templates yet.</div>
+                    <div style={{ color: "var(--theme-text-secondary)" }}>
+                        No templates yet.
+                    </div>
                 )}
                 {templates.map((t) => {
                     const safeId = String(t._id ?? t.id ?? Date.now());
                     return (
                         <div
                             key={safeId}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-sand rounded p-3 gap-2"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded p-3 gap-2"
+                            style={{
+                                backgroundColor: "var(--theme-surface)",
+                                border: `1px solid var(--theme-border)`,
+                            }}
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                <div className="font-semibold text-brown">
+                                <div
+                                    className="font-semibold"
+                                    style={{ color: "var(--theme-text)" }}
+                                >
                                     {t.description}
                                 </div>
-                                <div className="text-sm text-gray-600 capitalize">
+                                <div
+                                    className="text-sm capitalize"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
+                                >
                                     {t.type}
                                 </div>
                             </div>
                             <div className="flex items-center justify-between sm:justify-end gap-3">
-                                <div className="font-semibold text-brown">
+                                <div
+                                    className="font-semibold"
+                                    style={{ color: "var(--theme-text)" }}
+                                >
                                     Birr {String(t.price)}
                                 </div>
                                 <button
                                     onClick={() => handleDelete(safeId)}
-                                    className="text-clay hover:text-red-600 transition-colors"
+                                    className="transition-colors duration-200"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
