@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { List, PieChart, FileText, LogOut, User } from "lucide-react";
+import { List, PieChart, FileText, LogOut, User, Github } from "lucide-react";
 import { useEffect, useState } from "react";
 import ExpensePage from "./pages/ExpensePage";
 import SummaryPage from "./pages/SummaryPage";
@@ -106,6 +106,15 @@ export default function App() {
                             </Link>
                         </div>
                         <div className="flex items-center gap-4">
+                            <a
+                                href="https://github.com/Yehonatal/project-expenses"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-clay transition-colors duration-200 flex items-center gap-2"
+                                aria-label="GitHub Repository"
+                            >
+                                <Github size={20} />
+                            </a>
                             <button
                                 onClick={handleLogout}
                                 className="hover:text-clay transition-colors duration-200 flex items-center gap-2"
