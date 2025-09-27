@@ -22,38 +22,56 @@ export default function Toast({ message, type = "success" }: ToastProps) {
     const getIcon = () => {
         switch (type) {
             case "success":
-                return <Check className="w-5 h-5 text-green-600" />;
+                return (
+                    <Check
+                        className="w-5 h-5"
+                        style={{ color: "var(--theme-secondary)" }}
+                    />
+                );
             case "error":
-                return <X className="w-5 h-5 text-red-600" />;
+                return (
+                    <X
+                        className="w-5 h-5"
+                        style={{ color: "var(--theme-error)" }}
+                    />
+                );
             case "info":
-                return <Info className="w-5 h-5 text-blue-600" />;
+                return (
+                    <Info
+                        className="w-5 h-5"
+                        style={{ color: "var(--theme-primary)" }}
+                    />
+                );
             default:
-                return <Check className="w-5 h-5 text-green-600" />;
+                return (
+                    <Check
+                        className="w-5 h-5"
+                        style={{ color: "var(--theme-secondary)" }}
+                    />
+                );
         }
     };
 
     const getBgColor = () => {
-        switch (type) {
-            case "success":
-                return "bg-green-50 border-green-200";
-            case "error":
-                return "bg-red-50 border-red-200";
-            case "info":
-                return "bg-blue-50 border-blue-200";
-            default:
-                return "bg-green-50 border-green-200";
-        }
+        return {
+            backgroundColor: "var(--theme-surface)",
+            borderColor: "var(--theme-border)",
+        };
     };
 
     return (
         <div
-            className={`fixed bottom-4 right-4 max-w-xs w-auto ${getBgColor()} border px-4 py-3 rounded-lg shadow-lg ring-1 ring-black/10 transform transition-all duration-300 ease-out animate-in slide-in-from-right-4`}
+            className="fixed bottom-4 right-4 max-w-xs w-auto border px-4 py-3 rounded-lg shadow-lg ring-1 ring-black/10 transform transition-all duration-300 ease-out animate-in slide-in-from-right-4"
+            style={getBgColor()}
             role="status"
             aria-live="polite"
         >
             <div className="flex items-center gap-3">
                 <div className="flex-shrink-0">{getIcon()}</div>
-                <div className="text-sm leading-tight text-gray-800">
+                <div
+                    className="text-sm leading-tight"
+                    style={{ color: "var(--theme-text)" }}
+                >
                     {message}
                 </div>
             </div>

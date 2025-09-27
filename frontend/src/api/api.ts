@@ -13,3 +13,14 @@ const authAPI = axios.create({
 
 export default API;
 export { authAPI };
+
+// Budget APIs
+export const getBudgets = () => API.get("/budgets");
+export const setBudget = (data: {
+    startMonth: number;
+    startYear: number;
+    endMonth: number;
+    endYear: number;
+    totalBudget: number;
+}) => API.post("/budgets", data);
+export const deleteBudget = (id: string) => API.delete(`/budgets/${id}`);

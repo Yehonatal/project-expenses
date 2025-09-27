@@ -7,3 +7,16 @@ export interface Expense {
     type: string;
     createdAt: string;
 }
+
+export interface Budget {
+    _id: string;
+    userId: string;
+    startMonth: number;
+    startYear: number;
+    endMonth: number;
+    endYear: number;
+    totalBudget: number;
+    spent: number;
+    createdAt: string;
+    updatedAt: string;
+}

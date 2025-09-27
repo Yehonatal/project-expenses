@@ -1,11 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { List, PieChart, FileText, LogOut, User, Github } from "lucide-react";
+import {
+    List,
+    PieChart,
+    FileText,
+    LogOut,
+    Github,
+    DollarSign,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import ExpensePage from "./pages/ExpensePage";
 import SummaryPage from "./pages/SummaryPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import BudgetPage from "./pages/BudgetPage";
 import API, { authAPI } from "./api/api";
 import Loading from "./components/Loading";
 import ThemeSelector from "./components/ThemeSelector";
@@ -127,16 +135,16 @@ export default function App() {
                                     <FileText size={20} />
                                 </Link>
                                 <Link
-                                    to="/profile"
+                                    to="/budget"
                                     className="hover:underline transition-colors duration-200 flex items-center gap-2"
                                     style={{
                                         color: "var(--theme-text)",
                                         textDecorationColor:
                                             "var(--theme-accent)",
                                     }}
-                                    aria-label="Profile"
+                                    aria-label="Budget"
                                 >
-                                    <User size={20} />
+                                    <DollarSign size={20} />
                                 </Link>
                             </div>
                             <div className="flex items-center gap-4">
@@ -195,6 +203,7 @@ export default function App() {
                                 path="/templates"
                                 element={<TemplatesPage />}
                             />
+                            <Route path="/budget" element={<BudgetPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
                         </Routes>
                     </div>

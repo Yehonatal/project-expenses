@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import API from "../api/api";
 import type { Expense } from "../types/expense";
-import { Plus, Check } from "lucide-react";
+import { Plus } from "lucide-react";
 import Toast from "./Toast";
 
 type ExpenseFormData = {
@@ -100,7 +100,12 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         const checked = (e.target as HTMLInputElement).checked;
         setForm((prev) => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value,
+            [name]:
+                type === "checkbox" && name === "included"
+                    ? !checked
+                    : type === "checkbox"
+                    ? checked
+                    : value,
         }));
     };
 
@@ -249,30 +254,20 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
 
                 <label
                     htmlFor="included"
-                    className="relative flex items-center gap-2 cursor-pointer select-none text-sm"
+                    className="flex items-center gap-2 cursor-pointer select-none text-sm"
                     style={{ color: "var(--theme-text)" }}
                 >
                     <input
                         id="included"
                         type="checkbox"
                         name="included"
-                        checked={form.included}
+                        checked={!form.included}
                         onChange={handleChange}
-                        className="peer absolute w-5 h-5 opacity-0 cursor-pointer"
-                    />
-                    <span
-                        className="w-5 h-5 rounded border-2 bg-surface flex items-center justify-center transition-colors duration-200"
+                        className="w-4 h-4 cursor-pointer"
                         style={{
-                            borderColor: "var(--theme-border)",
-                            backgroundColor: "var(--theme-surface)",
+                            accentColor: "var(--theme-primary)",
                         }}
-                        aria-hidden="true"
-                    >
-                        <Check
-                            className="w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
-                            strokeWidth={3}
-                        />
-                    </span>
+                    />
                     EXCLUDE FROM TOTAL
                 </label>
 

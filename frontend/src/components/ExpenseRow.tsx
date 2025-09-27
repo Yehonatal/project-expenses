@@ -13,7 +13,7 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
         >
             <td
                 className="p-3 align-top font-mono w-24"
-                style={{ color: "var(--theme-text-secondary)" }}
+                style={{ color: "var(--theme-textSecondary)" }}
             >
                 {new Date(exp.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -28,7 +28,7 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
             </td>
             <td
                 className="p-3 align-top capitalize"
-                style={{ color: "var(--theme-text-secondary)" }}
+                style={{ color: "var(--theme-textSecondary)" }}
             >
                 {exp.type}
             </td>

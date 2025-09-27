@@ -54,16 +54,14 @@ export default function MonthSection({
 
     return (
         <section
-            className="rounded-md shadow-sm"
             style={{
-                border: `1px solid var(--theme-border)`,
                 backgroundColor: "var(--theme-surface)",
             }}
             key={ym}
         >
             <header
                 onClick={() => onToggleMonth(ym)}
-                className="flex items-center justify-between cursor-pointer select-none px-5 py-3"
+                className="flex items-center justify-between cursor-pointer select-none px-5 py-3 rounded-tl-md rounded-tr-md"
                 aria-expanded={isExpanded}
                 aria-controls={`month-${ym}`}
             >
@@ -87,7 +85,7 @@ export default function MonthSection({
                     </span>
                     <span
                         className="ml-3 text-sm font-normal"
-                        style={{ color: "var(--theme-text-secondary)" }}
+                        style={{ color: "var(--theme-textSecondary)" }}
                     >
                         Included: Birr {monthTotal.toFixed(2)}
                     </span>
@@ -157,13 +155,36 @@ export default function MonthSection({
                                             onClick={() =>
                                                 toggleDate(ym, dateKey)
                                             }
-                                            className="cursor-pointer flex items-center justify-between space-x-2 font-semibold text-brown bg-sand rounded px-3 py-1 select-none hover:bg-olive/20 transition-colors duration-200"
+                                            className="cursor-pointer flex items-center justify-between space-x-2 font-semibold rounded px-3 py-1 select-none transition-colors duration-200"
+                                            style={{
+                                                backgroundColor:
+                                                    "var(--theme-surface)",
+                                                color: "var(--theme-text)",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor =
+                                                    "var(--theme-hover)";
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor =
+                                                    "var(--theme-surface)";
+                                            }}
                                         >
                                             <div className="flex items-center space-x-2">
                                                 {isExpandedDate ? (
-                                                    <ChevronDown className="w-4 h-4 text-olive" />
+                                                    <ChevronDown
+                                                        className="w-4 h-4"
+                                                        style={{
+                                                            color: "var(--theme-accent)",
+                                                        }}
+                                                    />
                                                 ) : (
-                                                    <ChevronRight className="w-4 h-4 text-olive" />
+                                                    <ChevronRight
+                                                        className="w-4 h-4"
+                                                        style={{
+                                                            color: "var(--theme-accent)",
+                                                        }}
+                                                    />
                                                 )}
                                                 <span>
                                                     {
@@ -178,7 +199,12 @@ export default function MonthSection({
                                                     ).getDate()}
                                                 </span>
                                             </div>
-                                            <div className="text-sm font-normal text-brown/70">
+                                            <div
+                                                className="text-sm font-normal"
+                                                style={{
+                                                    color: "var(--theme-textSecondary)",
+                                                }}
+                                            >
                                                 Day Total: Birr{" "}
                                                 {dayTotal.toFixed(2)}
                                             </div>

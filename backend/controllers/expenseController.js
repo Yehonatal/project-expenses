@@ -1,7 +1,56 @@
 const Expense = require("../models/expenseModel");
 const mongoose = require("mongoose");
 const Type = require("../models/typeModel");
+const Budget = require("../models/budgetModel");
 const { normalizeType } = require("../utils/normalizeType");
+
+// Helper to calculate spent across a date range
+const calculateSpent = async (
+    userId,
+    startMonth,
+    startYear,
+    endMonth,
+    endYear
+) => {
+    const startDate = new Date(startYear, startMonth - 1, 1);
+    const endDate = new Date(endYear, endMonth, 1); // First day of the next month
+    const expenses = await Expense.find({
+        userId,
+        date: { $gte: startDate, $lt: endDate },
+    });
+    return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+};
+
+// Helper to update budgets that overlap with the expense date
+const updateOverlappingBudgets = async (userId, expenseDate) => {
+    const budgets = await Budget.find({
+        userId,
+        $or: [
+            {
+                startYear: { $lt: expenseDate.getFullYear() },
+                endYear: { $gt: expenseDate.getFullYear() },
+            },
+            {
+                startYear: expenseDate.getFullYear(),
+                startMonth: { $lte: expenseDate.getMonth() + 1 },
+            },
+            {
+                endYear: expenseDate.getFullYear(),
+                endMonth: { $gte: expenseDate.getMonth() + 1 },
+            },
+        ],
+    });
+    for (const budget of budgets) {
+        budget.spent = await calculateSpent(
+            userId,
+            budget.startMonth,
+            budget.startYear,
+            budget.endMonth,
+            budget.endYear
+        );
+        await budget.save();
+    }
+};
 
 /**
  * Add new expense
@@ -40,6 +89,10 @@ exports.addExpense = async (req, res) => {
         } catch (tErr) {
             console.error("Failed to upsert type:", tErr);
         }
+
+        // Update overlapping budgets
+        await updateOverlappingBudgets(req.user._id, expense.date);
+
         res.status(201).json(saved);
     } catch (err) {
         console.error("addExpense error:", err);
@@ -126,6 +179,9 @@ exports.deleteExpense = async (req, res) => {
         const deleted = await Expense.findByIdAndDelete(id);
         if (!deleted || deleted.userId.toString() !== req.user._id.toString())
             return res.status(404).json({ message: "Expense not found" });
+
+        // Update overlapping budgets
+        await updateOverlappingBudgets(req.user._id, deleted.date);
 
         res.json({ message: "Deleted", id: deleted._id });
     } catch (err) {

@@ -33,28 +33,21 @@ const themeOptions: { value: Theme; label: string; preview: string }[] = [
 export default function ThemeSelector() {
     const { theme, setTheme } = useTheme();
 
+    const cycleTheme = () => {
+        const currentIndex = themeOptions.findIndex(
+            (option) => option.value === theme
+        );
+        const nextIndex = (currentIndex + 1) % themeOptions.length;
+        setTheme(themeOptions[nextIndex].value);
+    };
+
     return (
-        <div className="relative">
-            <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as Theme)}
-                className="appearance-none bg-transparent border border-[var(--theme-border)] rounded px-1 py-1 pr-6 text-sm hover:bg-[var(--theme-hover)] transition-colors cursor-pointer text-[var(--theme-text)] md:px-3 md:py-1.5 md:pr-8"
-            >
-                <option value="" disabled className="md:hidden">
-                    Theme
-                </option>
-                {themeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-1 pointer-events-none">
-                <Palette
-                    size={14}
-                    className="text-[var(--theme-text-secondary)]"
-                />
-            </div>
-        </div>
+        <button
+            onClick={cycleTheme}
+            className="p-2 rounded hover:bg-[var(--theme-hover)] transition-colors cursor-pointer"
+            title="Change theme"
+        >
+            <Palette size={20} className="text-[var(--theme-text)]" />
+        </button>
     );
 }

@@ -21,11 +21,19 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-sand">
+        <div
+            className="min-h-screen flex items-center justify-center"
+            style={{ backgroundColor: "var(--theme-background)" }}
+        >
             <div className="text-center">
                 <button
                     onClick={handleGoogleLogin}
-                    className="bg-white text-gray-700 px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center gap-3 mx-auto"
+                    className="px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center gap-3 mx-auto"
+                    style={{
+                        backgroundColor: "var(--theme-surface)",
+                        color: "var(--theme-text)",
+                        border: "1px solid var(--theme-border)",
+                    }}
                 >
                     <svg className="w-6 h-6" viewBox="0 0 24 24">
                         <path

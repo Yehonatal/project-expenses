@@ -69,7 +69,7 @@ export default function DateGroup({
                         </div>
                         <div
                             className="text-sm font-normal"
-                            style={{ color: "var(--theme-text-secondary)" }}
+                            style={{ color: "var(--theme-textSecondary)" }}
                         >
                             Day Total: Birr {dayTotal.toFixed(2)}
                         </div>
