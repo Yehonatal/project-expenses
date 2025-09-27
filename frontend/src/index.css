@@ -33,6 +33,7 @@ textarea,
 
 button:hover {
     background-color: var(--theme-hover) !important;
+    color: var(--theme-accent) !important;
 }
 
 button:focus,
