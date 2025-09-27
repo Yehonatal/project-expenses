@@ -234,7 +234,7 @@ export default function ExpensePage() {
                                     ) as HTMLInputElement
                                 )?.focus();
                             }}
-                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80 flex items-center gap-2"
+                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90 flex items-center gap-2"
                             style={{
                                 backgroundColor: "var(--theme-primary)",
                                 color: "white",
@@ -246,7 +246,7 @@ export default function ExpensePage() {
                     ) : (
                         <button
                             onClick={() => setShowRecurringModal(false)}
-                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
+                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
                             style={{ color: "var(--theme-text)" }}
                         >
                             OK
@@ -320,14 +320,14 @@ export default function ExpensePage() {
                                 setShowDeleteModal(false);
                                 setDeletingExpenseId(null);
                             }}
-                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
+                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
                             style={{ color: "var(--theme-text)" }}
                         >
                             Cancel
                         </button>
                         <button
                             onClick={confirmDelete}
-                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
+                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
                             style={{
                                 backgroundColor: "var(--theme-error)",
                                 color: "white",

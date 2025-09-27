@@ -21,16 +21,14 @@ export default function Modal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
-                className="absolute inset-0 backdrop-blur-lg"
+                className="absolute inset-0 backdrop-blur-xl"
                 style={{
-                    backgroundColor: "var(--theme-background)",
-                    opacity: 0.8,
-                    backdropFilter: "blur(12px)",
+                    backdropFilter: "blur(20px)",
                 }}
                 onClick={onClose}
             />
 
-            <div className="relative max-w-md w-full mx-4 glass-card rounded-lg shadow-lg">
+            <div className="relative max-w-lg w-full mx-4 glass-card rounded-lg shadow-xl border border-theme-glass-border/50">
                 <div
                     className="flex items-center justify-between p-4 border-b"
                     style={{ borderColor: "var(--theme-border)" }}
@@ -43,7 +41,7 @@ export default function Modal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full flex items-center justify-center glass-button hover:glass-button/80 transition-all duration-200 cursor-pointer"
+                        className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-theme-surface/50 transition-all duration-200 cursor-pointer"
                         style={{
                             color: "var(--theme-text-secondary)",
                         }}

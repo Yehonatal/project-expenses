@@ -377,7 +377,7 @@ export default function ProfilePage() {
                 actions={
                     <button
                         onClick={() => setShowGoogleDriveModal(false)}
-                        className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                        className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
                         style={{
                             backgroundColor: "var(--theme-primary)",
                             color: "white",
