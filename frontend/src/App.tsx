@@ -153,23 +153,27 @@ export default function App() {
                                     href="https://github.com/Yehonatal/project-expenses"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="transition-colors duration-200 flex items-center gap-2"
+                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
                                     style={{
+                                        backgroundColor: "var(--theme-surface)",
+                                        border: "none",
                                         color: "var(--theme-text-secondary)",
                                     }}
                                     aria-label="GitHub Repository"
                                 >
-                                    <Github size={20} />
+                                    <Github size={16} />
                                 </a>
                                 <button
                                     onClick={handleLogout}
-                                    className="transition-colors duration-200 flex items-center gap-2"
+                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
                                     style={{
+                                        backgroundColor: "var(--theme-surface)",
+                                        border: "none",
                                         color: "var(--theme-text-secondary)",
                                     }}
                                     aria-label="Logout"
                                 >
-                                    <LogOut size={20} />
+                                    <LogOut size={16} />
                                 </button>
                                 <Link
                                     to="/profile"

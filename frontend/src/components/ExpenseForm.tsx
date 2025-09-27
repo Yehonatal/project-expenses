@@ -10,6 +10,8 @@ type ExpenseFormData = {
     amount: string;
     included: boolean;
     type: string;
+    isRecurring: boolean;
+    frequency: "weekly" | "monthly";
 };
 
 type ExpenseFormProps = {
@@ -51,6 +53,8 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
         amount: "",
         included: true,
         type: "",
+        isRecurring: false,
+        frequency: "monthly",
     });
 
     const [types, setTypes] = useState<string[]>([]);
@@ -136,6 +140,8 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 amount: "",
                 included: true,
                 type: "",
+                isRecurring: false,
+                frequency: "monthly",
             });
             // refresh types from server in background
             void (async () => {
@@ -266,18 +272,72 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                         className="w-4 h-4 cursor-pointer"
                         style={{
                             accentColor: "var(--theme-primary)",
+                            border: "none",
                         }}
                     />
                     EXCLUDE FROM TOTAL
                 </label>
 
+                <label
+                    htmlFor="isRecurring"
+                    className="flex items-center gap-2 cursor-pointer select-none text-sm"
+                    style={{ color: "var(--theme-text)" }}
+                >
+                    <input
+                        id="isRecurring"
+                        type="checkbox"
+                        name="isRecurring"
+                        checked={form.isRecurring}
+                        onChange={handleChange}
+                        className="w-4 h-4 cursor-pointer"
+                        style={{
+                            accentColor: "var(--theme-primary)",
+                            border: "none",
+                        }}
+                    />
+                    RECURRING
+                </label>
+
+                {form.isRecurring && (
+                    <select
+                        name="frequency"
+                        value={form.frequency}
+                        onChange={handleChange}
+                        className="rounded-md px-3 py-1.5 text-sm transition-all w-32"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text)",
+                        }}
+                    >
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                )}
+
                 <button
                     type="submit"
                     aria-label="Add expense"
-                    className="px-6 py-1.5 flex items-center gap-2 text-sm rounded-lg transition-all"
+                    className="px-6 py-1.5 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
                     style={{
                         backgroundColor: "var(--theme-primary)",
-                        color: "white",
+                        color: "var(--theme-background)",
+                        border: "none",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                            "var(--theme-active)";
+                        e.currentTarget.style.color = "var(--theme-text)";
+                        e.currentTarget.style.boxShadow =
+                            "0 2px 4px rgba(0, 0, 0, 0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                            "var(--theme-primary)";
+                        e.currentTarget.style.color = "var(--theme-background)";
+                        e.currentTarget.style.boxShadow =
+                            "0 1px 2px rgba(0, 0, 0, 0.1)";
                     }}
                 >
                     <Plus className="w-4 h-4" />

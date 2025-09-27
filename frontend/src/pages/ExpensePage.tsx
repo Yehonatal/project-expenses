@@ -4,11 +4,19 @@ import { getBudgets } from "../api/api";
 import type { Expense, Budget } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
+import Modal from "../components/Modal";
+import { RotateCcw, Plus } from "lucide-react";
 
 export default function ExpensePage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [total, setTotal] = useState<number>(0);
     const [budgets, setBudgets] = useState<Budget[]>([]);
+    const [showRecurringModal, setShowRecurringModal] = useState(false);
+    const [recurringModalContent, setRecurringModalContent] = useState<{
+        title: string;
+        message: string;
+        showAddButton?: boolean;
+    } | null>(null);
 
     const fetchExpenses = async () => {
         try {
@@ -47,6 +55,53 @@ export default function ExpensePage() {
         }
     };
 
+    const handleGenerateRecurring = async () => {
+        try {
+            const res = await API.post("/expenses/generate-recurring");
+
+            if (res.data.generatedExpenses.length > 0) {
+                // Refresh expenses to show the newly generated ones
+                await fetchExpenses();
+                setRecurringModalContent({
+                    title: "Success",
+                    message: `Successfully generated ${
+                        res.data.generatedExpenses.length
+                    } recurring expense${
+                        res.data.generatedExpenses.length === 1 ? "" : "s"
+                    }.`,
+                });
+            } else {
+                // Check if there are any recurring expenses at all
+                const hasRecurringExpenses = expenses.some(
+                    (exp) => exp.isRecurring
+                );
+                if (!hasRecurringExpenses) {
+                    setRecurringModalContent({
+                        title: "No Recurring Expenses",
+                        message:
+                            "You don't have any recurring expenses set up yet. Would you like to create your first recurring expense?",
+                        showAddButton: true,
+                    });
+                } else {
+                    setRecurringModalContent({
+                        title: "No Expenses Due",
+                        message:
+                            "All your recurring expenses are up to date. No new expenses were generated.",
+                    });
+                }
+            }
+            setShowRecurringModal(true);
+        } catch (error) {
+            console.error("Failed to generate recurring expenses:", error);
+            setRecurringModalContent({
+                title: "Error",
+                message:
+                    "Failed to generate recurring expenses. Please try again later.",
+            });
+            setShowRecurringModal(true);
+        }
+    };
+
     return (
         <div
             className="p-6 max-w-5xl mx-auto"
@@ -56,9 +111,50 @@ export default function ExpensePage() {
             }}
         >
             <h1 className="text-2xl font-bold mb-6">Expense Tracker</h1>
-            <ExpenseForm onAdd={handleAdd} />
-            <div className="mt-4 text-lg font-medium">
-                Total (Included): Birr {total.toFixed(2)}
+            <div className="flex items-center gap-4 mb-4">
+                <ExpenseForm onAdd={handleAdd} />
+            </div>
+            <div className="flex mt-4 justify-between">
+                <div className="text-lg font-medium">
+                    Total (Included): Birr {total.toFixed(2)}
+                </div>
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleGenerateRecurring}
+                        className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                        style={{
+                            backgroundColor: "var(--theme-accent)",
+                            color: "var(--theme-background)",
+                            border: "1px solid var(--theme-border)",
+                            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+                        }}
+                        title="Generate due recurring expenses"
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-active)";
+                            e.currentTarget.style.color = "var(--theme-text)";
+                            e.currentTarget.style.boxShadow =
+                                "0 2px 4px rgba(0, 0, 0, 0.15)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-accent)";
+                            e.currentTarget.style.color =
+                                "var(--theme-background)";
+                            e.currentTarget.style.boxShadow =
+                                "0 1px 2px rgba(0, 0, 0, 0.1)";
+                        }}
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        Generate Recurring
+                    </button>
+                    <div
+                        className="text-xs"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
+                        Auto-create due recurring expenses
+                    </div>
+                </div>
             </div>
 
             {budgets.length > 0 && (
@@ -139,6 +235,51 @@ export default function ExpensePage() {
             )}
 
             <ExpenseTable expenses={expenses} />
+
+            <Modal
+                isOpen={showRecurringModal}
+                onClose={() => setShowRecurringModal(false)}
+                title={recurringModalContent?.title || ""}
+                actions={
+                    recurringModalContent?.showAddButton ? (
+                        <button
+                            onClick={() => {
+                                setShowRecurringModal(false);
+                                // Scroll to the form or focus on it
+                                (
+                                    document.querySelector(
+                                        'input[name="description"]'
+                                    ) as HTMLInputElement
+                                )?.focus();
+                            }}
+                            className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all"
+                            style={{
+                                backgroundColor: "var(--theme-primary)",
+                                color: "white",
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Recurring Expense
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setShowRecurringModal(false)}
+                            className="px-4 py-2 text-sm rounded-lg transition-all"
+                            style={{
+                                backgroundColor: "var(--theme-surface)",
+                                color: "var(--theme-text)",
+                                border: "1px solid var(--theme-border)",
+                            }}
+                        >
+                            OK
+                        </button>
+                    )
+                }
+            >
+                <p style={{ color: "var(--theme-text)" }}>
+                    {recurringModalContent?.message}
+                </p>
+            </Modal>
         </div>
     );
 }

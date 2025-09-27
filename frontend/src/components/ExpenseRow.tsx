@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, X, RotateCcw } from "lucide-react";
 import type { Expense } from "../types/expense";
 
 interface ExpenseRowProps {
@@ -24,7 +24,15 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
                 className="p-3 align-top"
                 style={{ color: "var(--theme-text)" }}
             >
-                {exp.description}
+                <div className="flex items-center gap-2">
+                    {exp.description}
+                    {exp.isRecurring && (
+                        <RotateCcw
+                            className="w-3 h-3"
+                            style={{ color: "var(--theme-accent)" }}
+                        />
+                    )}
+                </div>
             </td>
             <td
                 className="p-3 align-top capitalize"

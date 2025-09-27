@@ -16,6 +16,9 @@ router.get("/summary", auth, controller.getSummary);
 // GET    /api/expenses/stats -> user stats
 router.get("/stats", auth, controller.getStats);
 
+// POST   /api/expenses/generate-recurring -> generate due recurring expenses
+router.post("/generate-recurring", auth, controller.generateRecurringExpenses);
+
 // PUT    /api/expenses/:id    -> update
 router.put("/:id", auth, controller.updateExpense);
 

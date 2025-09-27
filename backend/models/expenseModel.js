@@ -12,6 +12,20 @@ const expenseSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        // Recurring expense fields
+        isRecurring: { type: Boolean, default: false },
+        frequency: {
+            type: String,
+            enum: ["weekly", "monthly"],
+            required: function () {
+                return this.isRecurring;
+            },
+        },
+        nextDueDate: { type: Date },
+        parentExpenseId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Expense",
+        }, // Reference to the original recurring expense
     },
     {
         timestamps: true,
