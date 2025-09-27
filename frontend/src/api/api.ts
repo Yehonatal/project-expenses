@@ -28,3 +28,17 @@ export const setBudget = (data: {
     totalBudget: number;
 }) => API.post("/budgets", data);
 export const deleteBudget = (id: string) => API.delete(`/budgets/${id}`);
+
+// Expense APIs
+export const getExpenses = (params?: {
+    startDate?: string;
+    endDate?: string;
+    type?: string;
+    limit?: number;
+    page?: number;
+}) => API.get("/expenses", { params });
+export const getExpenseStats = () => API.get("/expenses/stats");
+
+// Export APIs
+export const exportExpenses = (format: "csv" | "pdf") =>
+    API.get(`/expenses/export/${format}`, { responseType: "blob" });
