@@ -16,9 +16,10 @@ type ExpenseFormData = {
 
 type ExpenseFormProps = {
     onAdd: (expense: Expense) => void;
+    editExpense?: Expense | null;
 };
 
-export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
+export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
     const today = new Date().toISOString().split("T")[0];
 
     const [templates, setTemplates] = useState<
@@ -46,6 +47,20 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
             mounted = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (editExpense) {
+            setForm({
+                date: new Date(editExpense.date).toISOString().split("T")[0],
+                description: editExpense.description,
+                amount: editExpense.amount.toString(),
+                included: editExpense.included,
+                type: editExpense.type,
+                isRecurring: editExpense.isRecurring || false,
+                frequency: editExpense.frequency || "monthly",
+            });
+        }
+    }, [editExpense]);
 
     const [form, setForm] = useState<ExpenseFormData>({
         date: today,
@@ -129,20 +144,27 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 }
             }
 
-            const res = await API.post<Expense>("/expenses", {
-                ...form,
-                amount: parseFloat(form.amount),
-            });
+            const res = editExpense
+                ? await API.put<Expense>(`/expenses/${editExpense._id}`, {
+                      ...form,
+                      amount: parseFloat(form.amount),
+                  })
+                : await API.post<Expense>("/expenses", {
+                      ...form,
+                      amount: parseFloat(form.amount),
+                  });
             onAdd(res.data);
-            setForm({
-                date: today,
-                description: "",
-                amount: "",
-                included: true,
-                type: "",
-                isRecurring: false,
-                frequency: "monthly",
-            });
+            if (!editExpense) {
+                setForm({
+                    date: today,
+                    description: "",
+                    amount: "",
+                    included: true,
+                    type: "",
+                    isRecurring: false,
+                    frequency: "monthly",
+                });
+            }
             // refresh types from server in background
             void (async () => {
                 try {
@@ -153,12 +175,19 @@ export default function ExpenseForm({ onAdd }: ExpenseFormProps) {
                 }
             })();
             setToast({
-                message: "Expense added successfully!",
+                message: editExpense
+                    ? "Expense updated successfully!"
+                    : "Expense added successfully!",
                 type: "success",
             });
         } catch (err) {
             console.error(err);
-            setToast({ message: "Failed to add expense", type: "error" });
+            setToast({
+                message: editExpense
+                    ? "Failed to update expense"
+                    : "Failed to add expense",
+                type: "error",
+            });
         }
     };
 

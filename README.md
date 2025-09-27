@@ -5,4 +5,5 @@
 ![Mini Dashboard](./preview/dashboard.png)
 ![Mini Dashboard 2](./preview/dashboard2.png)
 ![Template](./preview/templates.png)
+![Modal](./preview/modal.png)
 ![Profile](./preview/profile.png)

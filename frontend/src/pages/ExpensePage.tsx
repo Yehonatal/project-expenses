@@ -17,6 +17,12 @@ export default function ExpensePage() {
         message: string;
         showAddButton?: boolean;
     } | null>(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(
+        null
+    );
 
     const fetchExpenses = async () => {
         try {
@@ -52,6 +58,29 @@ export default function ExpensePage() {
 
         if (newExpense.included) {
             setTotal((prev) => prev + newExpense.amount);
+        }
+    };
+
+    const handleEdit = (expense: Expense) => {
+        setEditingExpense(expense);
+        setShowEditModal(true);
+    };
+
+    const handleDelete = (id: string) => {
+        setDeletingExpenseId(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingExpenseId) return;
+
+        try {
+            await API.delete(`/expenses/${deletingExpenseId}`);
+            await fetchExpenses(); // Refresh the list
+            setShowDeleteModal(false);
+            setDeletingExpenseId(null);
+        } catch (error) {
+            console.error("Failed to delete expense:", error);
         }
     };
 
@@ -114,47 +143,30 @@ export default function ExpensePage() {
             <div className="flex items-center gap-4 mb-4">
                 <ExpenseForm onAdd={handleAdd} />
             </div>
-            <div className="flex mt-4 justify-between">
-                <div className="text-lg font-medium">
+            <div className="flex items-center justify-between mt-4 gap-4">
+                <div className="text-lg font-medium flex-1">
                     Total (Included): Birr {total.toFixed(2)}
                 </div>
-                <div className="flex flex-col gap-2">
-                    <button
-                        onClick={handleGenerateRecurring}
-                        className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                        style={{
-                            backgroundColor: "var(--theme-accent)",
-                            color: "var(--theme-background)",
-                            border: "1px solid var(--theme-border)",
-                            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-                        }}
-                        title="Generate due recurring expenses"
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-active)";
-                            e.currentTarget.style.color = "var(--theme-text)";
-                            e.currentTarget.style.boxShadow =
-                                "0 2px 4px rgba(0, 0, 0, 0.15)";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-accent)";
-                            e.currentTarget.style.color =
-                                "var(--theme-background)";
-                            e.currentTarget.style.boxShadow =
-                                "0 1px 2px rgba(0, 0, 0, 0.1)";
-                        }}
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        Generate Recurring
-                    </button>
-                    <div
-                        className="text-xs"
-                        style={{ color: "var(--theme-textSecondary)" }}
-                    >
-                        Auto-create due recurring expenses
-                    </div>
-                </div>
+                <button
+                    onClick={handleGenerateRecurring}
+                    className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 flex-shrink-0"
+                    style={{
+                        backgroundColor: "var(--theme-accent)",
+                        color: "var(--theme-background)",
+                        border: "1px solid var(--theme-border)",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+                    }}
+                    title="Generate due recurring expenses"
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="hidden sm:inline">Generate Recurring</span>
+                </button>
+            </div>
+            <div
+                className="text-xs text-right mt-1 hidden sm:block"
+                style={{ color: "var(--theme-textSecondary)" }}
+            >
+                Auto-create due recurring expenses
             </div>
 
             {budgets.length > 0 && (
@@ -234,7 +246,11 @@ export default function ExpensePage() {
                 </div>
             )}
 
-            <ExpenseTable expenses={expenses} />
+            <ExpenseTable
+                expenses={expenses}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
 
             <Modal
                 isOpen={showRecurringModal}
@@ -252,7 +268,7 @@ export default function ExpensePage() {
                                     ) as HTMLInputElement
                                 )?.focus();
                             }}
-                            className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all"
+                            className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90"
                             style={{
                                 backgroundColor: "var(--theme-primary)",
                                 color: "white",
@@ -264,7 +280,7 @@ export default function ExpensePage() {
                     ) : (
                         <button
                             onClick={() => setShowRecurringModal(false)}
-                            className="px-4 py-2 text-sm rounded-lg transition-all"
+                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-80"
                             style={{
                                 backgroundColor: "var(--theme-surface)",
                                 color: "var(--theme-text)",
@@ -278,6 +294,97 @@ export default function ExpensePage() {
             >
                 <p style={{ color: "var(--theme-text)" }}>
                     {recurringModalContent?.message}
+                </p>
+            </Modal>
+
+            <Modal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                title="Edit Expense"
+            >
+                {editingExpense && (
+                    <ExpenseForm
+                        onAdd={(updatedExpense) => {
+                            // Update the expense in the list
+                            setExpenses((prev) =>
+                                prev.map((exp) =>
+                                    exp._id === updatedExpense._id
+                                        ? updatedExpense
+                                        : exp
+                                )
+                            );
+                            setShowEditModal(false);
+                            setEditingExpense(null);
+                            // Update total if included status changed
+                            const oldExpense = expenses.find(
+                                (e) => e._id === updatedExpense._id
+                            );
+                            if (oldExpense) {
+                                const oldIncluded = oldExpense.included;
+                                const newIncluded = updatedExpense.included;
+                                if (oldIncluded !== newIncluded) {
+                                    setTotal((prev) =>
+                                        newIncluded
+                                            ? prev + updatedExpense.amount
+                                            : prev - updatedExpense.amount
+                                    );
+                                } else if (
+                                    oldIncluded &&
+                                    oldExpense.amount !== updatedExpense.amount
+                                ) {
+                                    setTotal(
+                                        (prev) =>
+                                            prev -
+                                            oldExpense.amount +
+                                            updatedExpense.amount
+                                    );
+                                }
+                            }
+                        }}
+                        editExpense={editingExpense}
+                    />
+                )}
+            </Modal>
+
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setDeletingExpenseId(null);
+                }}
+                title="Delete Expense"
+                actions={
+                    <>
+                        <button
+                            onClick={() => {
+                                setShowDeleteModal(false);
+                                setDeletingExpenseId(null);
+                            }}
+                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-80"
+                            style={{
+                                backgroundColor: "var(--theme-surface)",
+                                color: "var(--theme-text)",
+                                border: "1px solid var(--theme-border)",
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-90"
+                            style={{
+                                backgroundColor: "var(--theme-error)",
+                                color: "white",
+                            }}
+                        >
+                            Delete
+                        </button>
+                    </>
+                }
+            >
+                <p style={{ color: "var(--theme-text)" }}>
+                    Are you sure you want to delete this expense? This action
+                    cannot be undone.
                 </p>
             </Modal>
         </div>

@@ -23,6 +23,8 @@ type DateGroupProps = {
     expenses: Expense[];
     isExpanded: boolean;
     onToggle: () => void;
+    onEdit: (expense: Expense) => void;
+    onDelete: (id: string) => void;
 };
 
 export default function DateGroup({
@@ -30,6 +32,8 @@ export default function DateGroup({
     expenses,
     isExpanded,
     onToggle,
+    onEdit,
+    onDelete,
 }: DateGroupProps) {
     const dayTotal = expenses
         .filter((e) => e.included)
@@ -80,7 +84,12 @@ export default function DateGroup({
             {/* expense rows: render directly as sibling table rows so they align with the parent header columns */}
             {isExpanded &&
                 expenses.map((exp, idx) => (
-                    <ExpenseRow key={exp.id || `${dateKey}-${idx}`} exp={exp} />
+                    <ExpenseRow
+                        key={exp.id || `${dateKey}-${idx}`}
+                        exp={exp}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                    />
                 ))}
         </>
     );
