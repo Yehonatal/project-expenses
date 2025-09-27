@@ -17,10 +17,17 @@ export interface Expense {
 export interface Budget {
     _id: string;
     userId: string;
-    startMonth: number;
-    startYear: number;
-    endMonth: number;
-    endYear: number;
+    type: "weekly" | "monthly" | "multi-month" | "yearly";
+    // For weekly budgets
+    startDate?: string;
+    endDate?: string;
+    // For monthly/multi-month budgets
+    startMonth?: number;
+    startYear?: number;
+    endMonth?: number;
+    endYear?: number;
+    // For yearly budgets
+    year?: number;
     totalBudget: number;
     spent: number;
     createdAt: string;

@@ -70,7 +70,7 @@ export default function MonthSection({
                 aria-controls={`month-${ym}`}
             >
                 <div
-                    className="flex items-center space-x-2 font-semibold text-lg"
+                    className="flex items-center space-x-2 font-semibold text-xs sm:text-sm lg:text-sm"
                     style={{ color: "var(--theme-text)" }}
                 >
                     {isExpanded ? (

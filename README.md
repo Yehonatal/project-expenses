@@ -6,6 +6,7 @@ Track my expenses, manage budgets, create recurring transactions, and visualize 
 ![Homepage](./preview/home.png)
 ![Mini Dashboard](./preview/dashboard.png)
 ![Mini Dashboard 2](./preview/dashboard2.png)
+![Budget Management](./preview/budget.png)
 ![Template](./preview/templates.png)
 ![Modal](./preview/modal.png)
 ![Edit Modal](./preview/editmodal.png)
@@ -15,7 +16,7 @@ Track my expenses, manage budgets, create recurring transactions, and visualize 
 
 - **Expense Tracking**: Add, edit, and delete expenses with detailed categorization
 - **Recurring Expenses**: Set up automatic recurring transactions with customizable frequencies
-- **Budget Management**: Create and monitor budgets with visual progress indicators
+- **Budget Management**: Create and monitor budgets with visual progress indicators across multiple time periods (weekly, monthly, multi-month, yearly)
 - **Templates**: Save frequently used expense templates for quick entry
 - **User Authentication**: Secure login system with Google OAuth integration
 - **Data Visualization**: Interactive charts and graphs for expense analysis
@@ -113,7 +114,7 @@ Before running this application, ensure you have the following installed:
 
 - **Adding Expenses**: Use the expense form to add new transactions with categories and amounts
 - **Recurring Expenses**: Set up expenses that repeat automatically (daily, weekly, monthly, yearly)
-- **Budget Tracking**: Create budgets and monitor spending against limits
+- **Budget Tracking**: Create budgets for different time periods (weekly, monthly, multi-month, yearly) and monitor spending against limits with visual progress indicators
 - **Templates**: Save common expense patterns for quick reuse
 - **Data Analysis**: View expense summaries and trends through the dashboard
 
@@ -134,7 +135,11 @@ Before running this application, ensure you have the following installed:
 
 ### Budget Endpoints
 - `GET /api/budgets` - Get all budgets
-- `POST /api/budgets` - Create new budget
+- `POST /api/budgets` - Create new budget (supports weekly, monthly, multi-month, yearly types)
+  - **Weekly**: `{ type: "weekly", startDate, endDate, totalBudget }`
+  - **Monthly**: `{ type: "monthly", startMonth, startYear, totalBudget }`
+  - **Multi-Month**: `{ type: "multi-month", startMonth, startYear, endMonth, endYear, totalBudget }`
+  - **Yearly**: `{ type: "yearly", year, totalBudget }`
 - `PUT /api/budgets/:id` - Update budget
 - `DELETE /api/budgets/:id` - Delete budget
 

@@ -347,6 +347,139 @@ exports.getSummary = async (req, res) => {
     }
 };
 
+exports.getTrends = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // 1-12
+        const currentYear = now.getFullYear();
+
+        // Previous month calculation
+        const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const prevMonth = prevDate.getMonth() + 1;
+        const prevYear = prevDate.getFullYear();
+
+        // Get current month data
+        const currentMonthStart = new Date(currentYear, currentMonth - 1, 1);
+        const currentMonthEnd = new Date(currentYear, currentMonth, 1);
+
+        const currentMonthData = await Expense.aggregate([
+            {
+                $match: {
+                    userId,
+                    date: { $gte: currentMonthStart, $lt: currentMonthEnd },
+                    included: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { total: -1 } },
+        ]);
+
+        // Get previous month data
+        const prevMonthStart = new Date(prevYear, prevMonth - 1, 1);
+        const prevMonthEnd = new Date(prevYear, prevMonth, 1);
+
+        const prevMonthData = await Expense.aggregate([
+            {
+                $match: {
+                    userId,
+                    date: { $gte: prevMonthStart, $lt: prevMonthEnd },
+                    included: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        // Create maps for easy lookup
+        const currentMap = new Map();
+        const prevMap = new Map();
+
+        currentMonthData.forEach((item) => {
+            currentMap.set(item._id, { total: item.total, count: item.count });
+        });
+
+        prevMonthData.forEach((item) => {
+            prevMap.set(item._id, { total: item.total, count: item.count });
+        });
+
+        // Combine data and calculate changes
+        const allCategories = new Set([
+            ...currentMap.keys(),
+            ...prevMap.keys(),
+        ]);
+        const trends = [];
+
+        for (const category of allCategories) {
+            const current = currentMap.get(category) || { total: 0, count: 0 };
+            const previous = prevMap.get(category) || { total: 0, count: 0 };
+
+            let percentageChange = 0;
+            if (previous.total > 0) {
+                percentageChange =
+                    ((current.total - previous.total) / previous.total) * 100;
+            } else if (current.total > 0) {
+                percentageChange = 100; // New category
+            }
+
+            trends.push({
+                category,
+                currentMonth: current.total,
+                previousMonth: previous.total,
+                percentageChange: Math.round(percentageChange * 100) / 100, // Round to 2 decimal places
+                currentCount: current.count,
+                previousCount: previous.count,
+            });
+        }
+
+        // Sort by current month spending (highest first)
+        trends.sort((a, b) => b.currentMonth - a.currentMonth);
+
+        // Calculate overall totals
+        const currentTotal = trends.reduce(
+            (sum, item) => sum + item.currentMonth,
+            0
+        );
+        const previousTotal = trends.reduce(
+            (sum, item) => sum + item.previousMonth,
+            0
+        );
+        let overallPercentageChange = 0;
+        if (previousTotal > 0) {
+            overallPercentageChange =
+                ((currentTotal - previousTotal) / previousTotal) * 100;
+        } else if (currentTotal > 0) {
+            overallPercentageChange = 100;
+        }
+
+        res.json({
+            currentMonth: { month: currentMonth, year: currentYear },
+            previousMonth: { month: prevMonth, year: prevYear },
+            trends,
+            summary: {
+                currentTotal,
+                previousTotal,
+                overallPercentageChange:
+                    Math.round(overallPercentageChange * 100) / 100,
+            },
+        });
+    } catch (err) {
+        console.error("getSummary error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
 exports.getStats = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -387,6 +520,139 @@ exports.getStats = async (req, res) => {
         });
     } catch (err) {
         console.error("getStats error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getTrends = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // 1-12
+        const currentYear = now.getFullYear();
+
+        // Previous month calculation
+        const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const prevMonth = prevDate.getMonth() + 1;
+        const prevYear = prevDate.getFullYear();
+
+        // Get current month data
+        const currentMonthStart = new Date(currentYear, currentMonth - 1, 1);
+        const currentMonthEnd = new Date(currentYear, currentMonth, 1);
+
+        const currentMonthData = await Expense.aggregate([
+            {
+                $match: {
+                    userId,
+                    date: { $gte: currentMonthStart, $lt: currentMonthEnd },
+                    included: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { total: -1 } },
+        ]);
+
+        // Get previous month data
+        const prevMonthStart = new Date(prevYear, prevMonth - 1, 1);
+        const prevMonthEnd = new Date(prevYear, prevMonth, 1);
+
+        const prevMonthData = await Expense.aggregate([
+            {
+                $match: {
+                    userId,
+                    date: { $gte: prevMonthStart, $lt: prevMonthEnd },
+                    included: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        // Create maps for easy lookup
+        const currentMap = new Map();
+        const prevMap = new Map();
+
+        currentMonthData.forEach((item) => {
+            currentMap.set(item._id, { total: item.total, count: item.count });
+        });
+
+        prevMonthData.forEach((item) => {
+            prevMap.set(item._id, { total: item.total, count: item.count });
+        });
+
+        // Combine data and calculate changes
+        const allCategories = new Set([
+            ...currentMap.keys(),
+            ...prevMap.keys(),
+        ]);
+        const trends = [];
+
+        for (const category of allCategories) {
+            const current = currentMap.get(category) || { total: 0, count: 0 };
+            const previous = prevMap.get(category) || { total: 0, count: 0 };
+
+            let percentageChange = 0;
+            if (previous.total > 0) {
+                percentageChange =
+                    ((current.total - previous.total) / previous.total) * 100;
+            } else if (current.total > 0) {
+                percentageChange = 100; // New category
+            }
+
+            trends.push({
+                category,
+                currentMonth: current.total,
+                previousMonth: previous.total,
+                percentageChange: Math.round(percentageChange * 100) / 100, // Round to 2 decimal places
+                currentCount: current.count,
+                previousCount: previous.count,
+            });
+        }
+
+        // Sort by current month spending (highest first)
+        trends.sort((a, b) => b.currentMonth - a.currentMonth);
+
+        // Calculate overall totals
+        const currentTotal = trends.reduce(
+            (sum, item) => sum + item.currentMonth,
+            0
+        );
+        const previousTotal = trends.reduce(
+            (sum, item) => sum + item.previousMonth,
+            0
+        );
+        let overallPercentageChange = 0;
+        if (previousTotal > 0) {
+            overallPercentageChange =
+                ((currentTotal - previousTotal) / previousTotal) * 100;
+        } else if (currentTotal > 0) {
+            overallPercentageChange = 100;
+        }
+
+        res.json({
+            currentMonth: { month: currentMonth, year: currentYear },
+            previousMonth: { month: prevMonth, year: prevYear },
+            trends,
+            summary: {
+                currentTotal,
+                previousTotal,
+                overallPercentageChange:
+                    Math.round(overallPercentageChange * 100) / 100,
+            },
+        });
+    } catch (err) {
+        console.error("getTrends error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };

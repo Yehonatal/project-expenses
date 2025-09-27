@@ -40,7 +40,7 @@ export default function Modal({
                     style={{ borderColor: "var(--theme-border)" }}
                 >
                     <h3
-                        className="text-lg font-semibold"
+                        className="text-xs sm:text-sm lg:text-sm font-semibold"
                         style={{ color: "var(--theme-text)" }}
                     >
                         {title}

@@ -17,10 +17,14 @@ export { authAPI };
 // Budget APIs
 export const getBudgets = () => API.get("/budgets");
 export const setBudget = (data: {
-    startMonth: number;
-    startYear: number;
-    endMonth: number;
-    endYear: number;
+    type: "weekly" | "monthly" | "multi-month" | "yearly";
+    startDate?: string;
+    endDate?: string;
+    startMonth?: number;
+    startYear?: number;
+    endMonth?: number;
+    endYear?: number;
+    year?: number;
     totalBudget: number;
 }) => API.post("/budgets", data);
 export const deleteBudget = (id: string) => API.delete(`/budgets/${id}`);

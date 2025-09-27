@@ -40,6 +40,24 @@ type SummaryData = {
     typeBreakdown: TypeBreakdownItem[];
 };
 
+type TrendsData = {
+    currentMonth: { month: number; year: number };
+    previousMonth: { month: number; year: number };
+    trends: Array<{
+        category: string;
+        currentMonth: number;
+        previousMonth: number;
+        percentageChange: number;
+        currentCount: number;
+        previousCount: number;
+    }>;
+    summary: {
+        currentTotal: number;
+        previousTotal: number;
+        overallPercentageChange: number;
+    };
+};
+
 const monthNames = [
     "Jan",
     "Feb",
@@ -65,6 +83,7 @@ const themePieColors = [
 
 export default function SummaryPage() {
     const [summary, setSummary] = useState<SummaryData | null>(null);
+    const [trends, setTrends] = useState<TrendsData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>(
@@ -77,6 +96,8 @@ export default function SummaryPage() {
     useEffect(() => {
         let mounted = true;
         setLoading(true);
+
+        // Fetch summary data
         API.get<SummaryData>("/expenses/summary")
             .then((res) => {
                 if (!mounted) return;
@@ -105,6 +126,18 @@ export default function SummaryPage() {
             .catch((err) => {
                 console.error("Failed to fetch summary:", err);
                 if (mounted) setError("Failed to load summary");
+            });
+
+        // Fetch trends data
+        API.get<TrendsData>("/expenses/trends")
+            .then((res) => {
+                if (mounted) {
+                    setTrends(res.data);
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to fetch trends:", err);
+                // Don't set error for trends, it's optional
             })
             .finally(() => mounted && setLoading(false));
 
@@ -176,7 +209,7 @@ export default function SummaryPage() {
             }}
         >
             <h1
-                className="text-2xl font-bold mb-6"
+                className="text-sm sm:text-base lg:text-base font-bold mb-6"
                 style={{ color: "var(--theme-primary)" }}
             >
                 Summary Dashboard
@@ -188,13 +221,13 @@ export default function SummaryPage() {
                     style={{ backgroundColor: "rgba(138,154,91,0.10)" }}
                 >
                     <div
-                        className="text-sm font-medium"
+                        className="text-xs sm:text-sm font-medium"
                         style={{ color: "var(--theme-textSecondary)" }}
                     >
                         Total Included
                     </div>
                     <div
-                        className="mt-2 text-2xl font-bold"
+                        className="mt-2 text-sm sm:text-base font-bold"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(totals.totalIncluded)}
@@ -206,13 +239,13 @@ export default function SummaryPage() {
                     style={{ backgroundColor: "rgba(216,164,143,0.10)" }}
                 >
                     <div
-                        className="text-sm font-medium"
+                        className="text-xs sm:text-sm font-medium"
                         style={{ color: "var(--theme-textSecondary)" }}
                     >
                         Total Excluded
                     </div>
                     <div
-                        className="mt-2 text-2xl font-bold"
+                        className="mt-2 text-sm sm:text-base font-bold"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(totals.totalExcluded)}
@@ -224,13 +257,13 @@ export default function SummaryPage() {
                     style={{ backgroundColor: "rgba(92,75,59,0.10)" }}
                 >
                     <div
-                        className="text-sm font-medium"
+                        className="text-xs sm:text-sm font-medium"
                         style={{ color: "var(--theme-textSecondary)" }}
                     >
                         Total Spent
                     </div>
                     <div
-                        className="mt-2 text-2xl font-bold"
+                        className="mt-2 text-sm sm:text-base font-bold"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         {formatMoney(
@@ -248,19 +281,19 @@ export default function SummaryPage() {
                         style={{ backgroundColor: "rgba(216,164,143,0.06)" }}
                     >
                         <div
-                            className="text-sm font-medium capitalize"
+                            className="text-xs sm:text-sm font-medium capitalize"
                             style={{ color: "var(--theme-textSecondary)" }}
                         >
                             {t.type}
                         </div>
                         <div
-                            className="mt-1 text-base font-semibold"
+                            className="mt-1 text-sm sm:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             {formatMoney(t.total)}
                         </div>
                         <div
-                            className="text-sm mt-0.5"
+                            className="text-xs mt-0.5"
                             style={{ color: "var(--theme-textSecondary)" }}
                         >
                             {t.count} items
@@ -269,130 +302,277 @@ export default function SummaryPage() {
                 ))}
             </div>
 
-            <div className="mb-6">
-                <h2
-                    className="text-xl font-semibold mb-4"
-                    style={{ color: "var(--theme-primary)" }}
-                >
-                    Monthly Breakdown
-                </h2>
-                {chartData.length === 0 ? (
-                    <div
-                        className="text-sm"
-                        style={{ color: "var(--theme-textSecondary)" }}
+            {trends && trends.trends.length > 0 && (
+                <div className="mb-6">
+                    <h2
+                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        style={{ color: "var(--theme-primary)" }}
                     >
-                        No monthly data to show.
-                    </div>
-                ) : (
+                        Spending Trends
+                    </h2>
                     <div
-                        className="rounded-lg p-4 shadow-sm"
+                        className="rounded-lg p-4 shadow-sm mb-4"
                         style={{ backgroundColor: "var(--theme-surface)" }}
                     >
-                        <ResponsiveContainer width="100%" height={320}>
-                            <BarChart
-                                data={chartData}
-                                margin={{
-                                    top: 10,
-                                    right: 16,
-                                    left: 0,
-                                    bottom: 5,
-                                }}
-                            >
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    vertical={false}
-                                />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tickFormatter={(value) => `${value}`} />
-                                <Tooltip
-                                    formatter={(value: number) =>
-                                        `${Number(value).toLocaleString(
-                                            undefined,
-                                            {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2,
-                                            }
-                                        )} birr`
-                                    }
-                                />
-                                <Bar
-                                    dataKey="total"
-                                    fill="var(--theme-secondary)"
-                                    radius={[6, 6, 0, 0]}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
-            </div>
-
-            <div className="mb-6">
-                <h2
-                    className="text-xl font-semibold mb-4"
-                    style={{ color: "var(--theme-primary)" }}
-                >
-                    Expense Types Breakdown
-                </h2>
-                {typeBreakdown.length === 0 ? (
-                    <div
-                        className="text-sm"
-                        style={{ color: "var(--theme-textSecondary)" }}
-                    >
-                        No type data to show.
-                    </div>
-                ) : (
-                    <div
-                        className="rounded-lg p-4 shadow-sm"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
-                        <ResponsiveContainer width="100%" height={320}>
-                            <PieChart>
-                                <Pie
-                                    data={typeBreakdown}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ type, percent }) =>
-                                        `${type} ${(
-                                            (percent || 0) * 100
-                                        ).toFixed(0)}%`
-                                    }
-                                    outerRadius={80}
-                                    fill="var(--theme-secondary)"
-                                    dataKey="total"
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                            <div className="text-center">
+                                <div
+                                    className="text-xs sm:text-sm font-medium"
+                                    style={{
+                                        color: "var(--theme-textSecondary)",
+                                    }}
                                 >
-                                    {typeBreakdown.map((_, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={
-                                                themePieColors[
-                                                    index %
-                                                        themePieColors.length
-                                                ]
-                                            }
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    formatter={(value: number) =>
-                                        `${Number(value).toLocaleString(
-                                            undefined,
-                                            {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2,
-                                            }
-                                        )} birr`
-                                    }
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+                                    Current Month (
+                                    {monthNames[trends.currentMonth.month - 1]}{" "}
+                                    {trends.currentMonth.year})
+                                </div>
+                                <div
+                                    className="mt-1 text-sm sm:text-base font-bold"
+                                    style={{ color: "var(--theme-primary)" }}
+                                >
+                                    {formatMoney(trends.summary.currentTotal)}
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div
+                                    className="text-xs sm:text-sm font-medium"
+                                    style={{
+                                        color: "var(--theme-textSecondary)",
+                                    }}
+                                >
+                                    Previous Month (
+                                    {monthNames[trends.previousMonth.month - 1]}{" "}
+                                    {trends.previousMonth.year})
+                                </div>
+                                <div
+                                    className="mt-1 text-sm sm:text-base font-bold"
+                                    style={{
+                                        color: "var(--theme-textSecondary)",
+                                    }}
+                                >
+                                    {formatMoney(trends.summary.previousTotal)}
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div
+                                    className="text-xs sm:text-sm font-medium"
+                                    style={{
+                                        color: "var(--theme-textSecondary)",
+                                    }}
+                                >
+                                    Overall Change
+                                </div>
+                                <div
+                                    className={`mt-1 text-sm sm:text-base font-bold ${
+                                        trends.summary.overallPercentageChange >
+                                        0
+                                            ? "text-red-500"
+                                            : trends.summary
+                                                  .overallPercentageChange < 0
+                                            ? "text-green-500"
+                                            : ""
+                                    }`}
+                                >
+                                    {trends.summary.overallPercentageChange > 0
+                                        ? "+"
+                                        : ""}
+                                    {trends.summary.overallPercentageChange.toFixed(
+                                        1
+                                    )}
+                                    %
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <h3
+                                className="text-xs sm:text-sm lg:text-sm font-medium mb-3"
+                                style={{ color: "var(--theme-primary)" }}
+                            >
+                                Category Breakdown
+                            </h3>
+                            {trends.trends.map((trend) => (
+                                <div
+                                    key={trend.category}
+                                    className="flex items-center justify-between p-3 rounded-md"
+                                    style={{
+                                        backgroundColor: "var(--theme-hover)",
+                                    }}
+                                >
+                                    <div className="flex-1">
+                                        <div
+                                            className="text-sm font-medium capitalize"
+                                            style={{
+                                                color: "var(--theme-text)",
+                                            }}
+                                        >
+                                            {trend.category}
+                                        </div>
+                                        <div
+                                            className="text-xs mt-1"
+                                            style={{
+                                                color: "var(--theme-textSecondary)",
+                                            }}
+                                        >
+                                            {formatMoney(trend.currentMonth)} vs{" "}
+                                            {formatMoney(trend.previousMonth)}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div
+                                            className={`text-sm font-semibold ${
+                                                trend.percentageChange > 0
+                                                    ? "text-red-500"
+                                                    : trend.percentageChange < 0
+                                                    ? "text-green-500"
+                                                    : "text-gray-500"
+                                            }`}
+                                        >
+                                            {trend.percentageChange > 0
+                                                ? "+"
+                                                : ""}
+                                            {trend.percentageChange.toFixed(1)}%
+                                        </div>
+                                        <div
+                                            className="text-xs mt-1"
+                                            style={{
+                                                color: "var(--theme-textSecondary)",
+                                            }}
+                                        >
+                                            {trend.currentCount} items
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                )}
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h2
+                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        style={{ color: "var(--theme-primary)" }}
+                    >
+                        Monthly Breakdown
+                    </h2>
+                    {chartData.length === 0 ? (
+                        <div
+                            className="text-sm"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
+                            No monthly data to show.
+                        </div>
+                    ) : (
+                        <div className="p-4 ">
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart
+                                    data={chartData}
+                                    margin={{
+                                        top: 10,
+                                        right: 16,
+                                        left: 0,
+                                        bottom: 5,
+                                    }}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                    />
+                                    <XAxis
+                                        dataKey="name"
+                                        tick={{ fontSize: 10 }}
+                                    />
+                                    <YAxis
+                                        tickFormatter={(value) => `${value}`}
+                                    />
+                                    <Tooltip
+                                        formatter={(value: number) =>
+                                            `${Number(value).toLocaleString(
+                                                undefined,
+                                                {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                }
+                                            )} birr`
+                                        }
+                                    />
+                                    <Bar
+                                        dataKey="total"
+                                        fill="var(--theme-secondary)"
+                                        radius={[6, 6, 0, 0]}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <h2
+                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        style={{ color: "var(--theme-primary)" }}
+                    >
+                        Expense Types Breakdown
+                    </h2>
+                    {typeBreakdown.length === 0 ? (
+                        <div
+                            className="text-sm"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                        >
+                            No type data to show.
+                        </div>
+                    ) : (
+                        <div className="p-4">
+                            <ResponsiveContainer width="100%" height={280}>
+                                <PieChart>
+                                    <Pie
+                                        data={typeBreakdown}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ type, percent }) =>
+                                            `${type} ${(
+                                                (percent || 0) * 100
+                                            ).toFixed(0)}%`
+                                        }
+                                        outerRadius={80}
+                                        fill="var(--theme-secondary)"
+                                        dataKey="total"
+                                    >
+                                        {typeBreakdown.map((_, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={
+                                                    themePieColors[
+                                                        index %
+                                                            themePieColors.length
+                                                    ]
+                                                }
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(value: number) =>
+                                            `${Number(value).toLocaleString(
+                                                undefined,
+                                                {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                }
+                                            )} birr`
+                                        }
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="mt-6">
                 <h2
-                    className="text-lg font-semibold mb-3"
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-3"
                     style={{ color: "var(--theme-primary)" }}
                 >
                     Expense Types
@@ -450,7 +630,7 @@ export default function SummaryPage() {
 
             <div className="mt-6">
                 <h2
-                    className="text-lg font-semibold mb-3"
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-3"
                     style={{ color: "var(--theme-primary)" }}
                 >
                     Recent months
