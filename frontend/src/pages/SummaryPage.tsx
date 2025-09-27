@@ -16,6 +16,7 @@ import {
 import type { Expense } from "../types/expense";
 import ExpandableExpenseTable from "../components/ExpandableExpenseTable";
 import Loading from "../components/Loading";
+import PageContainer from "../components/ui/PageContainer";
 
 type Totals = {
     totalIncluded: number;
@@ -201,70 +202,48 @@ export default function SummaryPage() {
     }));
 
     return (
-        <div
-            className="p-6 max-w-5xl mx-auto"
-            style={{
-                backgroundColor: "var(--theme-background)",
-                color: "var(--theme-text)",
-            }}
-        >
-            <h1
-                className="text-sm sm:text-base lg:text-base font-bold mb-6"
-                style={{ color: "var(--theme-primary)" }}
-            >
-                Summary Dashboard
-            </h1>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                <div
-                    className="rounded-lg p-4 shadow-sm"
-                    style={{ backgroundColor: "rgba(138,154,91,0.10)" }}
-                >
+        <PageContainer title="Summary Dashboard">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="glass-card p-4 rounded-xl text-center">
                     <div
-                        className="text-xs sm:text-sm font-medium"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        className="text-xs font-medium mb-2"
+                        style={{ color: "var(--theme-text-secondary)" }}
                     >
                         Total Included
                     </div>
                     <div
-                        className="mt-2 text-sm sm:text-base font-bold"
-                        style={{ color: "var(--theme-primary)" }}
+                        className="text-xl font-bold"
+                        style={{ color: "#059669" }}
                     >
                         {formatMoney(totals.totalIncluded)}
                     </div>
                 </div>
 
-                <div
-                    className="rounded-lg p-4 shadow-sm"
-                    style={{ backgroundColor: "rgba(216,164,143,0.10)" }}
-                >
+                <div className="glass-card p-4 rounded-xl text-center">
                     <div
-                        className="text-xs sm:text-sm font-medium"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        className="text-xs font-medium mb-2"
+                        style={{ color: "var(--theme-text-secondary)" }}
                     >
                         Total Excluded
                     </div>
                     <div
-                        className="mt-2 text-sm sm:text-base font-bold"
-                        style={{ color: "var(--theme-primary)" }}
+                        className="text-xl font-bold"
+                        style={{ color: "#f59e0b" }}
                     >
                         {formatMoney(totals.totalExcluded)}
                     </div>
                 </div>
 
-                <div
-                    className="rounded-lg p-4 shadow-sm"
-                    style={{ backgroundColor: "rgba(92,75,59,0.10)" }}
-                >
+                <div className="glass-card p-4 rounded-xl text-center">
                     <div
-                        className="text-xs sm:text-sm font-medium"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        className="text-xs font-medium mb-2"
+                        style={{ color: "var(--theme-text-secondary)" }}
                     >
                         Total Spent
                     </div>
                     <div
-                        className="mt-2 text-sm sm:text-base font-bold"
-                        style={{ color: "var(--theme-primary)" }}
+                        className="text-xl font-bold"
+                        style={{ color: "#dc2626" }}
                     >
                         {formatMoney(
                             totals.totalIncluded + totals.totalExcluded
@@ -273,28 +252,27 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
                 {typeBreakdown.map((t) => (
                     <div
                         key={t.type}
-                        className="rounded-md p-3 shadow-sm flex flex-col items-start"
-                        style={{ backgroundColor: "rgba(216,164,143,0.06)" }}
+                        className="glass-card p-3 rounded-xl flex flex-col items-start"
                     >
                         <div
-                            className="text-xs sm:text-sm font-medium capitalize"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            className="text-xs font-medium capitalize mb-1"
+                            style={{ color: "var(--theme-text-secondary)" }}
                         >
                             {t.type}
                         </div>
                         <div
-                            className="mt-1 text-sm sm:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
+                            className="text-sm font-semibold"
+                            style={{ color: "#2563eb" }}
                         >
                             {formatMoney(t.total)}
                         </div>
                         <div
                             className="text-xs mt-0.5"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            style={{ color: "var(--theme-text-secondary)" }}
                         >
                             {t.count} items
                         </div>
@@ -305,19 +283,16 @@ export default function SummaryPage() {
             {trends && trends.trends.length > 0 && (
                 <div className="mb-6">
                     <h2
-                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        className="text-base font-semibold mb-4"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         Spending Trends
                     </h2>
-                    <div
-                        className="rounded-lg p-4 shadow-sm mb-4"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
+                    <div className="glass-card p-4 rounded-xl mb-4">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                             <div className="text-center">
                                 <div
-                                    className="text-xs sm:text-sm font-medium"
+                                    className="text-xs font-medium mb-1"
                                     style={{
                                         color: "var(--theme-textSecondary)",
                                     }}
@@ -327,7 +302,7 @@ export default function SummaryPage() {
                                     {trends.currentMonth.year})
                                 </div>
                                 <div
-                                    className="mt-1 text-sm sm:text-base font-bold"
+                                    className="text-base font-bold"
                                     style={{ color: "var(--theme-primary)" }}
                                 >
                                     {formatMoney(trends.summary.currentTotal)}
@@ -335,7 +310,7 @@ export default function SummaryPage() {
                             </div>
                             <div className="text-center">
                                 <div
-                                    className="text-xs sm:text-sm font-medium"
+                                    className="text-xs font-medium mb-1"
                                     style={{
                                         color: "var(--theme-textSecondary)",
                                     }}
@@ -345,7 +320,7 @@ export default function SummaryPage() {
                                     {trends.previousMonth.year})
                                 </div>
                                 <div
-                                    className="mt-1 text-sm sm:text-base font-bold"
+                                    className="text-base font-bold"
                                     style={{
                                         color: "var(--theme-textSecondary)",
                                     }}
@@ -355,7 +330,7 @@ export default function SummaryPage() {
                             </div>
                             <div className="text-center">
                                 <div
-                                    className="text-xs sm:text-sm font-medium"
+                                    className="text-xs font-medium mb-1"
                                     style={{
                                         color: "var(--theme-textSecondary)",
                                     }}
@@ -363,7 +338,7 @@ export default function SummaryPage() {
                                     Overall Change
                                 </div>
                                 <div
-                                    className={`mt-1 text-sm sm:text-base font-bold ${
+                                    className={`text-base font-bold ${
                                         trends.summary.overallPercentageChange >
                                         0
                                             ? "text-red-500"
@@ -451,7 +426,7 @@ export default function SummaryPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div>
                     <h2
-                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        className="text-base font-semibold mb-4"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         Monthly Breakdown
@@ -464,7 +439,7 @@ export default function SummaryPage() {
                             No monthly data to show.
                         </div>
                     ) : (
-                        <div className="p-4 ">
+                        <div className="glass-card p-4 rounded-xl">
                             <ResponsiveContainer width="100%" height={280}>
                                 <BarChart
                                     data={chartData}
@@ -510,7 +485,7 @@ export default function SummaryPage() {
 
                 <div>
                     <h2
-                        className="text-sm sm:text-base lg:text-base font-semibold mb-4"
+                        className="text-base font-semibold mb-4"
                         style={{ color: "var(--theme-primary)" }}
                     >
                         Expense Types Breakdown
@@ -523,7 +498,7 @@ export default function SummaryPage() {
                             No type data to show.
                         </div>
                     ) : (
-                        <div className="p-4">
+                        <div className="glass-card p-4 rounded-xl">
                             <ResponsiveContainer width="100%" height={280}>
                                 <PieChart>
                                     <Pie
@@ -582,10 +557,7 @@ export default function SummaryPage() {
                     {typeBreakdown.map((t) => (
                         <div key={t.type}>
                             <div
-                                className="w-full flex items-center justify-between rounded-lg p-3 cursor-pointer transition-colors"
-                                style={{
-                                    backgroundColor: "var(--theme-hover)",
-                                }}
+                                className="glass-card w-full flex items-center justify-between rounded-xl p-3 cursor-pointer transition-all duration-200 hover:glass-button/80"
                                 onClick={() => toggleType(t.type)}
                             >
                                 <div className="flex items-center space-x-2">
@@ -647,10 +619,7 @@ export default function SummaryPage() {
                             return (
                                 <div
                                     key={`${m.year}-${m.month}`}
-                                    className="flex items-center justify-between rounded-lg p-3"
-                                    style={{
-                                        backgroundColor: "var(--theme-hover)",
-                                    }}
+                                    className="glass-card flex items-center justify-between rounded-xl p-3"
                                 >
                                     <div
                                         className="text-sm"
@@ -671,6 +640,6 @@ export default function SummaryPage() {
                         })}
                 </div>
             </div>
-        </div>
+        </PageContainer>
     );
 }

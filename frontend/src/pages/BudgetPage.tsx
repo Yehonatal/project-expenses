@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
+// motion removed; PageContainer handles page-level animation
 import { getBudgets, setBudget, deleteBudget } from "../api/api";
 import Loading from "../components/Loading";
+import PageContainer from "../components/ui/PageContainer";
+import GlassCard from "../components/ui/GlassCard";
+import SegmentedControl from "../components/ui/SegmentedControl";
 import type { Budget } from "../types/expense";
 
 type BudgetType = "weekly" | "monthly" | "multi-month" | "yearly";
+
+// Edit form and payload types for stricter typing
+type EditForm = Partial<Budget> & { type: BudgetType; totalBudget?: number };
+type BudgetPayload = Partial<Budget> & {
+    type: BudgetType;
+    totalBudget: number;
+};
 
 export default function BudgetPage() {
     const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -36,7 +47,7 @@ export default function BudgetPage() {
     });
 
     // Edit form states
-    const [editForm, setEditForm] = useState({
+    const [editForm, setEditForm] = useState<EditForm>({
         type: "monthly" as BudgetType,
         startDate: "",
         endDate: "",
@@ -64,96 +75,66 @@ export default function BudgetPage() {
     };
 
     const handleSetBudget = async () => {
-        let budgetData: {
-            type: BudgetType;
-            startDate?: string;
-            endDate?: string;
-            startMonth?: number;
-            startYear?: number;
-            endMonth?: number;
-            endYear?: number;
-            year?: number;
-            totalBudget: number;
-        } = { type: activeTab, totalBudget: 0 };
-
-        switch (activeTab) {
-            case "weekly": {
-                budgetData = {
-                    type: "weekly",
-                    startDate: weeklyForm.startDate,
-                    endDate: weeklyForm.endDate,
-                    totalBudget: weeklyForm.totalBudget,
-                };
-                break;
-            }
-            case "monthly": {
-                const [year, month] = monthlyForm.month.split("-");
-                budgetData = {
-                    type: "monthly",
-                    startMonth: parseInt(month),
-                    startYear: parseInt(year),
-                    totalBudget: monthlyForm.totalBudget,
-                };
-                break;
-            }
-            case "multi-month": {
-                const [startYear, startMonth] =
-                    multiMonthForm.startDate.split("-");
-                const [endYear, endMonth] = multiMonthForm.endDate.split("-");
-                budgetData = {
-                    type: "multi-month",
-                    startMonth: parseInt(startMonth),
-                    startYear: parseInt(startYear),
-                    endMonth: parseInt(endMonth),
-                    endYear: parseInt(endYear),
-                    totalBudget: multiMonthForm.totalBudget,
-                };
-                break;
-            }
-            case "yearly": {
-                budgetData = {
-                    type: "yearly",
-                    year: yearlyForm.year,
-                    totalBudget: yearlyForm.totalBudget,
-                };
-                break;
-            }
-        }
+        let budgetData: BudgetPayload = { type: activeTab, totalBudget: 0 };
 
         try {
-            const res = await setBudget(budgetData);
-            setBudgets([...budgets, res.data]);
-
-            // Reset form
             switch (activeTab) {
                 case "weekly":
-                    setWeeklyForm({
-                        startDate: "",
-                        endDate: "",
-                        totalBudget: 0,
-                    });
+                    budgetData = {
+                        type: "weekly",
+                        startDate: weeklyForm.startDate,
+                        endDate: weeklyForm.endDate,
+                        totalBudget: weeklyForm.totalBudget,
+                    };
                     break;
-                case "monthly":
-                    setMonthlyForm({
-                        month: "",
-                        year: new Date().getFullYear(),
-                        totalBudget: 0,
-                    });
+                case "monthly": {
+                    const [year, month] = monthlyForm.month.split("-");
+                    budgetData = {
+                        type: "monthly",
+                        startMonth: parseInt(month || "0"),
+                        startYear: parseInt(year || "0"),
+                        totalBudget: monthlyForm.totalBudget,
+                    };
                     break;
-                case "multi-month":
-                    setMultiMonthForm({
-                        startDate: "",
-                        endDate: "",
-                        totalBudget: 0,
-                    });
+                }
+                case "multi-month": {
+                    const [startYear, startMonth] = multiMonthForm.startDate
+                        ? multiMonthForm.startDate.split("-")
+                        : ["0", "0"];
+                    const [endYear, endMonth] = multiMonthForm.endDate
+                        ? multiMonthForm.endDate.split("-")
+                        : ["0", "0"];
+                    budgetData = {
+                        type: "multi-month",
+                        startMonth: parseInt(startMonth || "0"),
+                        startYear: parseInt(startYear || "0"),
+                        endMonth: parseInt(endMonth || "0"),
+                        endYear: parseInt(endYear || "0"),
+                        totalBudget: multiMonthForm.totalBudget,
+                    };
                     break;
+                }
                 case "yearly":
-                    setYearlyForm({
-                        year: new Date().getFullYear(),
-                        totalBudget: 0,
-                    });
+                    budgetData = {
+                        type: "yearly",
+                        year: yearlyForm.year,
+                        totalBudget: yearlyForm.totalBudget,
+                    };
                     break;
             }
+
+            const res = await setBudget(budgetData);
+            setBudgets((prev) => [...prev, res.data]);
+
+            // Reset form
+            setWeeklyForm({ startDate: "", endDate: "", totalBudget: 0 });
+            setMonthlyForm({
+                month: "",
+                year: new Date().getFullYear(),
+                totalBudget: 0,
+            });
+            setMultiMonthForm({ startDate: "", endDate: "", totalBudget: 0 });
+            setYearlyForm({ year: new Date().getFullYear(), totalBudget: 0 });
         } catch (err) {
             console.error("Failed to set budget", err);
         }
@@ -162,7 +143,7 @@ export default function BudgetPage() {
     const handleDelete = async (id: string) => {
         try {
             await deleteBudget(id);
-            setBudgets(budgets.filter((b) => b._id !== id));
+            setBudgets((prev) => prev.filter((b) => b._id !== id));
         } catch (err) {
             console.error("Failed to delete budget", err);
         }
@@ -170,26 +151,26 @@ export default function BudgetPage() {
 
     const handleEdit = (budget: Budget) => {
         setEditingId(budget._id);
-        setEditForm({
-            type: budget.type,
-            startDate: budget.startDate || "",
-            endDate: budget.endDate || "",
-            startMonth: budget.startMonth || 0,
-            startYear: budget.startYear || 0,
-            endMonth: budget.endMonth || 0,
-            endYear: budget.endYear || 0,
-            year: budget.year || 0,
-            totalBudget: budget.totalBudget,
-        });
+        setEditForm({ ...budget });
     };
 
     const handleSaveEdit = async () => {
         if (!editingId) return;
-
         try {
-            const res = await setBudget(editForm);
-            setBudgets(
-                budgets.map((b) => (b._id === editingId ? res.data : b))
+            const payload: BudgetPayload = {
+                type: editForm.type,
+                totalBudget: editForm.totalBudget ?? 0,
+                startDate: editForm.startDate,
+                endDate: editForm.endDate,
+                startMonth: editForm.startMonth,
+                startYear: editForm.startYear,
+                endMonth: editForm.endMonth,
+                endYear: editForm.endYear,
+                year: editForm.year,
+            };
+            const res = await setBudget(payload);
+            setBudgets((prev) =>
+                prev.map((b) => (b._id === editingId ? res.data : b))
             );
             setEditingId(null);
         } catch (err) {
@@ -197,9 +178,7 @@ export default function BudgetPage() {
         }
     };
 
-    const handleCancelEdit = () => {
-        setEditingId(null);
-    };
+    const handleCancelEdit = () => setEditingId(null);
 
     const formatBudgetPeriod = (budget: Budget) => {
         switch (budget.type) {
@@ -216,74 +195,33 @@ export default function BudgetPage() {
         }
     };
 
+    // Segmented control helpers
+    const tabs: BudgetType[] = ["weekly", "monthly", "multi-month", "yearly"];
+    // refs are handled inside SegmentedControl now
+
+    // keyboard handling moved into SegmentedControl
+
     if (loading) return <Loading />;
 
     return (
-        <div
-            className="p-6 max-w-5xl mx-auto"
-            style={{
-                backgroundColor: "var(--theme-background)",
-                color: "var(--theme-text)",
-            }}
-        >
-            <h1 className="text-sm sm:text-base lg:text-base font-bold mb-6">
-                Budget Goals
-            </h1>
-
-            {/* Tabs */}
-            <div className="mb-6">
-                <div className="flex space-x-1 mb-4">
-                    {(
-                        [
-                            "weekly",
-                            "monthly",
-                            "multi-month",
-                            "yearly",
-                        ] as BudgetType[]
-                    ).map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 rounded-t cursor-pointer transition-colors ${
-                                activeTab === tab
-                                    ? "border-b-2"
-                                    : "hover:opacity-80"
-                            }`}
-                            style={{
-                                backgroundColor:
-                                    activeTab === tab
-                                        ? "var(--theme-surface)"
-                                        : "var(--theme-background)",
-                                color: "var(--theme-text)",
-                                borderColor:
-                                    activeTab === tab
-                                        ? "var(--theme-primary)"
-                                        : "transparent",
-                            }}
-                        >
-                            {tab.charAt(0).toUpperCase() +
-                                tab.slice(1).replace("-", " ")}
-                        </button>
-                    ))}
+        <PageContainer title="Budget Goals" className="space-y-6">
+            {/* Segmented Tabs */}
+            <GlassCard>
+                <div className="mb-6">
+                    <SegmentedControl
+                        options={tabs}
+                        value={activeTab}
+                        onChange={setActiveTab}
+                    />
                 </div>
 
                 {/* Budget Form */}
-                <div
-                    className="p-4 rounded"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        border: "1px solid",
-                    }}
-                >
+                <div className="space-y-6">
                     {activeTab === "weekly" && (
-                        <div>
-                            <h2 className="text-xs sm:text-sm lg:text-sm mb-4">
-                                Set Weekly Budget
-                            </h2>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block mb-1">
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-theme-text-secondary">
                                         Start Date
                                     </label>
                                     <input
@@ -295,17 +233,12 @@ export default function BudgetPage() {
                                                 startDate: e.target.value,
                                             })
                                         }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
+                                        className="w-full glass-button rounded-xl"
+                                        style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block mb-1">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-theme-text-secondary">
                                         End Date
                                     </label>
                                     <input
@@ -317,111 +250,77 @@ export default function BudgetPage() {
                                                 endDate: e.target.value,
                                             })
                                         }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
+                                        className="w-full glass-button rounded-xl"
+                                        style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
                             </div>
-                            <input
-                                type="number"
-                                placeholder="Total Budget (e.g., 500)"
-                                value={weeklyForm.totalBudget || ""}
-                                onChange={(e) =>
-                                    setWeeklyForm({
-                                        ...weeklyForm,
-                                        totalBudget: Number(e.target.value),
-                                    })
-                                }
-                                className="border p-2 rounded w-full mb-4"
-                                style={{
-                                    backgroundColor: "var(--theme-background)",
-                                    color: "var(--theme-text)",
-                                    borderColor: "var(--theme-border)",
-                                }}
-                            />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Total Budget
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter total budget"
+                                    value={weeklyForm.totalBudget || ""}
+                                    onChange={(e) =>
+                                        setWeeklyForm({
+                                            ...weeklyForm,
+                                            totalBudget: Number(e.target.value),
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
+                            </div>
                         </div>
                     )}
 
                     {activeTab === "monthly" && (
-                        <div>
-                            <h2 className="text-xs sm:text-sm lg:text-sm mb-4">
-                                Set Monthly Budget
-                            </h2>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block mb-1">Month</label>
-                                    <input
-                                        type="month"
-                                        value={monthlyForm.month}
-                                        onChange={(e) =>
-                                            setMonthlyForm({
-                                                ...monthlyForm,
-                                                month: e.target.value,
-                                            })
-                                        }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block mb-1">Year</label>
-                                    <input
-                                        type="number"
-                                        value={monthlyForm.year}
-                                        onChange={(e) =>
-                                            setMonthlyForm({
-                                                ...monthlyForm,
-                                                year: Number(e.target.value),
-                                            })
-                                        }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
-                                    />
-                                </div>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Month
+                                </label>
+                                <input
+                                    type="month"
+                                    value={monthlyForm.month}
+                                    onChange={(e) =>
+                                        setMonthlyForm({
+                                            ...monthlyForm,
+                                            month: e.target.value,
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
                             </div>
-                            <input
-                                type="number"
-                                placeholder="Total Budget (e.g., 2000)"
-                                value={monthlyForm.totalBudget || ""}
-                                onChange={(e) =>
-                                    setMonthlyForm({
-                                        ...monthlyForm,
-                                        totalBudget: Number(e.target.value),
-                                    })
-                                }
-                                className="border p-2 rounded w-full mb-4"
-                                style={{
-                                    backgroundColor: "var(--theme-background)",
-                                    color: "var(--theme-text)",
-                                    borderColor: "var(--theme-border)",
-                                }}
-                            />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Total Budget
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter total budget"
+                                    value={monthlyForm.totalBudget || ""}
+                                    onChange={(e) =>
+                                        setMonthlyForm({
+                                            ...monthlyForm,
+                                            totalBudget: Number(e.target.value),
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
+                            </div>
                         </div>
                     )}
 
                     {activeTab === "multi-month" && (
-                        <div>
-                            <h2 className="text-xs sm:text-sm lg:text-sm mb-4">
-                                Set Multi-Month Budget
-                            </h2>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block mb-1">
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-theme-text-secondary">
                                         Start Month
                                     </label>
                                     <input
@@ -433,17 +332,12 @@ export default function BudgetPage() {
                                                 startDate: e.target.value,
                                             })
                                         }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
+                                        className="w-full glass-button rounded-xl"
+                                        style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block mb-1">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-theme-text-secondary">
                                         End Month
                                     </label>
                                     <input
@@ -455,97 +349,86 @@ export default function BudgetPage() {
                                                 endDate: e.target.value,
                                             })
                                         }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
+                                        className="w-full glass-button rounded-xl"
+                                        style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
                             </div>
-                            <input
-                                type="number"
-                                placeholder="Total Budget (e.g., 10000)"
-                                value={multiMonthForm.totalBudget || ""}
-                                onChange={(e) =>
-                                    setMultiMonthForm({
-                                        ...multiMonthForm,
-                                        totalBudget: Number(e.target.value),
-                                    })
-                                }
-                                className="border p-2 rounded w-full mb-4"
-                                style={{
-                                    backgroundColor: "var(--theme-background)",
-                                    color: "var(--theme-text)",
-                                    borderColor: "var(--theme-border)",
-                                }}
-                            />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Total Budget
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter total budget"
+                                    value={multiMonthForm.totalBudget || ""}
+                                    onChange={(e) =>
+                                        setMultiMonthForm({
+                                            ...multiMonthForm,
+                                            totalBudget: Number(e.target.value),
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
+                            </div>
                         </div>
                     )}
 
                     {activeTab === "yearly" && (
-                        <div>
-                            <h2 className="text-xs sm:text-sm lg:text-sm mb-4">
-                                Set Yearly Budget
-                            </h2>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block mb-1">Year</label>
-                                    <input
-                                        type="number"
-                                        value={yearlyForm.year}
-                                        onChange={(e) =>
-                                            setYearlyForm({
-                                                ...yearlyForm,
-                                                year: Number(e.target.value),
-                                            })
-                                        }
-                                        className="border p-2 rounded w-full"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
-                                    />
-                                </div>
-                                <div></div>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Year
+                                </label>
+                                <input
+                                    type="number"
+                                    value={yearlyForm.year}
+                                    onChange={(e) =>
+                                        setYearlyForm({
+                                            ...yearlyForm,
+                                            year: Number(e.target.value),
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
                             </div>
-                            <input
-                                type="number"
-                                placeholder="Total Budget (e.g., 24000)"
-                                value={yearlyForm.totalBudget || ""}
-                                onChange={(e) =>
-                                    setYearlyForm({
-                                        ...yearlyForm,
-                                        totalBudget: Number(e.target.value),
-                                    })
-                                }
-                                className="border p-2 rounded w-full mb-4"
-                                style={{
-                                    backgroundColor: "var(--theme-background)",
-                                    color: "var(--theme-text)",
-                                    borderColor: "var(--theme-border)",
-                                }}
-                            />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-theme-text-secondary">
+                                    Total Budget
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter total budget"
+                                    value={yearlyForm.totalBudget || ""}
+                                    onChange={(e) =>
+                                        setYearlyForm({
+                                            ...yearlyForm,
+                                            totalBudget: Number(e.target.value),
+                                        })
+                                    }
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
+                            </div>
                         </div>
                     )}
 
-                    <button
-                        onClick={handleSetBudget}
-                        className="px-4 py-2 rounded cursor-pointer border-2 transition-colors"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            color: "var(--theme-text)",
-                            borderColor: "var(--theme-primary)",
-                        }}
-                    >
-                        Save Budget
-                    </button>
+                    <div className="pt-4">
+                        <button
+                            onClick={handleSetBudget}
+                            className="glass-button rounded-xl font-medium px-6 py-3 w-full sm:w-auto"
+                            style={{
+                                backgroundColor: "var(--theme-accent)",
+                                color: "var(--theme-background)",
+                            }}
+                        >
+                            Save Budget
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </GlassCard>
 
             {/* Budgets List */}
             <div>
@@ -553,18 +436,11 @@ export default function BudgetPage() {
                     Your Budgets
                 </h2>
                 {budgets.map((budget) => {
-                    const progress = (budget.spent / budget.totalBudget) * 100;
+                    const progress =
+                        (budget.spent / Math.max(budget.totalBudget, 1)) * 100;
                     const isOverBudget = progress > 100;
                     return (
-                        <div
-                            key={budget._id}
-                            className="mb-4 p-4 rounded"
-                            style={{
-                                backgroundColor: "var(--theme-surface)",
-                                borderColor: "var(--theme-border)",
-                                border: "1px solid",
-                            }}
-                        >
+                        <GlassCard key={budget._id} className="mb-6">
                             {editingId === budget._id ? (
                                 <div>
                                     <div className="mb-4">
@@ -580,13 +456,9 @@ export default function BudgetPage() {
                                                         .value as BudgetType,
                                                 })
                                             }
-                                            className="border p-2 rounded"
+                                            className="glass-button rounded"
                                             style={{
-                                                backgroundColor:
-                                                    "var(--theme-background)",
                                                 color: "var(--theme-text)",
-                                                borderColor:
-                                                    "var(--theme-border)",
                                             }}
                                         >
                                             <option value="weekly">
@@ -612,7 +484,9 @@ export default function BudgetPage() {
                                                 </label>
                                                 <input
                                                     type="date"
-                                                    value={editForm.startDate}
+                                                    value={
+                                                        editForm.startDate || ""
+                                                    }
                                                     onChange={(e) =>
                                                         setEditForm({
                                                             ...editForm,
@@ -620,13 +494,9 @@ export default function BudgetPage() {
                                                                 e.target.value,
                                                         })
                                                     }
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -636,7 +506,9 @@ export default function BudgetPage() {
                                                 </label>
                                                 <input
                                                     type="date"
-                                                    value={editForm.endDate}
+                                                    value={
+                                                        editForm.endDate || ""
+                                                    }
                                                     onChange={(e) =>
                                                         setEditForm({
                                                             ...editForm,
@@ -644,13 +516,9 @@ export default function BudgetPage() {
                                                                 e.target.value,
                                                         })
                                                     }
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -666,9 +534,10 @@ export default function BudgetPage() {
                                                 <input
                                                     type="month"
                                                     value={`${
-                                                        editForm.startYear
+                                                        editForm.startYear ||
+                                                        new Date().getFullYear()
                                                     }-${String(
-                                                        editForm.startMonth
+                                                        editForm.startMonth || 1
                                                     ).padStart(2, "0")}`}
                                                     onChange={(e) => {
                                                         const [year, month] =
@@ -683,13 +552,9 @@ export default function BudgetPage() {
                                                                 parseInt(year),
                                                         });
                                                     }}
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -706,9 +571,10 @@ export default function BudgetPage() {
                                                 <input
                                                     type="month"
                                                     value={`${
-                                                        editForm.startYear
+                                                        editForm.startYear ||
+                                                        new Date().getFullYear()
                                                     }-${String(
-                                                        editForm.startMonth
+                                                        editForm.startMonth || 1
                                                     ).padStart(2, "0")}`}
                                                     onChange={(e) => {
                                                         const [year, month] =
@@ -723,13 +589,9 @@ export default function BudgetPage() {
                                                                 parseInt(year),
                                                         });
                                                     }}
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -740,9 +602,10 @@ export default function BudgetPage() {
                                                 <input
                                                     type="month"
                                                     value={`${
-                                                        editForm.endYear
+                                                        editForm.endYear ||
+                                                        new Date().getFullYear()
                                                     }-${String(
-                                                        editForm.endMonth
+                                                        editForm.endMonth || 1
                                                     ).padStart(2, "0")}`}
                                                     onChange={(e) => {
                                                         const [year, month] =
@@ -757,13 +620,9 @@ export default function BudgetPage() {
                                                                 parseInt(year),
                                                         });
                                                     }}
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -778,7 +637,10 @@ export default function BudgetPage() {
                                                 </label>
                                                 <input
                                                     type="number"
-                                                    value={editForm.year}
+                                                    value={
+                                                        editForm.year ||
+                                                        new Date().getFullYear()
+                                                    }
                                                     onChange={(e) =>
                                                         setEditForm({
                                                             ...editForm,
@@ -787,13 +649,9 @@ export default function BudgetPage() {
                                                             ),
                                                         })
                                                     }
-                                                    className="border p-2 rounded w-full"
+                                                    className="w-full glass-button rounded-xl"
                                                     style={{
-                                                        backgroundColor:
-                                                            "var(--theme-background)",
                                                         color: "var(--theme-text)",
-                                                        borderColor:
-                                                            "var(--theme-border)",
                                                     }}
                                                 />
                                             </div>
@@ -813,14 +671,10 @@ export default function BudgetPage() {
                                                 ),
                                             })
                                         }
-                                        className="border p-2 rounded w-full mb-4"
-                                        style={{
-                                            backgroundColor:
-                                                "var(--theme-background)",
-                                            color: "var(--theme-text)",
-                                            borderColor: "var(--theme-border)",
-                                        }}
+                                        className="w-full mb-4 glass-button rounded-xl"
+                                        style={{ color: "var(--theme-text)" }}
                                     />
+
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleSaveEdit}
@@ -882,14 +736,7 @@ export default function BudgetPage() {
                                                 onClick={() =>
                                                     handleDelete(budget._id)
                                                 }
-                                                className="px-3 py-1 rounded cursor-pointer border-2 transition-colors text-xs"
-                                                style={{
-                                                    backgroundColor:
-                                                        "var(--theme-surface)",
-                                                    color: "var(--theme-text)",
-                                                    borderColor:
-                                                        "var(--theme-secondary)",
-                                                }}
+                                                className="glass-button text-xs"
                                             >
                                                 Delete
                                             </button>
@@ -915,7 +762,7 @@ export default function BudgetPage() {
                                         ></div>
                                     </div>
                                     <p className="mt-2 text-xs">
-                                        {progress.toFixed(1)}% used
+                                        {progress.toFixed(1)}% used{" "}
                                         {isOverBudget && (
                                             <span className="text-red-500 ml-2">
                                                 (Over budget by Birr{" "}
@@ -929,10 +776,10 @@ export default function BudgetPage() {
                                     </p>
                                 </>
                             )}
-                        </div>
+                        </GlassCard>
                     );
                 })}
             </div>
-        </div>
+        </PageContainer>
     );
 }

@@ -194,184 +194,179 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
     return (
         <>
             <Toast message={toast?.message} type={toast?.type} />
-            <form
-                onSubmit={handleSubmit}
-                className="rounded-md p-3 flex flex-wrap items-center gap-3 font-sans"
-                style={{
-                    border: "2px dashed var(--theme-border)",
-                    backgroundColor: "var(--theme-surface)",
-                    color: "var(--theme-text)",
-                }}
-            >
-                <input
-                    type="date"
-                    name="date"
-                    value={form.date}
-                    onChange={handleChange}
-                    className="rounded-md px-3 py-1.5 text-sm transition-all"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                />
-                <select
-                    name="template"
-                    onChange={handleTemplateChange}
-                    className="rounded-md px-3 py-1.5 text-sm transition-all w-40"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                >
-                    <option value="">Templates</option>
-                    {templates.map((t) => (
-                        <option
-                            key={t._id ?? t.description}
-                            value={t._id ?? t.description}
+            <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Date
+                        </label>
+                        <input
+                            type="date"
+                            name="date"
+                            value={form.date}
+                            onChange={handleChange}
+                            className="w-full glass-button rounded-xl text-sm"
+                            style={{
+                                color: "var(--theme-text)",
+                            }}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Template
+                        </label>
+                        <select
+                            name="template"
+                            onChange={handleTemplateChange}
+                            className="w-full glass-button rounded-xl text-sm"
+                            style={{
+                                color: "var(--theme-text)",
+                            }}
                         >
-                            {t.description}
-                        </option>
-                    ))}
-                </select>
+                            <option value="">Select Template</option>
+                            {templates.map((t) => (
+                                <option
+                                    key={t._id ?? t.description}
+                                    value={t._id ?? t.description}
+                                >
+                                    {t.description}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                <input
-                    type="text"
-                    name="description"
-                    placeholder="Description"
-                    value={form.description}
-                    onChange={handleChange}
-                    className="rounded-md px-3 py-1.5 text-sm transition-all flex-grow min-w-[120px]"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                />
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Description
+                        </label>
+                        <input
+                            type="text"
+                            name="description"
+                            placeholder="Enter description"
+                            value={form.description}
+                            onChange={handleChange}
+                            className="w-full glass-button rounded-xl text-sm"
+                            style={{
+                                color: "var(--theme-text)",
+                            }}
+                        />
+                    </div>
 
-                <div className="flex items-center space-x-2">
-                    {/* allow free text input but suggest existing server-side types */}
-                    <input
-                        list="type-suggestions"
-                        name="type"
-                        value={form.type}
-                        onChange={handleChange}
-                        placeholder="Type"
-                        className="rounded-md px-3 py-1.5 text-sm transition-all w-40"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            borderColor: "var(--theme-border)",
-                            color: "var(--theme-text)",
-                        }}
-                    />
-                    <datalist id="type-suggestions">
-                        {types.map((t) => (
-                            <option key={t} value={t} />
-                        ))}
-                    </datalist>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Type
+                        </label>
+                        <input
+                            list="type-suggestions"
+                            name="type"
+                            value={form.type}
+                            onChange={handleChange}
+                            placeholder="Enter type"
+                            className="w-full glass-button rounded-xl text-sm"
+                            style={{
+                                color: "var(--theme-text)",
+                            }}
+                        />
+                        <datalist id="type-suggestions">
+                            {types.map((t) => (
+                                <option key={t} value={t} />
+                            ))}
+                        </datalist>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Amount
+                        </label>
+                        <input
+                            type="number"
+                            name="amount"
+                            placeholder="0.00"
+                            value={form.amount}
+                            onChange={handleChange}
+                            step="1"
+                            className="w-full glass-button rounded-xl text-sm text-right"
+                            style={{
+                                color: "var(--theme-text)",
+                            }}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-theme-text-secondary">
+                            Options
+                        </label>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer select-none text-sm">
+                                <input
+                                    type="checkbox"
+                                    name="included"
+                                    checked={!form.included}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 cursor-pointer rounded"
+                                    style={{
+                                        accentColor: "var(--theme-accent)",
+                                    }}
+                                />
+                                <span className="text-theme-text-secondary">
+                                    Exclude from total
+                                </span>
+                            </label>
+
+                            <label className="flex items-center gap-2 cursor-pointer select-none text-sm">
+                                <input
+                                    type="checkbox"
+                                    name="isRecurring"
+                                    checked={form.isRecurring}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 cursor-pointer rounded"
+                                    style={{
+                                        accentColor: "var(--theme-accent)",
+                                    }}
+                                />
+                                <span className="text-theme-text-secondary">
+                                    Recurring
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {form.isRecurring && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-theme-text-secondary">
+                                Frequency
+                            </label>
+                            <select
+                                name="frequency"
+                                value={form.frequency}
+                                onChange={handleChange}
+                                className="w-full glass-button rounded-xl text-sm"
+                                style={{
+                                    color: "var(--theme-text)",
+                                }}
+                            >
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
 
-                <input
-                    type="number"
-                    name="amount"
-                    placeholder="Amount"
-                    value={form.amount}
-                    onChange={handleChange}
-                    step="1"
-                    className="rounded-md px-3 py-1.5 text-sm transition-all w-20 text-right"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                />
-
-                <label
-                    htmlFor="included"
-                    className="flex items-center gap-2 cursor-pointer select-none text-sm"
-                    style={{ color: "var(--theme-text)" }}
-                >
-                    <input
-                        id="included"
-                        type="checkbox"
-                        name="included"
-                        checked={!form.included}
-                        onChange={handleChange}
-                        className="w-4 h-4 cursor-pointer"
+                <div className="flex justify-end pt-4">
+                    <button
+                        type="submit"
+                        aria-label="Add expense"
+                        className="glass-button rounded-xl flex items-center gap-2 text-sm font-medium"
                         style={{
-                            accentColor: "var(--theme-primary)",
-                            border: "none",
-                        }}
-                    />
-                    EXCLUDE FROM TOTAL
-                </label>
-
-                <label
-                    htmlFor="isRecurring"
-                    className="flex items-center gap-2 cursor-pointer select-none text-sm"
-                    style={{ color: "var(--theme-text)" }}
-                >
-                    <input
-                        id="isRecurring"
-                        type="checkbox"
-                        name="isRecurring"
-                        checked={form.isRecurring}
-                        onChange={handleChange}
-                        className="w-4 h-4 cursor-pointer"
-                        style={{
-                            accentColor: "var(--theme-primary)",
-                            border: "none",
-                        }}
-                    />
-                    RECURRING
-                </label>
-
-                {form.isRecurring && (
-                    <select
-                        name="frequency"
-                        value={form.frequency}
-                        onChange={handleChange}
-                        className="rounded-md px-3 py-1.5 text-sm transition-all w-32"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            borderColor: "var(--theme-border)",
-                            color: "var(--theme-text)",
+                            backgroundColor: "var(--theme-accent)",
+                            color: "var(--theme-background)",
                         }}
                     >
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                )}
-
-                <button
-                    type="submit"
-                    aria-label="Add expense"
-                    className="px-6 py-1.5 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                    style={{
-                        backgroundColor: "var(--theme-primary)",
-                        color: "var(--theme-background)",
-                        border: "none",
-                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                            "var(--theme-active)";
-                        e.currentTarget.style.color = "var(--theme-text)";
-                        e.currentTarget.style.boxShadow =
-                            "0 2px 4px rgba(0, 0, 0, 0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                            "var(--theme-primary)";
-                        e.currentTarget.style.color = "var(--theme-background)";
-                        e.currentTarget.style.boxShadow =
-                            "0 1px 2px rgba(0, 0, 0, 0.1)";
-                    }}
-                >
-                    <Plus className="w-4 h-4" />
-                    Add
-                </button>
+                        <Plus className="w-4 h-4" />
+                        Add Expense
+                    </button>
+                </div>
             </form>
         </>
     );

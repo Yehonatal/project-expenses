@@ -9,13 +9,10 @@ interface ExpenseRowProps {
 
 export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
     return (
-        <tr
-            className="transition-colors duration-150"
-            style={{ backgroundColor: "var(--theme-hover)" }}
-        >
+        <tr className="transition-all duration-200 hover:glass-button/20 border-b border-gray-200 border-theme-border/10">
             <td
-                className="p-3 align-top font-mono w-24"
-                style={{ color: "var(--theme-textSecondary)" }}
+                className="px-3 py-2 align-middle font-mono w-24 text-xs"
+                style={{ color: "var(--theme-text-secondary)" }}
             >
                 {new Date(exp.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -23,7 +20,7 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                 })}
             </td>
             <td
-                className="p-3 align-top"
+                className="px-3 py-2 align-middle text-xs"
                 style={{ color: "var(--theme-text)" }}
             >
                 <div className="flex items-center gap-2">
@@ -37,44 +34,44 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                 </div>
             </td>
             <td
-                className="p-3 align-top capitalize"
-                style={{ color: "var(--theme-textSecondary)" }}
+                className="px-3 py-2 align-middle capitalize text-xs"
+                style={{ color: "var(--theme-text-secondary)" }}
             >
                 {exp.type}
             </td>
             <td
-                className="p-3 text-right font-semibold w-24"
+                className="px-3 py-2 align-middle text-right font-semibold w-24 text-xs"
                 style={{ color: "var(--theme-text)" }}
             >
                 Birr {exp.amount.toFixed(2)}
             </td>
-            <td className="p-3 text-center font-semibold flex justify-center items-center space-x-1 w-20">
+            <td className="px-3 py-2 text-center font-semibold pl-10 space-x-1 w-20">
                 {exp.included ? (
                     <>
                         <Check
-                            className="w-4 h-4"
+                            className="w-3 h-3"
                             style={{ color: "var(--theme-accent)" }}
                         />
                     </>
                 ) : (
                     <>
                         <X
-                            className="w-4 h-4"
+                            className="w-3 h-3"
                             style={{ color: "var(--theme-primary)" }}
                         />
                     </>
                 )}
             </td>
-            <td className="p-3 text-center w-16">
+            <td className="px-3 py-2 text-center w-24">
                 <div className="flex items-center justify-center space-x-1">
                     {onEdit && (
                         <button
                             onClick={() => onEdit(exp)}
-                            className="p-1 rounded hover:opacity-70 transition-opacity"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            className="p-1 rounded hover:bg-theme-surface/50 transition-all duration-200"
+                            style={{ color: "var(--theme-text)" }}
                             title="Edit expense"
                         >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3 h-3" />
                         </button>
                     )}
                     {onDelete && (
@@ -82,11 +79,11 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                             onClick={() =>
                                 onDelete(exp._id || exp.id?.toString() || "")
                             }
-                            className="p-1 rounded hover:opacity-70 transition-opacity"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            className="p-1 rounded hover:bg-red-500/20 transition-all duration-200"
+                            style={{ color: "#ef4444" }}
                             title="Delete expense"
                         >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                         </button>
                     )}
                 </div>

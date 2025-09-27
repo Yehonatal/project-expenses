@@ -30,14 +30,7 @@ export default function Modal({
                 onClick={onClose}
             />
 
-            <div
-                className="relative max-w-md w-full mx-4 rounded-lg shadow-lg"
-                style={{
-                    backgroundColor: "var(--theme-surface)",
-                    border: "1px solid var(--theme-border)",
-                }}
-            >
-                {/* Header */}
+            <div className="relative max-w-md w-full mx-4 glass-card rounded-lg shadow-lg">
                 <div
                     className="flex items-center justify-between p-4 border-b"
                     style={{ borderColor: "var(--theme-border)" }}
@@ -50,10 +43,8 @@ export default function Modal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                        className="w-8 h-8 rounded-full flex items-center justify-center glass-button hover:glass-button/80 transition-all duration-200 cursor-pointer"
                         style={{
-                            backgroundColor: "var(--theme-surface)",
-                            border: "none",
                             color: "var(--theme-text-secondary)",
                         }}
                         aria-label="Close modal"
@@ -62,10 +53,8 @@ export default function Modal({
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="p-4">{children}</div>
 
-                {/* Actions */}
                 {actions && (
                     <div
                         className="flex justify-end gap-3 p-4 border-t"

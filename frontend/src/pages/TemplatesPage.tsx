@@ -1,4 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import PageContainer from "../components/ui/PageContainer";
+import GlassCard from "../components/ui/GlassCard";
+import CompactCard from "../components/ui/CompactCard";
 import { Trash2, Plus } from "lucide-react";
 import API from "../api/api";
 import Toast from "../components/Toast";
@@ -102,142 +105,145 @@ export default function TemplatesPage() {
     };
 
     return (
-        <div
-            className="p-6 max-w-5xl mx-auto"
-            style={{
-                backgroundColor: "var(--theme-background)",
-                color: "var(--theme-text)",
-            }}
+        <PageContainer
+            title="Templates"
+            className="p-6 max-w-5xl mx-auto space-y-6"
         >
-            <h1
-                className="text-sm sm:text-base lg:text-base font-bold mb-6"
-                style={{ color: "var(--theme-text)" }}
-            >
-                Templates
-            </h1>
+            <form onSubmit={handleAdd} className="space-y-4">
+                <GlassCard>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Description
+                            </label>
+                            <input
+                                name="description"
+                                value={form.description}
+                                onChange={handleChange}
+                                placeholder="Description"
+                                className="w-full glass-button rounded-xl"
+                                style={{ color: "var(--theme-text)" }}
+                            />
+                        </div>
 
-            <form
-                onSubmit={handleAdd}
-                className="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center mb-4"
-            >
-                <input
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    placeholder="Description"
-                    className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 flex-1 min-w-[140px] transition-all"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                />
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Type
+                            </label>
+                            <div className="relative">
+                                <input
+                                    list="template-type-suggestions"
+                                    name="type"
+                                    value={form.type}
+                                    onChange={handleChange}
+                                    placeholder="Type"
+                                    className="w-full glass-button rounded-xl"
+                                    style={{ color: "var(--theme-text)" }}
+                                />
+                                <datalist id="template-type-suggestions">
+                                    {types.map((t) => (
+                                        <option key={t} value={t} />
+                                    ))}
+                                </datalist>
+                            </div>
+                        </div>
 
-                <div className="relative">
-                    <input
-                        list="template-type-suggestions"
-                        name="type"
-                        value={form.type}
-                        onChange={handleChange}
-                        placeholder="Type"
-                        className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 w-40 transition-all"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            borderColor: "var(--theme-border)",
-                            color: "var(--theme-text)",
-                        }}
-                    />
-                    <datalist id="template-type-suggestions">
-                        {types.map((t) => (
-                            <option key={t} value={t} />
-                        ))}
-                    </datalist>
-                </div>
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Price
+                            </label>
+                            <input
+                                name="price"
+                                value={form.price}
+                                onChange={handleChange}
+                                placeholder="0.00"
+                                type="number"
+                                step="0.01"
+                                className="w-full glass-button rounded-xl"
+                                style={{ color: "var(--theme-text)" }}
+                            />
+                        </div>
+                    </div>
 
-                <input
-                    name="price"
-                    value={form.price}
-                    onChange={handleChange}
-                    placeholder="Price"
-                    className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 w-24 text-right transition-all"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-text)",
-                    }}
-                />
-
-                <div className="w-full sm:w-auto">
-                    <button
-                        className="text-xs sm:text-sm lg:text-base px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center transition-all"
-                        style={{
-                            backgroundColor: "var(--theme-primary)",
-                            color: "white",
-                        }}
-                    >
-                        <Plus className="w-4 h-4" /> Add
-                    </button>
-                </div>
+                    <div className="flex justify-end pt-4">
+                        <button
+                            type="submit"
+                            className="glass-button rounded-xl flex items-center gap-2 font-medium transition-all duration-200 hover:glass-button/80"
+                            style={{
+                                backgroundColor: "var(--theme-accent)",
+                                color: "var(--theme-background)",
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Template
+                        </button>
+                    </div>
+                </GlassCard>
             </form>
+
             <Toast message={toast?.message} type={toast?.type} />
 
-            <div className="space-y-2">
+            <div className="space-y-4">
                 {templates.length === 0 && (
-                    <div
-                        className="text-xs sm:text-sm lg:text-base"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        No templates yet.
-                    </div>
+                    <GlassCard>
+                        <div
+                            className="text-center text-sm"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            No templates yet.
+                        </div>
+                    </GlassCard>
                 )}
                 {templates.map((t) => {
                     const safeId = String(t._id ?? t.id ?? Date.now());
                     return (
-                        <div
-                            key={safeId}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded p-3 gap-2"
-                            style={{
-                                backgroundColor: "var(--theme-surface)",
-                                border: `1px solid var(--theme-border)`,
-                            }}
-                        >
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                <div
-                                    className="text-xs sm:text-sm font-semibold"
-                                    style={{ color: "var(--theme-text)" }}
-                                >
-                                    {t.description}
+                        <CompactCard key={safeId}>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                    <div
+                                        className="text-xs sm:text-sm font-semibold"
+                                        style={{ color: "var(--theme-text)" }}
+                                    >
+                                        {t.description}
+                                    </div>
+                                    <div
+                                        className="text-xs capitalize"
+                                        style={{
+                                            color: "var(--theme-text-secondary)",
+                                        }}
+                                    >
+                                        {t.type}
+                                    </div>
                                 </div>
-                                <div
-                                    className="text-xs capitalize"
-                                    style={{
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                >
-                                    {t.type}
+                                <div className="flex items-center justify-between sm:justify-end gap-3">
+                                    <div
+                                        className="text-xs sm:text-sm font-semibold"
+                                        style={{ color: "var(--theme-text)" }}
+                                    >
+                                        Birr {String(t.price)}
+                                    </div>
+                                    <button
+                                        onClick={() => handleDelete(safeId)}
+                                        className="w-10 h-10 rounded-full flex items-center justify-center glass-button hover:bg-red-500/20 transition-all duration-200 cursor-pointer"
+                                        style={{ color: "#ef4444" }}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-3">
-                                <div
-                                    className="text-xs sm:text-sm font-semibold"
-                                    style={{ color: "var(--theme-text)" }}
-                                >
-                                    Birr {String(t.price)}
-                                </div>
-                                <button
-                                    onClick={() => handleDelete(safeId)}
-                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
-                                    style={{
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
+                        </CompactCard>
                     );
                 })}
             </div>
-        </div>
+        </PageContainer>
     );
 }

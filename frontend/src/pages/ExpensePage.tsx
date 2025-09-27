@@ -6,6 +6,8 @@ import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
 import Modal from "../components/Modal";
 import { RotateCcw, Plus } from "lucide-react";
+import PageContainer from "../components/ui/PageContainer";
+import GlassCard from "../components/ui/GlassCard";
 
 export default function ExpensePage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -24,15 +26,19 @@ export default function ExpensePage() {
         null
     );
 
+    useEffect(() => {
+        fetchExpenses();
+        fetchBudgets();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const fetchExpenses = async () => {
         try {
             const res = await API.get<Expense[]>("/expenses");
-            setExpenses(res.data);
-
-            const includedTotal = res.data
+            setExpenses(res.data || []);
+            const includedTotal = (res.data || [])
                 .filter((e) => e.included)
                 .reduce((sum, e) => sum + e.amount, 0);
-
             setTotal(includedTotal);
         } catch (error) {
             console.error("Failed to fetch expenses:", error);
@@ -42,23 +48,15 @@ export default function ExpensePage() {
     const fetchBudgets = async () => {
         try {
             const res = await getBudgets();
-            setBudgets(res.data);
+            setBudgets(res.data || []);
         } catch (error) {
             console.error("Failed to fetch budgets:", error);
         }
     };
 
-    useEffect(() => {
-        fetchExpenses();
-        fetchBudgets();
-    }, []);
-
-    const handleAdd = (newExpense: Expense) => {
-        setExpenses((prev) => [newExpense, ...prev]);
-
-        if (newExpense.included) {
-            setTotal((prev) => prev + newExpense.amount);
-        }
+    const handleAdd = (expense: Expense) => {
+        setExpenses((prev) => [expense, ...prev]);
+        if (expense.included) setTotal((prev) => prev + expense.amount);
     };
 
     const handleEdit = (expense: Expense) => {
@@ -66,17 +64,23 @@ export default function ExpensePage() {
         setShowEditModal(true);
     };
 
-    const handleDelete = (id: string) => {
-        setDeletingExpenseId(id);
+    const handleDelete = (expenseId: string) => {
+        setDeletingExpenseId(expenseId);
         setShowDeleteModal(true);
     };
 
     const confirmDelete = async () => {
         if (!deletingExpenseId) return;
-
         try {
             await API.delete(`/expenses/${deletingExpenseId}`);
-            await fetchExpenses(); // Refresh the list
+            // remove from state
+            // remove from state and recompute total based on new list
+            setExpenses((prev) => {
+                const next = prev.filter((e) => e._id !== deletingExpenseId);
+                const included = next.filter((e) => e.included);
+                setTotal(included.reduce((s, e) => s + e.amount, 0));
+                return next;
+            });
             setShowDeleteModal(false);
             setDeletingExpenseId(null);
         } catch (error) {
@@ -84,175 +88,136 @@ export default function ExpensePage() {
         }
     };
 
-    const handleGenerateRecurring = async () => {
-        try {
-            const res = await API.post("/expenses/generate-recurring");
-
-            if (res.data.generatedExpenses.length > 0) {
-                // Refresh expenses to show the newly generated ones
-                await fetchExpenses();
-                setRecurringModalContent({
-                    title: "Success",
-                    message: `Successfully generated ${
-                        res.data.generatedExpenses.length
-                    } recurring expense${
-                        res.data.generatedExpenses.length === 1 ? "" : "s"
-                    }.`,
-                });
-            } else {
-                // Check if there are any recurring expenses at all
-                const hasRecurringExpenses = expenses.some(
-                    (exp) => exp.isRecurring
-                );
-                if (!hasRecurringExpenses) {
-                    setRecurringModalContent({
-                        title: "No Recurring Expenses",
-                        message:
-                            "You don't have any recurring expenses set up yet. Would you like to create your first recurring expense?",
-                        showAddButton: true,
-                    });
-                } else {
-                    setRecurringModalContent({
-                        title: "No Expenses Due",
-                        message:
-                            "All your recurring expenses are up to date. No new expenses were generated.",
-                    });
-                }
-            }
-            setShowRecurringModal(true);
-        } catch (error) {
-            console.error("Failed to generate recurring expenses:", error);
-            setRecurringModalContent({
-                title: "Error",
-                message:
-                    "Failed to generate recurring expenses. Please try again later.",
-            });
-            setShowRecurringModal(true);
-        }
+    const handleGenerateRecurring = () => {
+        setRecurringModalContent({
+            title: "Generate Recurring",
+            message:
+                "This will create due recurring expenses based on your templates.",
+            showAddButton: true,
+        });
+        setShowRecurringModal(true);
     };
 
     return (
-        <div
-            className="p-6 max-w-5xl mx-auto"
-            style={{
-                backgroundColor: "var(--theme-background)",
-                color: "var(--theme-text)",
-            }}
-        >
-            <h1 className="text-sm sm:text-base lg:text-base font-bold mb-6">
-                Expense Tracker
-            </h1>
-            <div className="flex items-center gap-4 mb-4">
-                <ExpenseForm onAdd={handleAdd} />
-            </div>
-            <div className="flex items-center justify-between mt-4 gap-4">
-                <div className="text-sm sm:text-base lg:text-base font-medium flex-1">
-                    Total (Included): Birr {total.toFixed(2)}
-                </div>
-                <button
-                    onClick={handleGenerateRecurring}
-                    className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 flex-shrink-0"
-                    style={{
-                        backgroundColor: "var(--theme-accent)",
-                        color: "var(--theme-background)",
-                        border: "1px solid var(--theme-border)",
-                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-                    }}
-                    title="Generate due recurring expenses"
-                >
-                    <RotateCcw className="w-4 h-4" />
-                    <span className="hidden sm:inline">Generate Recurring</span>
-                </button>
-            </div>
-            <div
-                className="text-xs text-right mt-1 hidden sm:block"
-                style={{ color: "var(--theme-textSecondary)" }}
-            >
-                Auto-create due recurring expenses
-            </div>
+        <PageContainer title="Expense Tracker" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <ExpenseForm onAdd={handleAdd} />
 
-            {budgets.length > 0 && (
-                <div
-                    className="mt-6 p-4 rounded"
-                    style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
-                        border: "1px solid",
-                    }}
-                >
-                    <h2 className="text-xs sm:text-sm lg:text-base font-semibold mb-4">
-                        Budget Progress
-                    </h2>
-                    <div className="space-y-3">
-                        {budgets.slice(0, 3).map((budget) => {
-                            // Show up to 3 most recent budgets
-                            const progress =
-                                (budget.spent / budget.totalBudget) * 100;
-                            const isOverBudget = progress > 100;
-                            return (
-                                <div
-                                    key={budget._id}
-                                    className="flex items-center justify-between"
+                    <GlassCard>
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-base font-semibold text-theme-text">
+                                    Total Expenses
+                                </h2>
+                                <p
+                                    className="text-xl font-bold"
+                                    style={{ color: "#059669" }}
                                 >
-                                    <div className="flex-1">
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span>
-                                                {budget.startMonth}/
-                                                {budget.startYear} -{" "}
-                                                {budget.endMonth}/
-                                                {budget.endYear}
-                                            </span>
-                                            <span>
-                                                ${budget.spent.toFixed(2)} / $
-                                                {budget.totalBudget.toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-3">
-                                            <div
-                                                className="h-3 rounded-full transition-all duration-300"
-                                                style={{
-                                                    width: `${Math.min(
-                                                        progress,
-                                                        100
-                                                    )}%`,
-                                                    backgroundColor:
-                                                        isOverBudget
-                                                            ? "#ef4444"
-                                                            : "#22c55e",
-                                                }}
-                                            ></div>
-                                        </div>
-                                        <div
-                                            className="text-xs mt-1"
-                                            style={{
-                                                color: isOverBudget
-                                                    ? "#ef4444"
-                                                    : "var(--theme-text-secondary)",
-                                            }}
-                                        >
-                                            {progress.toFixed(1)}% spent
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {budgets.length > 3 && (
-                        <p
-                            className="text-sm mt-2"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            And {budgets.length - 3} more budgets...
+                                    Birr {total.toFixed(2)}
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleGenerateRecurring}
+                                className="glass-button px-4 py-2 flex items-center gap-2 text-sm font-medium"
+                                style={{ color: "var(--theme-accent)" }}
+                                title="Generate due recurring expenses"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                <span className="hidden sm:inline">
+                                    Generate Recurring
+                                </span>
+                            </button>
+                        </div>
+                        <p className="text-xs text-theme-text-secondary">
+                            Auto-create due recurring expenses
                         </p>
+                    </GlassCard>
+
+                    <ExpenseTable
+                        expenses={expenses}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+                </div>
+
+                <div className="space-y-6">
+                    {budgets.length > 0 && (
+                        <GlassCard>
+                            <h2 className="text-base font-semibold text-theme-text mb-4">
+                                Budget Progress
+                            </h2>
+                            <div className="space-y-4">
+                                {budgets.slice(0, 3).map((budget) => {
+                                    const progress =
+                                        (budget.spent / budget.totalBudget) *
+                                        100;
+                                    const isOverBudget = progress > 100;
+                                    return (
+                                        <div
+                                            key={budget._id}
+                                            className="space-y-2"
+                                        >
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-theme-text">
+                                                    {budget.startMonth}/
+                                                    {budget.startYear} -{" "}
+                                                    {budget.endMonth}/
+                                                    {budget.endYear}
+                                                </span>
+                                                <span
+                                                    className="text-sm font-semibold"
+                                                    style={{
+                                                        color: isOverBudget
+                                                            ? "#dc2626"
+                                                            : "#059669",
+                                                    }}
+                                                >
+                                                    ${budget.spent.toFixed(2)} /
+                                                    $
+                                                    {budget.totalBudget.toFixed(
+                                                        2
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 dark:bg-gray-200 rounded-full h-2">
+                                                <div
+                                                    className="h-2 rounded-full transition-all duration-300"
+                                                    style={{
+                                                        width: `${Math.min(
+                                                            progress,
+                                                            100
+                                                        )}%`,
+                                                        backgroundColor:
+                                                            isOverBudget
+                                                                ? "#dc2626"
+                                                                : "#10b981",
+                                                    }}
+                                                ></div>
+                                            </div>
+                                            <div
+                                                className="text-xs"
+                                                style={{
+                                                    color: isOverBudget
+                                                        ? "#ef4444"
+                                                        : "var(--theme-text-secondary)",
+                                                }}
+                                            >
+                                                {progress.toFixed(1)}% spent
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {budgets.length > 3 && (
+                                <p className="text-sm text-theme-text-secondary mt-4">
+                                    And {budgets.length - 3} more budgets...
+                                </p>
+                            )}
+                        </GlassCard>
                     )}
                 </div>
-            )}
-
-            <ExpenseTable
-                expenses={expenses}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-            />
+            </div>
 
             <Modal
                 isOpen={showRecurringModal}
@@ -263,14 +228,13 @@ export default function ExpensePage() {
                         <button
                             onClick={() => {
                                 setShowRecurringModal(false);
-                                // Scroll to the form or focus on it
                                 (
                                     document.querySelector(
                                         'input[name="description"]'
                                     ) as HTMLInputElement
                                 )?.focus();
                             }}
-                            className="px-4 py-2 flex items-center gap-2 text-sm rounded-lg transition-all hover:opacity-90"
+                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80 flex items-center gap-2"
                             style={{
                                 backgroundColor: "var(--theme-primary)",
                                 color: "white",
@@ -282,12 +246,8 @@ export default function ExpensePage() {
                     ) : (
                         <button
                             onClick={() => setShowRecurringModal(false)}
-                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-80"
-                            style={{
-                                backgroundColor: "var(--theme-surface)",
-                                color: "var(--theme-text)",
-                                border: "1px solid var(--theme-border)",
-                            }}
+                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
+                            style={{ color: "var(--theme-text)" }}
                         >
                             OK
                         </button>
@@ -307,7 +267,6 @@ export default function ExpensePage() {
                 {editingExpense && (
                     <ExpenseForm
                         onAdd={(updatedExpense) => {
-                            // Update the expense in the list
                             setExpenses((prev) =>
                                 prev.map((exp) =>
                                     exp._id === updatedExpense._id
@@ -317,7 +276,6 @@ export default function ExpensePage() {
                             );
                             setShowEditModal(false);
                             setEditingExpense(null);
-                            // Update total if included status changed
                             const oldExpense = expenses.find(
                                 (e) => e._id === updatedExpense._id
                             );
@@ -362,18 +320,14 @@ export default function ExpensePage() {
                                 setShowDeleteModal(false);
                                 setDeletingExpenseId(null);
                             }}
-                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-80"
-                            style={{
-                                backgroundColor: "var(--theme-surface)",
-                                color: "var(--theme-text)",
-                                border: "1px solid var(--theme-border)",
-                            }}
+                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
+                            style={{ color: "var(--theme-text)" }}
                         >
                             Cancel
                         </button>
                         <button
                             onClick={confirmDelete}
-                            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-90"
+                            className="glass-button text-sm rounded-lg transition-all hover:glass-button/80"
                             style={{
                                 backgroundColor: "var(--theme-error)",
                                 color: "white",
@@ -389,6 +343,6 @@ export default function ExpensePage() {
                     cannot be undone.
                 </p>
             </Modal>
-        </div>
+        </PageContainer>
     );
 }

@@ -1,13 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import {
-    List,
-    PieChart,
-    FileText,
-    LogOut,
-    Github,
-    DollarSign,
-} from "lucide-react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
+import NavBar from "./components/NavBar";
 import ExpensePage from "./pages/ExpensePage";
 import SummaryPage from "./pages/SummaryPage";
 import TemplatesPage from "./pages/TemplatesPage";
@@ -16,8 +9,8 @@ import ProfilePage from "./pages/ProfilePage";
 import BudgetPage from "./pages/BudgetPage";
 import API, { authAPI } from "./api/api";
 import Loading from "./components/Loading";
-import ThemeSelector from "./components/ThemeSelector";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { Github } from "lucide-react";
 
 interface UserData {
     _id: string;
@@ -29,7 +22,6 @@ interface UserData {
 export default function App() {
     const [user, setUser] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [avatarError, setAvatarError] = useState(false);
 
     useEffect(() => {
         // Check for token in URL query params (from OAuth callback)
@@ -84,132 +76,44 @@ export default function App() {
                 {!user ? (
                     <LoginPage />
                 ) : (
-                    <div
-                        className="max-w-5xl mx-auto"
-                        style={{
-                            backgroundColor: "var(--theme-background)",
-                            color: "var(--theme-text)",
-                        }}
-                    >
-                        <nav
-                            className="p-4 flex gap-6 justify-between items-center font-semibold"
-                            style={{
-                                borderBottom: "1px solid var(--theme-border)",
-                            }}
+                    <div className="min-h-screen">
+                        <NavBar user={user} onLogout={handleLogout} />
+                        <main className="pt-24 px-6 max-w-6xl mx-auto">
+                            <Routes>
+                                <Route path="/" element={<ExpensePage />} />
+                                <Route
+                                    path="/summary"
+                                    element={<SummaryPage />}
+                                />
+                                <Route
+                                    path="/templates"
+                                    element={<TemplatesPage />}
+                                />
+                                <Route
+                                    path="/budget"
+                                    element={<BudgetPage />}
+                                />
+                                <Route
+                                    path="/profile"
+                                    element={<ProfilePage />}
+                                />
+                            </Routes>
+                        </main>
+                        <footer
+                            className="text-center py-8 text-sm opacity-60 flex items-center justify-center gap-2"
+                            style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            <div className="flex gap-6">
-                                <Link
-                                    to="/"
-                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
-                                    style={{
-                                        color: "var(--theme-text)",
-                                        textDecorationColor:
-                                            "var(--theme-accent)",
-                                    }}
-                                    aria-label="Expenses"
-                                >
-                                    <List size={20} />
-                                </Link>
-                                <Link
-                                    to="/summary"
-                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
-                                    style={{
-                                        color: "var(--theme-text)",
-                                        textDecorationColor:
-                                            "var(--theme-accent)",
-                                    }}
-                                    aria-label="Summary"
-                                >
-                                    <PieChart size={20} />
-                                </Link>
-                                <Link
-                                    to="/templates"
-                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
-                                    style={{
-                                        color: "var(--theme-text)",
-                                        textDecorationColor:
-                                            "var(--theme-accent)",
-                                    }}
-                                    aria-label="Templates"
-                                >
-                                    <FileText size={20} />
-                                </Link>
-                                <Link
-                                    to="/budget"
-                                    className="hover:underline transition-colors duration-200 flex items-center gap-2"
-                                    style={{
-                                        color: "var(--theme-text)",
-                                        textDecorationColor:
-                                            "var(--theme-accent)",
-                                    }}
-                                    aria-label="Budget"
-                                >
-                                    <DollarSign size={20} />
-                                </Link>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <ThemeSelector />
-                                <a
-                                    href="https://github.com/Yehonatal/project-expenses"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
-                                    style={{
-                                        backgroundColor: "var(--theme-surface)",
-                                        border: "none",
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                    aria-label="GitHub Repository"
-                                >
-                                    <Github size={16} />
-                                </a>
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
-                                    style={{
-                                        backgroundColor: "var(--theme-surface)",
-                                        border: "none",
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                    aria-label="Logout"
-                                >
-                                    <LogOut size={16} />
-                                </button>
-                                <Link
-                                    to="/profile"
-                                    className="hover:opacity-80 transition-opacity"
-                                >
-                                    {avatarError || !user.picture ? (
-                                        <div
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm sm:text-base lg:text-base cursor-pointer"
-                                            style={{
-                                                backgroundColor:
-                                                    "var(--theme-primary)",
-                                            }}
-                                        >
-                                            💰
-                                        </div>
-                                    ) : (
-                                        <img
-                                            src={user.picture}
-                                            alt={user.name}
-                                            className="w-8 h-8 rounded-full cursor-pointer"
-                                            onError={() => setAvatarError(true)}
-                                        />
-                                    )}
-                                </Link>
-                            </div>
-                        </nav>{" "}
-                        <Routes>
-                            <Route path="/" element={<ExpensePage />} />
-                            <Route path="/summary" element={<SummaryPage />} />
-                            <Route
-                                path="/templates"
-                                element={<TemplatesPage />}
-                            />
-                            <Route path="/budget" element={<BudgetPage />} />
-                            <Route path="/profile" element={<ProfilePage />} />
-                        </Routes>
+                            Built for my broke a**
+                            <a
+                                href="https://github.com/Yehonatal/project-expenses"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:opacity-80 transition-opacity"
+                                aria-label="View on GitHub"
+                            >
+                                <Github size={16} />
+                            </a>
+                        </footer>
                     </div>
                 )}
             </Router>

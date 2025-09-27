@@ -52,17 +52,9 @@ export default function Toast({ message, type = "success" }: ToastProps) {
         }
     };
 
-    const getBgColor = () => {
-        return {
-            backgroundColor: "var(--theme-surface)",
-            borderColor: "var(--theme-border)",
-        };
-    };
-
     return (
         <div
-            className="fixed bottom-4 right-4 max-w-xs w-auto border px-4 py-3 rounded-lg shadow-lg ring-1 ring-black/10 transform transition-all duration-300 ease-out animate-in slide-in-from-right-4"
-            style={getBgColor()}
+            className="fixed bottom-4 right-4 max-w-xs w-auto glass-card px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 ease-out animate-in slide-in-from-right-4"
             role="status"
             aria-live="polite"
         >

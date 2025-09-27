@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import API, { authAPI, getExpenses } from "../api/api";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
-import { Download, FileText, Cloud } from "lucide-react";
+import ExportControls from "../components/ui/ExportControls";
+import StatCard from "../components/ui/StatCard";
+import ProfileHeader from "../components/ui/ProfileHeader";
 import Papa from "papaparse";
 import jsPDF from "jspdf";
+import PageContainer from "../components/ui/PageContainer";
+import GlassCard from "../components/ui/GlassCard";
 
 interface User {
     _id: string;
@@ -45,7 +49,7 @@ export default function ProfilePage() {
     const [user, setUser] = useState<User | null>(null);
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [avatarError, setAvatarError] = useState(false);
+    const [_avatarError, setAvatarError] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
 
@@ -190,49 +194,14 @@ export default function ProfilePage() {
     }
 
     return (
-        <div
-            className="max-w-5xl mx-auto p-6"
-            style={{
-                backgroundColor: "var(--theme-background)",
-                color: "var(--theme-text)",
-            }}
-        >
-            <h1
-                className="text-sm sm:text-base lg:text-base font-bold mb-6"
-                style={{ color: "var(--theme-primary)" }}
-            >
-                Profile
-            </h1>
-
-            <div className="p-6 mb-6">
-                <div className="flex items-center space-x-4 mb-4">
-                    {avatarError || !user.picture ? (
-                        <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-sm sm:text-base lg:text-base"
-                            style={{ backgroundColor: "var(--theme-primary)" }}
-                        >
-                            💰
-                        </div>
-                    ) : (
-                        <img
-                            src={user.picture}
-                            alt={user.name}
-                            className="w-16 h-16 rounded-full"
-                            onError={() => setAvatarError(true)}
-                        />
-                    )}
-                    <div>
-                        <h3
-                            className="text-xs sm:text-sm lg:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
-                        >
-                            {user.name}
-                        </h3>
-                        <p style={{ color: "var(--theme-textSecondary)" }}>
-                            {user.email}
-                        </p>
-                    </div>
-                </div>
+        <PageContainer title="Profile" className="space-y-6">
+            <GlassCard className="mb-6">
+                <ProfileHeader
+                    name={user.name}
+                    email={user.email}
+                    picture={user.picture}
+                    onImageError={() => setAvatarError(true)}
+                />
                 <p
                     className="text-sm"
                     style={{ color: "var(--theme-textSecondary)" }}
@@ -240,9 +209,9 @@ export default function ProfilePage() {
                     Account created:{" "}
                     {new Date(user.createdAt).toLocaleDateString()}
                 </p>
-            </div>
+            </GlassCard>
 
-            <div className="p-6">
+            <GlassCard>
                 <h2
                     className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
                     style={{ color: "var(--theme-primary)" }}
@@ -250,52 +219,14 @@ export default function ProfilePage() {
                     Expense Statistics
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div
-                        className="rounded-lg p-4"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
-                        <h3
-                            className="text-xs sm:text-sm lg:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
-                        >
-                            Total Expenses
-                        </h3>
+                    <StatCard
+                        title="Total Expenses"
+                        value={stats.totalExpenses}
+                    />
+                    <StatCard title="Total Types" value={stats.totalTypes} />
+                    <StatCard title="Most Expensive">
                         <p
-                            className="text-sm sm:text-base lg:text-base font-bold"
-                            style={{ color: "var(--theme-accent)" }}
-                        >
-                            {stats.totalExpenses}
-                        </p>
-                    </div>
-                    <div
-                        className="rounded-lg p-4"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
-                        <h3
-                            className="text-xs sm:text-sm lg:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
-                        >
-                            Total Types
-                        </h3>
-                        <p
-                            className="text-sm sm:text-base lg:text-base font-bold"
-                            style={{ color: "var(--theme-accent)" }}
-                        >
-                            {stats.totalTypes}
-                        </p>
-                    </div>
-                    <div
-                        className="rounded-lg p-4"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
-                        <h3
-                            className="text-xs sm:text-sm lg:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
-                        >
-                            Most Expensive
-                        </h3>
-                        <p
-                            className="text-xs sm:text-sm lg:text-sm font-bold"
+                            className="text-lg sm:text-xl lg:text-xl font-bold"
                             style={{ color: "var(--theme-secondary)" }}
                         >
                             Birr{" "}
@@ -307,19 +238,10 @@ export default function ProfilePage() {
                         >
                             {stats.mostExpensive?.description || ""}
                         </p>
-                    </div>
-                    <div
-                        className="rounded-lg p-4"
-                        style={{ backgroundColor: "var(--theme-surface)" }}
-                    >
-                        <h3
-                            className="text-xs sm:text-sm lg:text-sm font-semibold"
-                            style={{ color: "var(--theme-primary)" }}
-                        >
-                            Cheapest
-                        </h3>
+                    </StatCard>
+                    <StatCard title="Cheapest">
                         <p
-                            className="text-xs sm:text-sm lg:text-sm font-bold"
+                            className="text-lg sm:text-xl lg:text-xl font-bold"
                             style={{ color: "var(--theme-accent)" }}
                         >
                             Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
@@ -330,9 +252,11 @@ export default function ProfilePage() {
                         >
                             {stats.cheapest?.description || ""}
                         </p>
-                    </div>
+                    </StatCard>
                 </div>
+            </GlassCard>
 
+            <GlassCard>
                 <h3
                     className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
                     style={{ color: "var(--theme-primary)" }}
@@ -341,11 +265,7 @@ export default function ProfilePage() {
                 </h3>
                 <div className="space-y-4">
                     {stats.monthlyAssessment.map((month) => (
-                        <div
-                            key={month._id}
-                            className="rounded-lg p-4"
-                            style={{ border: "1px solid var(--theme-border)" }}
-                        >
+                        <GlassCard key={month._id} className="p-4">
                             <h4
                                 className="text-xs sm:text-sm lg:text-sm font-semibold"
                                 style={{ color: "var(--theme-primary)" }}
@@ -363,7 +283,7 @@ export default function ProfilePage() {
                                         Total Spent
                                     </p>
                                     <p
-                                        className="font-bold"
+                                        className="text-lg font-bold"
                                         style={{ color: "var(--theme-accent)" }}
                                     >
                                         Birr {month.total.toFixed(2)}
@@ -422,81 +342,24 @@ export default function ProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </GlassCard>
                     ))}
                 </div>
+            </GlassCard>
 
+            <GlassCard>
                 <h3
-                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4 mt-8"
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
                     style={{ color: "var(--theme-primary)" }}
                 >
                     Export & Sync
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button
-                        onClick={handleCSVExport}
-                        disabled={exporting}
-                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            border: "1px solid var(--theme-border)",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surfaceHover)";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surface)";
-                        }}
-                    >
-                        <Download size={20} />
-                        <span className="text-sm font-medium">Export CSV</span>
-                    </button>
-
-                    <button
-                        onClick={handlePDFExport}
-                        disabled={exporting}
-                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            border: "1px solid var(--theme-border)",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surfaceHover)";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surface)";
-                        }}
-                    >
-                        <FileText size={20} />
-                        <span className="text-sm font-medium">Export PDF</span>
-                    </button>
-
-                    <button
-                        onClick={handleGoogleDriveSync}
-                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors"
-                        style={{
-                            backgroundColor: "var(--theme-surface)",
-                            border: "1px solid var(--theme-border)",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surfaceHover)";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--theme-surface)";
-                        }}
-                    >
-                        <Cloud size={20} />
-                        <span className="text-sm font-medium">
-                            Sync to Drive
-                        </span>
-                    </button>
-                </div>
+                <ExportControls
+                    onCSV={handleCSVExport}
+                    onPDF={handlePDFExport}
+                    onDrive={handleGoogleDriveSync}
+                    exporting={exporting}
+                />
                 {exporting && (
                     <p
                         className="text-sm mt-2"
@@ -505,7 +368,7 @@ export default function ProfilePage() {
                         Exporting data...
                     </p>
                 )}
-            </div>
+            </GlassCard>
 
             <Modal
                 isOpen={showGoogleDriveModal}
@@ -549,6 +412,6 @@ export default function ProfilePage() {
                     </p>
                 </div>
             </Modal>
-        </div>
+        </PageContainer>
     );
 }

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -21,18 +22,20 @@ export default function Login() {
     };
 
     return (
-        <div
-            className="min-h-screen flex items-center justify-center"
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex items-center justify-center p-6"
             style={{ backgroundColor: "var(--theme-background)" }}
         >
-            <div className="text-center">
+            <div className="glass-card p-8 text-center">
                 <button
                     onClick={handleGoogleLogin}
-                    className="px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center gap-3 mx-auto"
+                    className="glass-button rounded-xl flex items-center justify-center gap-3 mx-auto font-medium transition-all duration-200 hover:glass-button/80"
                     style={{
                         backgroundColor: "var(--theme-surface)",
                         color: "var(--theme-text)",
-                        border: "1px solid var(--theme-border)",
                     }}
                 >
                     <svg className="w-6 h-6" viewBox="0 0 24 24">
@@ -56,6 +59,6 @@ export default function Login() {
                     Login with Google
                 </button>
             </div>
-        </div>
+        </motion.div>
     );
 }
