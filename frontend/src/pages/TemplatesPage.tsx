@@ -125,7 +125,7 @@ export default function TemplatesPage() {
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Description"
-                    className="rounded px-3 py-1.5 flex-1 min-w-[140px] transition-all"
+                    className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 flex-1 min-w-[140px] transition-all"
                     style={{
                         backgroundColor: "var(--theme-surface)",
                         borderColor: "var(--theme-border)",
@@ -140,7 +140,7 @@ export default function TemplatesPage() {
                         value={form.type}
                         onChange={handleChange}
                         placeholder="Type"
-                        className="rounded px-3 py-1.5 w-40 transition-all"
+                        className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 w-40 transition-all"
                         style={{
                             backgroundColor: "var(--theme-surface)",
                             borderColor: "var(--theme-border)",
@@ -159,7 +159,7 @@ export default function TemplatesPage() {
                     value={form.price}
                     onChange={handleChange}
                     placeholder="Price"
-                    className="rounded px-3 py-1.5 w-24 text-right transition-all"
+                    className="text-xs sm:text-sm lg:text-base rounded px-3 py-1.5 w-24 text-right transition-all"
                     style={{
                         backgroundColor: "var(--theme-surface)",
                         borderColor: "var(--theme-border)",
@@ -169,7 +169,7 @@ export default function TemplatesPage() {
 
                 <div className="w-full sm:w-auto">
                     <button
-                        className="px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center transition-all"
+                        className="text-xs sm:text-sm lg:text-base px-3 py-1.5 rounded flex items-center gap-2 w-full sm:w-auto justify-center transition-all"
                         style={{
                             backgroundColor: "var(--theme-primary)",
                             color: "white",
@@ -183,7 +183,10 @@ export default function TemplatesPage() {
 
             <div className="space-y-2">
                 {templates.length === 0 && (
-                    <div style={{ color: "var(--theme-text-secondary)" }}>
+                    <div
+                        className="text-xs sm:text-sm lg:text-base"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
                         No templates yet.
                     </div>
                 )}
@@ -200,13 +203,13 @@ export default function TemplatesPage() {
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                                 <div
-                                    className="font-semibold"
+                                    className="text-xs sm:text-sm font-semibold"
                                     style={{ color: "var(--theme-text)" }}
                                 >
                                     {t.description}
                                 </div>
                                 <div
-                                    className="text-sm capitalize"
+                                    className="text-xs capitalize"
                                     style={{
                                         color: "var(--theme-text-secondary)",
                                     }}
@@ -216,14 +219,14 @@ export default function TemplatesPage() {
                             </div>
                             <div className="flex items-center justify-between sm:justify-end gap-3">
                                 <div
-                                    className="font-semibold"
+                                    className="text-xs sm:text-sm font-semibold"
                                     style={{ color: "var(--theme-text)" }}
                                 >
                                     Birr {String(t.price)}
                                 </div>
                                 <button
                                     onClick={() => handleDelete(safeId)}
-                                    className="transition-colors duration-200"
+                                    className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
                                     style={{
                                         color: "var(--theme-text-secondary)",
                                     }}
