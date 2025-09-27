@@ -181,7 +181,7 @@ export default function App() {
                                 >
                                     {avatarError || !user.picture ? (
                                         <div
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-lg cursor-pointer"
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm sm:text-base lg:text-base cursor-pointer"
                                             style={{
                                                 backgroundColor:
                                                     "var(--theme-primary)",

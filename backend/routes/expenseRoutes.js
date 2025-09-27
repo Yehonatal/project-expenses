@@ -13,6 +13,9 @@ router.get("/", auth, controller.getExpenses);
 // GET    /api/expenses/summary -> summary data
 router.get("/summary", auth, controller.getSummary);
 
+// GET    /api/expenses/trends -> spending trends (current vs previous month)
+router.get("/trends", auth, controller.getTrends);
+
 // GET    /api/expenses/stats -> user stats
 router.get("/stats", auth, controller.getStats);
 

@@ -90,7 +90,7 @@ export default function ProfilePage() {
             }}
         >
             <h1
-                className="text-2xl font-bold mb-6"
+                className="text-sm sm:text-base lg:text-base font-bold mb-6"
                 style={{ color: "var(--theme-primary)" }}
             >
                 Profile
@@ -100,7 +100,7 @@ export default function ProfilePage() {
                 <div className="flex items-center space-x-4 mb-4">
                     {avatarError || !user.picture ? (
                         <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl"
+                            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-sm sm:text-base lg:text-base"
                             style={{ backgroundColor: "var(--theme-primary)" }}
                         >
                             💰
@@ -115,7 +115,7 @@ export default function ProfilePage() {
                     )}
                     <div>
                         <h3
-                            className="text-xl font-semibold"
+                            className="text-xs sm:text-sm lg:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             {user.name}
@@ -136,7 +136,7 @@ export default function ProfilePage() {
 
             <div className="p-6">
                 <h2
-                    className="text-xl font-semibold mb-4"
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
                     style={{ color: "var(--theme-primary)" }}
                 >
                     Expense Statistics
@@ -147,13 +147,13 @@ export default function ProfilePage() {
                         style={{ backgroundColor: "var(--theme-surface)" }}
                     >
                         <h3
-                            className="text-lg font-semibold"
+                            className="text-xs sm:text-sm lg:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             Total Expenses
                         </h3>
                         <p
-                            className="text-2xl font-bold"
+                            className="text-sm sm:text-base lg:text-base font-bold"
                             style={{ color: "var(--theme-accent)" }}
                         >
                             {stats.totalExpenses}
@@ -164,13 +164,13 @@ export default function ProfilePage() {
                         style={{ backgroundColor: "var(--theme-surface)" }}
                     >
                         <h3
-                            className="text-lg font-semibold"
+                            className="text-xs sm:text-sm lg:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             Total Types
                         </h3>
                         <p
-                            className="text-2xl font-bold"
+                            className="text-sm sm:text-base lg:text-base font-bold"
                             style={{ color: "var(--theme-accent)" }}
                         >
                             {stats.totalTypes}
@@ -181,13 +181,13 @@ export default function ProfilePage() {
                         style={{ backgroundColor: "var(--theme-surface)" }}
                     >
                         <h3
-                            className="text-lg font-semibold"
+                            className="text-xs sm:text-sm lg:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             Most Expensive
                         </h3>
                         <p
-                            className="text-xl font-bold"
+                            className="text-xs sm:text-sm lg:text-sm font-bold"
                             style={{ color: "var(--theme-secondary)" }}
                         >
                             Birr{" "}
@@ -205,13 +205,13 @@ export default function ProfilePage() {
                         style={{ backgroundColor: "var(--theme-surface)" }}
                     >
                         <h3
-                            className="text-lg font-semibold"
+                            className="text-xs sm:text-sm lg:text-sm font-semibold"
                             style={{ color: "var(--theme-primary)" }}
                         >
                             Cheapest
                         </h3>
                         <p
-                            className="text-xl font-bold"
+                            className="text-xs sm:text-sm lg:text-sm font-bold"
                             style={{ color: "var(--theme-accent)" }}
                         >
                             Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
@@ -226,7 +226,7 @@ export default function ProfilePage() {
                 </div>
 
                 <h3
-                    className="text-lg font-semibold mb-4"
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
                     style={{ color: "var(--theme-primary)" }}
                 >
                     Monthly Assessment
@@ -239,7 +239,7 @@ export default function ProfilePage() {
                             style={{ border: "1px solid var(--theme-border)" }}
                         >
                             <h4
-                                className="text-lg font-semibold"
+                                className="text-xs sm:text-sm lg:text-sm font-semibold"
                                 style={{ color: "var(--theme-primary)" }}
                             >
                                 {month._id}

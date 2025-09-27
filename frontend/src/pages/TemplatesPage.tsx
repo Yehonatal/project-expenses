@@ -110,7 +110,7 @@ export default function TemplatesPage() {
             }}
         >
             <h1
-                className="text-2xl font-bold mb-6"
+                className="text-sm sm:text-base lg:text-base font-bold mb-6"
                 style={{ color: "var(--theme-text)" }}
             >
                 Templates

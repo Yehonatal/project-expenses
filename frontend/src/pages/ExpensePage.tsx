@@ -139,12 +139,14 @@ export default function ExpensePage() {
                 color: "var(--theme-text)",
             }}
         >
-            <h1 className="text-2xl font-bold mb-6">Expense Tracker</h1>
+            <h1 className="text-sm sm:text-base lg:text-base font-bold mb-6">
+                Expense Tracker
+            </h1>
             <div className="flex items-center gap-4 mb-4">
                 <ExpenseForm onAdd={handleAdd} />
             </div>
             <div className="flex items-center justify-between mt-4 gap-4">
-                <div className="text-lg font-medium flex-1">
+                <div className="text-sm sm:text-base lg:text-base font-medium flex-1">
                     Total (Included): Birr {total.toFixed(2)}
                 </div>
                 <button
@@ -178,7 +180,7 @@ export default function ExpensePage() {
                         border: "1px solid",
                     }}
                 >
-                    <h2 className="text-lg font-semibold mb-4">
+                    <h2 className="text-xs sm:text-sm lg:text-base font-semibold mb-4">
                         Budget Progress
                     </h2>
                     <div className="space-y-3">
