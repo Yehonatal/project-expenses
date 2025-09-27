@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API, { authAPI } from "../api/api";
+import API, { authAPI, getExpenses } from "../api/api";
 import Loading from "../components/Loading";
+import Modal from "../components/Modal";
+import { Download, FileText, Cloud } from "lucide-react";
+import Papa from "papaparse";
+import jsPDF from "jspdf";
 
 interface User {
     _id: string;
@@ -12,8 +16,12 @@ interface User {
 }
 
 interface Expense {
+    _id: string;
     amount: number;
     description: string;
+    type: string;
+    date: string;
+    recurring: boolean;
 }
 
 interface MonthlyData {
@@ -38,6 +46,106 @@ export default function ProfilePage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
     const [avatarError, setAvatarError] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
+
+    const handleCSVExport = async () => {
+        setExporting(true);
+        try {
+            const response = await getExpenses();
+            const expenses = response.data;
+
+            const csvData = expenses.map((expense: Expense) => ({
+                Date: new Date(expense.date).toLocaleDateString(),
+                Description: expense.description,
+                Amount: expense.amount,
+                Type: expense.type,
+                Recurring: expense.recurring ? "Yes" : "No",
+            }));
+
+            const csv = Papa.unparse(csvData);
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute(
+                "download",
+                `expenses_${new Date().toISOString().split("T")[0]}.csv`
+            );
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Failed to export CSV:", error);
+            alert("Failed to export CSV. Please try again.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handlePDFExport = async () => {
+        setExporting(true);
+        try {
+            const response = await getExpenses();
+            const expenses = response.data;
+
+            const doc = new jsPDF();
+            doc.setFontSize(20);
+            doc.text("Expense Report", 20, 20);
+
+            doc.setFontSize(12);
+            doc.text(
+                `Generated on: ${new Date().toLocaleDateString()}`,
+                20,
+                35
+            );
+            doc.text(
+                `Total Expenses: ${stats?.totalExpenses || "N/A"}`,
+                20,
+                45
+            );
+
+            let yPosition = 65;
+            doc.setFontSize(10);
+            doc.text("Date", 20, yPosition);
+            doc.text("Description", 60, yPosition);
+            doc.text("Amount", 140, yPosition);
+            doc.text("Type", 170, yPosition);
+
+            yPosition += 10;
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 5;
+
+            expenses.slice(0, 20).forEach((expense: Expense) => {
+                if (yPosition > 270) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+
+                doc.text(
+                    new Date(expense.date).toLocaleDateString(),
+                    20,
+                    yPosition
+                );
+                doc.text(expense.description.substring(0, 25), 60, yPosition);
+                doc.text(`$${expense.amount.toFixed(2)}`, 140, yPosition);
+                doc.text(expense.type, 170, yPosition);
+                yPosition += 8;
+            });
+
+            doc.save(`expenses_${new Date().toISOString().split("T")[0]}.pdf`);
+        } catch (error) {
+            console.error("Failed to export PDF:", error);
+            alert("Failed to export PDF. Please try again.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handleGoogleDriveSync = () => {
+        setShowGoogleDriveModal(true);
+    };
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -317,7 +425,130 @@ export default function ProfilePage() {
                         </div>
                     ))}
                 </div>
+
+                <h3
+                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4 mt-8"
+                    style={{ color: "var(--theme-primary)" }}
+                >
+                    Export & Sync
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button
+                        onClick={handleCSVExport}
+                        disabled={exporting}
+                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            border: "1px solid var(--theme-border)",
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surfaceHover)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surface)";
+                        }}
+                    >
+                        <Download size={20} />
+                        <span className="text-sm font-medium">Export CSV</span>
+                    </button>
+
+                    <button
+                        onClick={handlePDFExport}
+                        disabled={exporting}
+                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            border: "1px solid var(--theme-border)",
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surfaceHover)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surface)";
+                        }}
+                    >
+                        <FileText size={20} />
+                        <span className="text-sm font-medium">Export PDF</span>
+                    </button>
+
+                    <button
+                        onClick={handleGoogleDriveSync}
+                        className="flex items-center justify-center space-x-2 rounded-lg p-4 transition-colors"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            border: "1px solid var(--theme-border)",
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surfaceHover)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                                "var(--theme-surface)";
+                        }}
+                    >
+                        <Cloud size={20} />
+                        <span className="text-sm font-medium">
+                            Sync to Drive
+                        </span>
+                    </button>
+                </div>
+                {exporting && (
+                    <p
+                        className="text-sm mt-2"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
+                        Exporting data...
+                    </p>
+                )}
             </div>
+
+            <Modal
+                isOpen={showGoogleDriveModal}
+                onClose={() => setShowGoogleDriveModal(false)}
+                title="Google Drive Sync - Coming Soon"
+                actions={
+                    <button
+                        onClick={() => setShowGoogleDriveModal(false)}
+                        className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                        style={{
+                            backgroundColor: "var(--theme-primary)",
+                            color: "white",
+                        }}
+                    >
+                        Got it
+                    </button>
+                }
+            >
+                <div className="space-y-4">
+                    <p style={{ color: "var(--theme-text)" }}>
+                        We're working hard to bring you Google Drive
+                        synchronization for your expense data. This feature will
+                        allow you to:
+                    </p>
+                    <ul
+                        className="list-disc list-inside space-y-2"
+                        style={{ color: "var(--theme-textSecondary)" }}
+                    >
+                        <li>
+                            Automatically backup your expense data to Google
+                            Drive
+                        </li>
+                        <li>Sync data across multiple devices</li>
+                        <li>Restore your data if needed</li>
+                        <li>Share expense reports with others</li>
+                    </ul>
+                    <p style={{ color: "var(--theme-text)" }}>
+                        This feature is currently in development and will be
+                        available in a future update. Stay tuned for more
+                        information!
+                    </p>
+                </div>
+            </Modal>
         </div>
     );
 }

@@ -18,6 +18,7 @@ Track my expenses, manage budgets, create recurring transactions, and visualize 
 - **Recurring Expenses**: Set up automatic recurring transactions with customizable frequencies
 - **Budget Management**: Create and monitor budgets with visual progress indicators across multiple time periods (weekly, monthly, multi-month, yearly)
 - **Templates**: Save frequently used expense templates for quick entry
+- **Export & Sync**: Export expense data to CSV or PDF formats, with Google Drive backup integration
 - **User Authentication**: Secure login system with Google OAuth integration
 - **Data Visualization**: Interactive charts and graphs for expense analysis
 - **Theme Support**: Multiple theme options for personalized experience
@@ -35,6 +36,9 @@ Track my expenses, manage budgets, create recurring transactions, and visualize 
 - **Axios** - HTTP client for API requests
 - **Recharts** - Composable charting library
 - **Lucide React** - Modern icon library
+- **PapaParse** - CSV parsing and generation library
+- **jsPDF** - PDF document generation library
+- **html2canvas** - HTML to canvas conversion for PDF generation
 
 ### Backend
 - **Node.js** - JavaScript runtime environment
