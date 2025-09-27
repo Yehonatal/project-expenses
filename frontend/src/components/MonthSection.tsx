@@ -24,6 +24,8 @@ type MonthSectionProps = {
     onToggleMonth: (ym: string) => void;
     expandedDates: Record<string, boolean>;
     toggleDate: (ym: string, date: string) => void;
+    onEdit: (expense: Expense) => void;
+    onDelete: (id: string) => void;
 };
 
 export default function MonthSection({
@@ -33,6 +35,8 @@ export default function MonthSection({
     onToggleMonth,
     expandedDates,
     toggleDate,
+    onEdit,
+    onDelete,
 }: MonthSectionProps) {
     const [year, monthStr] = ym.split("-");
     const monthIndex = Math.max(0, Math.min(11, parseInt(monthStr, 10) - 1));
@@ -116,6 +120,9 @@ export default function MonthSection({
                                 <th className="p-3 text-center w-20">
                                     Included
                                 </th>
+                                <th className="p-3 text-center w-20">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,6 +138,8 @@ export default function MonthSection({
                                             false
                                         }
                                         onToggle={() => toggleDate(ym, dateKey)}
+                                        onEdit={onEdit}
+                                        onDelete={onDelete}
                                     />
                                 )
                             )}
@@ -214,6 +223,8 @@ export default function MonthSection({
                                                 <ExpenseCard
                                                     key={exp.id}
                                                     exp={exp}
+                                                    onEdit={onEdit}
+                                                    onDelete={onDelete}
                                                 />
                                             ))}
                                     </section>

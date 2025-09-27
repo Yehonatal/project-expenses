@@ -47,10 +47,15 @@ export default function Modal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-1 rounded hover:opacity-70 transition-opacity"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                        style={{
+                            backgroundColor: "var(--theme-surface)",
+                            border: "none",
+                            color: "var(--theme-text-secondary)",
+                        }}
+                        aria-label="Close modal"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4" />
                     </button>
                 </div>
 

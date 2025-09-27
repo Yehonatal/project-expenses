@@ -4,9 +4,15 @@ import MonthSection from "./MonthSection";
 
 type ExpenseTableProps = {
     expenses: Expense[];
+    onEdit: (expense: Expense) => void;
+    onDelete: (id: string) => void;
 };
 
-export default function ExpenseTable({ expenses }: ExpenseTableProps) {
+export default function ExpenseTable({
+    expenses,
+    onEdit,
+    onDelete,
+}: ExpenseTableProps) {
     const grouped = expenses.reduce<Record<string, Expense[]>>((acc, exp) => {
         const d = new Date(exp.date);
         const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
@@ -72,6 +78,8 @@ export default function ExpenseTable({ expenses }: ExpenseTableProps) {
                     onToggleMonth={toggleMonth}
                     expandedDates={expandedDates}
                     toggleDate={toggleDate}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
                 />
             ))}
         </div>

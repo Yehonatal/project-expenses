@@ -1,11 +1,13 @@
-import { Check, X, RotateCcw } from "lucide-react";
+import { Check, X, RotateCcw, Edit, Trash2 } from "lucide-react";
 import type { Expense } from "../types/expense";
 
 interface ExpenseRowProps {
     exp: Expense;
+    onEdit?: (expense: Expense) => void;
+    onDelete?: (expenseId: string) => void;
 }
 
-export default function ExpenseRow({ exp }: ExpenseRowProps) {
+export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
     return (
         <tr
             className="transition-colors duration-150"
@@ -62,6 +64,32 @@ export default function ExpenseRow({ exp }: ExpenseRowProps) {
                         />
                     </>
                 )}
+            </td>
+            <td className="p-3 text-center w-16">
+                <div className="flex items-center justify-center space-x-1">
+                    {onEdit && (
+                        <button
+                            onClick={() => onEdit(exp)}
+                            className="p-1 rounded hover:opacity-70 transition-opacity"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                            title="Edit expense"
+                        >
+                            <Edit className="w-4 h-4" />
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={() =>
+                                onDelete(exp._id || exp.id?.toString() || "")
+                            }
+                            className="p-1 rounded hover:opacity-70 transition-opacity"
+                            style={{ color: "var(--theme-textSecondary)" }}
+                            title="Delete expense"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
             </td>
         </tr>
     );
