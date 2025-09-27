@@ -6,6 +6,11 @@ export interface Expense {
     included: boolean;
     type: string;
     createdAt: string;
+    // Recurring expense fields
+    isRecurring?: boolean;
+    frequency?: "weekly" | "monthly";
+    nextDueDate?: string;
+    parentExpenseId?: string;
 }
 
 export interface Budget {

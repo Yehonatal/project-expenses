@@ -4,6 +4,17 @@ const Type = require("../models/typeModel");
 const Budget = require("../models/budgetModel");
 const { normalizeType } = require("../utils/normalizeType");
 
+// Helper to calculate next due date for recurring expenses
+const calculateNextDueDate = (currentDate, frequency) => {
+    const nextDate = new Date(currentDate);
+    if (frequency === "weekly") {
+        nextDate.setDate(nextDate.getDate() + 7);
+    } else if (frequency === "monthly") {
+        nextDate.setMonth(nextDate.getMonth() + 1);
+    }
+    return nextDate;
+};
+
 // Helper to calculate spent across a date range
 const calculateSpent = async (
     userId,
@@ -54,11 +65,19 @@ const updateOverlappingBudgets = async (userId, expenseDate) => {
 
 /**
  * Add new expense
- * body: { date, description, amount, included, type }
+ * body: { date, description, amount, included, type, isRecurring, frequency }
  */
 exports.addExpense = async (req, res) => {
     try {
-        const { date, description, amount, included, type } = req.body;
+        const {
+            date,
+            description,
+            amount,
+            included,
+            type,
+            isRecurring,
+            frequency,
+        } = req.body;
 
         if (description == null || amount == null || type == null) {
             return res
@@ -66,13 +85,32 @@ exports.addExpense = async (req, res) => {
                 .json({ message: "description, amount, and type required" });
         }
 
+        // Validate recurring fields
+        if (isRecurring && !frequency) {
+            return res
+                .status(400)
+                .json({ message: "frequency required for recurring expenses" });
+        }
+
+        if (isRecurring && !["weekly", "monthly"].includes(frequency)) {
+            return res
+                .status(400)
+                .json({ message: "frequency must be 'weekly' or 'monthly'" });
+        }
+
+        const expenseDate = date ? new Date(date) : new Date();
         const expense = new Expense({
-            date: date ? new Date(date) : undefined,
+            date: expenseDate,
             description,
             amount,
             included: included !== undefined ? !!included : true,
             type,
             userId: req.user._id,
+            isRecurring: !!isRecurring,
+            frequency: isRecurring ? frequency : undefined,
+            nextDueDate: isRecurring
+                ? calculateNextDueDate(expenseDate, frequency)
+                : undefined,
         });
 
         const saved = await expense.save();
@@ -349,6 +387,63 @@ exports.getStats = async (req, res) => {
         });
     } catch (err) {
         console.error("getStats error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+/**
+ * Generate recurring expenses that are due
+ * This should be called periodically (e.g., daily via cron job)
+ */
+exports.generateRecurringExpenses = async (req, res) => {
+    try {
+        const now = new Date();
+
+        // Find all recurring expenses that are due (nextDueDate <= now)
+        const dueRecurringExpenses = await Expense.find({
+            userId: req.user._id,
+            isRecurring: true,
+            nextDueDate: { $lte: now },
+        });
+
+        const generatedExpenses = [];
+
+        for (const recurringExpense of dueRecurringExpenses) {
+            // Create a new expense instance
+            const newExpense = new Expense({
+                date: recurringExpense.nextDueDate,
+                description: recurringExpense.description,
+                amount: recurringExpense.amount,
+                included: recurringExpense.included,
+                type: recurringExpense.type,
+                userId: recurringExpense.userId,
+                isRecurring: false, // Generated instances are not recurring themselves
+                parentExpenseId: recurringExpense._id, // Reference to the original
+            });
+
+            const saved = await newExpense.save();
+            generatedExpenses.push(saved);
+
+            // Update the recurring expense's next due date
+            const nextDueDate = calculateNextDueDate(
+                recurringExpense.nextDueDate,
+                recurringExpense.frequency
+            );
+
+            await Expense.findByIdAndUpdate(recurringExpense._id, {
+                nextDueDate: nextDueDate,
+            });
+
+            // Update overlapping budgets for the new expense
+            await updateOverlappingBudgets(req.user._id, newExpense.date);
+        }
+
+        res.json({
+            message: `Generated ${generatedExpenses.length} recurring expenses`,
+            generatedExpenses,
+        });
+    } catch (err) {
+        console.error("generateRecurringExpenses error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
