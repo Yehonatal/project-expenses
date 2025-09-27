@@ -4,29 +4,19 @@ import type { Theme } from "../contexts/ThemeContext";
 
 const themeOptions: { value: Theme; label: string; preview: string }[] = [
     {
-        value: "black-white",
-        label: "Black & White",
+        value: "light",
+        label: "Light",
         preview: "bg-white border border-gray-300",
     },
     {
-        value: "earth",
-        label: "Earth",
-        preview: "bg-amber-50 border border-amber-200",
-    },
-    {
-        value: "bluish",
-        label: "Bluish",
-        preview: "bg-blue-50 border border-blue-200",
+        value: "gray",
+        label: "Gray",
+        preview: "bg-gray-100 border border-gray-300",
     },
     {
         value: "dark",
         label: "Dark",
-        preview: "bg-gray-900 border border-gray-700",
-    },
-    {
-        value: "purple",
-        label: "Purple",
-        preview: "bg-purple-50 border border-purple-200",
+        preview: "bg-black border border-gray-700",
     },
 ];
 
@@ -44,14 +34,15 @@ export default function ThemeSelector() {
     return (
         <button
             onClick={cycleTheme}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
-            style={{
-                backgroundColor: "var(--theme-surface)",
-                border: "none",
-            }}
+            className="w-10 h-10 rounded-xl glass-button flex items-center justify-center hover:glass-button/80 transition-all duration-200 cursor-pointer p-0"
             title="Change theme"
+            aria-label="Change theme"
         >
-            <Palette size={16} className="text-[var(--theme-text)]" />
+            <Palette
+                size={18}
+                strokeWidth={1.6}
+                className="text-[var(--theme-text)]"
+            />
         </button>
     );
 }

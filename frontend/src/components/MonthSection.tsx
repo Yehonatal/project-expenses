@@ -58,29 +58,29 @@ export default function MonthSection({
 
     return (
         <section
-            style={{
-                backgroundColor: "var(--theme-surface)",
-            }}
+            className={`glass-card overflow-hidden ${
+                isExpanded ? "rounded-md" : "rounded-t-md"
+            }`}
             key={ym}
         >
             <header
                 onClick={() => onToggleMonth(ym)}
-                className="flex items-center justify-between cursor-pointer select-none px-5 py-3 rounded-tl-md rounded-tr-md"
+                className="px-4 select-none  py-2 transition-all duration-200"
                 aria-expanded={isExpanded}
                 aria-controls={`month-${ym}`}
             >
                 <div
-                    className="flex items-center space-x-2 font-semibold text-xs sm:text-sm lg:text-sm"
+                    className="flex items-center space-x-3 font-semibold text-sm"
                     style={{ color: "var(--theme-text)" }}
                 >
                     {isExpanded ? (
                         <ChevronDown
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             style={{ color: "var(--theme-accent)" }}
                         />
                     ) : (
                         <ChevronRight
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             style={{ color: "var(--theme-accent)" }}
                         />
                     )}
@@ -88,39 +88,46 @@ export default function MonthSection({
                         {monthNames[monthIndex]} {year}
                     </span>
                     <span
-                        className="ml-3 text-sm font-normal"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        className="ml-3 text-xs font-semibold"
+                        style={{ color: "#2563eb" }}
                     >
                         Included: Birr {monthTotal.toFixed(2)}
                     </span>
                 </div>
-            </header>
-
+            </header>{" "}
             {isExpanded && (
                 <div
                     id={`month-${ym}`}
                     style={{ borderTop: `1px solid var(--theme-border)` }}
                 >
-                    {/* desktop table: use fixed layout and explicit widths so headers align with rows */}
                     <table
-                        className="hidden md:table table-fixed w-full text-left text-sm"
+                        className="hidden md:table table-fixed w-full text-left text-xs"
                         style={{ color: "var(--theme-text)" }}
                     >
                         <thead
+                            className="glass-button/50"
                             style={{
                                 color: "var(--theme-text-secondary)",
-                                borderBottom: `1px solid var(--theme-border)`,
+                                fontSize: "0.75rem",
                             }}
                         >
                             <tr>
-                                <th className="p-3 w-24">Date</th>
-                                <th className="p-3">Description</th>
-                                <th className="p-3">Type</th>
-                                <th className="p-3 text-right w-24">Amount</th>
-                                <th className="p-3 text-center w-20">
+                                <th className="px-3 py-2 w-24 font-medium text-xs align-middle">
+                                    Date
+                                </th>
+                                <th className="px-3 py-2 font-medium text-xs align-middle">
+                                    Description
+                                </th>
+                                <th className="px-3 py-2 font-medium text-xs align-middle">
+                                    Type
+                                </th>
+                                <th className="px-3 py-2 text-right w-24 font-medium text-xs align-middle">
+                                    Amount
+                                </th>
+                                <th className="px-3 py-2 text-center w-20 font-medium text-xs align-middle">
                                     Included
                                 </th>
-                                <th className="p-3 text-center w-20">
+                                <th className="px-3 py-2 text-center w-20 font-medium text-xs align-middle">
                                     Actions
                                 </th>
                             </tr>
@@ -164,22 +171,9 @@ export default function MonthSection({
                                             onClick={() =>
                                                 toggleDate(ym, dateKey)
                                             }
-                                            className="cursor-pointer flex items-center justify-between space-x-2 font-semibold rounded px-3 py-1 select-none transition-colors duration-200"
-                                            style={{
-                                                backgroundColor:
-                                                    "var(--theme-surface)",
-                                                color: "var(--theme-text)",
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor =
-                                                    "var(--theme-hover)";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor =
-                                                    "var(--theme-surface)";
-                                            }}
+                                            className="cursor-pointer flex items-center justify-between space-x-3 font-semibold rounded-md px-4 py-3 select-none glass-button transition-all duration-200 hover:glass-button/80"
                                         >
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-3">
                                                 {isExpandedDate ? (
                                                     <ChevronDown
                                                         className="w-4 h-4"
@@ -209,9 +203,9 @@ export default function MonthSection({
                                                 </span>
                                             </div>
                                             <div
-                                                className="text-sm font-normal"
+                                                className="text-xs font-semibold"
                                                 style={{
-                                                    color: "var(--theme-textSecondary)",
+                                                    color: "#2563eb",
                                                 }}
                                             >
                                                 Day Total: Birr{" "}

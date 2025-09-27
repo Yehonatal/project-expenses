@@ -13,13 +13,7 @@ export default function ExpenseCard({
     onDelete,
 }: ExpenseCardProps) {
     return (
-        <article
-            className="border rounded-md p-2 sm:p-3"
-            style={{
-                borderColor: "var(--theme-border)",
-                backgroundColor: "var(--theme-surface)",
-            }}
-        >
+        <article className="glass-card rounded-xl p-4 space-y-3">
             <div
                 className="flex justify-between items-center mb-1 text-xs font-mono"
                 style={{ color: "var(--theme-text-secondary)" }}
@@ -29,13 +23,13 @@ export default function ExpenseCard({
                     minute: "2-digit",
                 })}
                 <span
-                    className="inline-flex items-center space-x-1 px-1.5 py-0.5 text-xs rounded-full font-semibold"
+                    className="inline-flex items-center space-x-1 px-2 py-1 text-xs rounded-full font-semibold glass-button"
                     style={{
                         backgroundColor: exp.included
-                            ? "var(--theme-secondary)"
+                            ? "var(--theme-accent)"
                             : "var(--theme-error)",
                         color: exp.included
-                            ? "var(--theme-text)"
+                            ? "var(--theme-background)"
                             : "var(--theme-text)",
                     }}
                 >
@@ -68,18 +62,15 @@ export default function ExpenseCard({
                 Birr {exp.amount.toFixed(2)}
             </p>
             {(onEdit || onDelete) && (
-                <div
-                    className="flex justify-end space-x-1 mt-1.5 pt-1.5 border-t"
-                    style={{ borderColor: "var(--theme-border)" }}
-                >
+                <div className="flex justify-end space-x-2 pt-3 border-t border-theme-border/20">
                     {onEdit && (
                         <button
                             onClick={() => onEdit(exp)}
-                            className="p-1 rounded hover:opacity-70 transition-opacity"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            className="p-2 rounded-lg glass-button hover:glass-button/80 transition-all duration-200"
+                            style={{ color: "var(--theme-text)" }}
                             title="Edit expense"
                         >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-4 h-4" />
                         </button>
                     )}
                     {onDelete && (
@@ -87,11 +78,11 @@ export default function ExpenseCard({
                             onClick={() =>
                                 onDelete(exp._id || exp.id?.toString() || "")
                             }
-                            className="p-1 rounded hover:opacity-70 transition-opacity"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            className="p-2 rounded-lg glass-button hover:bg-red-500/20 transition-all duration-200"
+                            style={{ color: "#ef4444" }}
                             title="Delete expense"
                         >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                         </button>
                     )}
                 </div>

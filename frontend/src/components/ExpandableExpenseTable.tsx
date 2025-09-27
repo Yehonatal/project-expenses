@@ -12,10 +12,8 @@ export default function ExpandableExpenseTable({
         return (
             <div className="mt-2 ml-6">
                 <div
-                    className="rounded-lg shadow-sm border p-4 text-center text-sm"
+                    className="glass-card rounded-md p-4 text-center text-sm"
                     style={{
-                        backgroundColor: "var(--theme-surface)",
-                        borderColor: "var(--theme-border)",
                         color: "var(--theme-text-secondary)",
                     }}
                 >
@@ -27,58 +25,43 @@ export default function ExpandableExpenseTable({
 
     return (
         <div className="mt-2 ml-6">
-            <div
-                className="rounded-lg overflow-hidden border"
-                style={{
-                    backgroundColor: "var(--theme-surface)",
-                    borderColor: "var(--theme-border)",
-                }}
-            >
+            <div className="glass-card rounded-md overflow-hidden">
                 <table className="w-full">
                     <thead>
-                        <tr
-                            className="border-b"
-                            style={{
-                                backgroundColor: "var(--theme-hover)",
-                                borderColor: "var(--theme-border)",
-                            }}
-                        >
+                        <tr className="glass-button/50 border-b border-theme-border/20">
                             <th
-                                className="p-3 text-left text-sm font-semibold w-24"
+                                className="px-3 py-2 text-left text-xs font-semibold w-24 align-middle"
                                 style={{ color: "var(--theme-text)" }}
                             >
                                 Time
                             </th>
                             <th
-                                className="p-3 text-left text-sm font-semibold"
+                                className="px-3 py-2 text-left text-xs font-semibold align-middle"
                                 style={{ color: "var(--theme-text)" }}
                             >
                                 Description
                             </th>
                             <th
-                                className="p-3 text-left text-sm font-semibold"
+                                className="px-3 py-2 text-left text-xs font-semibold align-middle"
                                 style={{ color: "var(--theme-text)" }}
                             >
                                 Type
                             </th>
                             <th
-                                className="p-3 text-right text-sm font-semibold w-24"
+                                className="px-3 py-2 text-right text-xs font-semibold w-24 align-middle"
                                 style={{ color: "var(--theme-text)" }}
                             >
                                 Amount
                             </th>
                             <th
-                                className="p-3 text-center text-sm font-semibold w-20"
+                                className="px-3 py-2 text-center text-xs font-semibold w-20 align-middle"
                                 style={{ color: "var(--theme-text)" }}
                             >
                                 Included
                             </th>
                         </tr>
                     </thead>
-                    <tbody
-                        className="divide-y"
-                        style={{ borderColor: "var(--theme-border)" }}
-                    >
+                    <tbody>
                         {expenses.map((expense, index) => (
                             <ExpenseRow
                                 key={expense.id || `expense-${index}`}
