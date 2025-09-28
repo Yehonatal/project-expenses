@@ -6,6 +6,7 @@ import {
     LogOut,
     DollarSign,
     User,
+    Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import ThemeSelector from "./ThemeSelector";
@@ -20,9 +21,10 @@ interface UserData {
 interface Props {
     user: UserData;
     onLogout: () => void;
+    onOpenGemini?: () => void;
 }
 
-export default function NavBar({ user, onLogout }: Props) {
+export default function NavBar({ user, onLogout, onOpenGemini }: Props) {
     const [avatarError, setAvatarError] = useState(false);
 
     return (
@@ -78,6 +80,23 @@ export default function NavBar({ user, onLogout }: Props) {
                         <span className="hidden sm:inline">Budget</span>
                     </Link>
                 </div>
+
+                {/* Center Gemini AI Button */}
+                <div className="flex-1 flex justify-center">
+                    <button
+                        onClick={onOpenGemini}
+                        className="flex items-center gap-2 text-sm font-medium transition-all duration-200 hover:text-theme-accent px-3 py-2 rounded-lg hover:bg-theme-surface/30"
+                        style={{ color: "var(--theme-text)" }}
+                        aria-label="Add expense with AI"
+                        title="Add expense with AI"
+                    >
+                        <Sparkles
+                            size={20}
+                            style={{ color: "var(--theme-accent)" }}
+                        />
+                    </button>
+                </div>
+
                 <div className="flex items-center gap-4">
                     <ThemeSelector />
 
