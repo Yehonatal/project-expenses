@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import { RotateCcw, Plus } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
+import { formatBudgetPeriod } from "../utils/dateFormatter";
 
 export default function ExpensePage({
     expenseUpdateTrigger,
@@ -160,17 +161,19 @@ export default function ExpensePage({
                                     return (
                                         <div key={budget._id} className="p-4">
                                             <div className="flex items-center justify-between mb-3">
-                                                <h3
-                                                    className="text-sm font-semibold"
+                                                <span
+                                                    className="text-xs font-medium px-2 py-1 rounded-full border"
                                                     style={{
-                                                        color: "var(--theme-text)",
+                                                        color: "var(--theme-text-secondary)",
+                                                        backgroundColor:
+                                                            "var(--theme-surface)",
+                                                        borderColor:
+                                                            "var(--theme-border)",
+                                                        borderWidth: "1px",
                                                     }}
                                                 >
-                                                    {budget.startMonth}/
-                                                    {budget.startYear} -{" "}
-                                                    {budget.endMonth}/
-                                                    {budget.endYear}
-                                                </h3>
+                                                    {formatBudgetPeriod(budget)}
+                                                </span>
                                             </div>
 
                                             <div className="flex items-center justify-between mb-3">
@@ -279,10 +282,13 @@ export default function ExpensePage({
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className="w-full rounded-full h-2 overflow-hidden"
+                                                    className="w-full rounded-full h-2 overflow-hidden border"
                                                     style={{
                                                         backgroundColor:
                                                             "var(--theme-surface)",
+                                                        borderColor:
+                                                            "var(--theme-text-secondary)",
+                                                        borderWidth: "1px",
                                                     }}
                                                 >
                                                     <div
