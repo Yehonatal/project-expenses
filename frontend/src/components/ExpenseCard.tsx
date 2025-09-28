@@ -13,9 +13,9 @@ export default function ExpenseCard({
     onDelete,
 }: ExpenseCardProps) {
     return (
-        <article className="glass-card rounded-xl p-4 space-y-3">
+        <article className="glass-card rounded-xl p-3 space-y-2">
             <div
-                className="flex justify-between items-center mb-1 text-xs font-mono"
+                className="flex justify-between items-center text-xs font-mono"
                 style={{ color: "var(--theme-text-secondary)" }}
             >
                 {new Date(exp.date).toLocaleTimeString([], {
@@ -62,7 +62,7 @@ export default function ExpenseCard({
                 Birr {exp.amount.toFixed(2)}
             </p>
             {(onEdit || onDelete) && (
-                <div className="flex justify-end space-x-2 pt-3 border-t border-theme-border/20">
+                <div className="flex justify-end space-x-2 pt-2 border-t border-theme-border/20">
                     {onEdit && (
                         <button
                             onClick={() => onEdit(exp)}

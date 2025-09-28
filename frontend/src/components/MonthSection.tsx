@@ -70,7 +70,7 @@ export default function MonthSection({
                 aria-controls={`month-${ym}`}
             >
                 <div
-                    className="flex items-center space-x-3 font-semibold text-sm"
+                    className="flex items-center space-x-3 font-semibold text-base"
                     style={{ color: "var(--theme-text)" }}
                 >
                     {isExpanded ? (
@@ -153,7 +153,7 @@ export default function MonthSection({
                         </tbody>
                     </table>
 
-                    <div className="flex flex-col md:hidden p-4 space-y-3">
+                    <div className="flex flex-col md:hidden p-3 space-y-2">
                         {Object.entries(groupedByDate).map(
                             ([dateKey, exps]) => {
                                 const isExpandedDate =
@@ -171,7 +171,7 @@ export default function MonthSection({
                                             onClick={() =>
                                                 toggleDate(ym, dateKey)
                                             }
-                                            className="cursor-pointer flex items-center justify-between space-x-3 font-semibold rounded-md px-4 py-3 select-none glass-button transition-all duration-200 hover:glass-button/80"
+                                            className="cursor-pointer flex items-center justify-between space-x-3 font-semibold rounded-md px-3 py-2 select-none glass-button transition-all duration-200 hover:glass-button/80"
                                         >
                                             <div className="flex items-center space-x-3">
                                                 {isExpandedDate ? (
@@ -189,7 +189,7 @@ export default function MonthSection({
                                                         }}
                                                     />
                                                 )}
-                                                <span>
+                                                <span className="text-sm">
                                                     {
                                                         monthNames[
                                                             new Date(

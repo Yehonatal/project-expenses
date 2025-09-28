@@ -65,12 +65,12 @@ export default function DateGroup({
                                     style={{ color: "var(--theme-accent)" }}
                                 />
                             )}
-                            <span className="text-xs">
+                            <span className="text-sm">
                                 {formatDateShort(dateKey)}
                             </span>
                         </div>
                         <div
-                            className="text-xs font-normal"
+                            className="text-sm font-normal"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
                             Day Total: Birr {dayTotal.toFixed(2)}

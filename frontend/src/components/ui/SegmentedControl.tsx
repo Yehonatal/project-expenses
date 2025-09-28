@@ -45,9 +45,13 @@ export default function SegmentedControl<T extends string>({
         >
             {options.map((opt, idx) => {
                 const isActive = value === opt;
+                const processedOpt = (opt as string).replace(
+                    "multi-month",
+                    "M.M"
+                );
                 const label =
-                    (opt as string).charAt(0).toUpperCase() +
-                    (opt as string).slice(1).replace("-", " ");
+                    processedOpt.charAt(0).toUpperCase() +
+                    processedOpt.slice(1).replace("-", " ");
                 return (
                     <motion.button
                         key={opt}
@@ -59,7 +63,7 @@ export default function SegmentedControl<T extends string>({
                         tabIndex={isActive ? 0 : -1}
                         onKeyDown={(e) => onKeyDown(e, idx)}
                         onClick={() => onChange(opt)}
-                        className="relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                        className="relative px-3 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1"
                         style={{
                             backgroundColor: isActive
                                 ? "var(--theme-background)"

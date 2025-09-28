@@ -105,10 +105,7 @@ export default function TemplatesPage() {
     };
 
     return (
-        <PageContainer
-            title="Templates"
-            className="p-6 max-w-5xl mx-auto space-y-6"
-        >
+        <PageContainer title="Templates" className="space-y-6">
             <form onSubmit={handleAdd} className="space-y-4">
                 <GlassCard>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

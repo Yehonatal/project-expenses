@@ -205,7 +205,6 @@ export default function BudgetPage() {
 
     return (
         <PageContainer title="Budget Goals" className="space-y-6">
-            {/* Segmented Tabs */}
             <GlassCard>
                 <div className="mb-6">
                     <SegmentedControl
