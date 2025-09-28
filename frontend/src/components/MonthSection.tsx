@@ -213,9 +213,9 @@ export default function MonthSection({
                                             </div>
                                         </header>
                                         {isExpandedDate &&
-                                            exps.map((exp) => (
+                                            exps.map((exp, id) => (
                                                 <ExpenseCard
-                                                    key={exp.id}
+                                                    key={id}
                                                     exp={exp}
                                                     onEdit={onEdit}
                                                     onDelete={onDelete}

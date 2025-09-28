@@ -10,6 +10,7 @@ const templateRoutes = require("./routes/templateRoutes");
 const typesRoutes = require("./routes/typesRoutes");
 const authRoutes = require("./routes/authRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const typesController = require("./controllers/typesController");
 const User = require("./models/userModel");
 
@@ -95,6 +96,7 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/types", typesRoutes);
 app.use("/api/budgets", budgetRoutes);
+app.use("/api/ai", aiRoutes);
 
 // fallback in case routes wiring fails elsewhere — provide direct endpoint
 app.get("/api/types", async (req, res, next) => {

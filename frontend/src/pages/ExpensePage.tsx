@@ -8,8 +8,13 @@ import Modal from "../components/Modal";
 import { RotateCcw, Plus } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
+import { formatBudgetPeriod } from "../utils/dateFormatter";
 
-export default function ExpensePage() {
+export default function ExpensePage({
+    expenseUpdateTrigger,
+}: {
+    expenseUpdateTrigger?: number;
+}) {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [total, setTotal] = useState<number>(0);
     const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -30,7 +35,7 @@ export default function ExpensePage() {
         fetchExpenses();
         fetchBudgets();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [expenseUpdateTrigger]);
 
     const fetchExpenses = async () => {
         try {
@@ -143,7 +148,7 @@ export default function ExpensePage() {
 
                 <div className="space-y-6">
                     {budgets.length > 0 && (
-                        <GlassCard>
+                        <GlassCard className="p-0">
                             <h2 className="text-base font-semibold text-theme-text mb-4">
                                 Budget Progress
                             </h2>
@@ -154,56 +159,155 @@ export default function ExpensePage() {
                                         100;
                                     const isOverBudget = progress > 100;
                                     return (
-                                        <div
-                                            key={budget._id}
-                                            className="space-y-2"
-                                        >
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-theme-text">
-                                                    {budget.startMonth}/
-                                                    {budget.startYear} -{" "}
-                                                    {budget.endMonth}/
-                                                    {budget.endYear}
-                                                </span>
+                                        <div key={budget._id} className="p-4">
+                                            <div className="flex items-center justify-between mb-3">
                                                 <span
-                                                    className="text-sm font-semibold"
+                                                    className="text-xs font-medium px-2 py-1 rounded-full border"
                                                     style={{
-                                                        color: isOverBudget
-                                                            ? "#dc2626"
-                                                            : "#059669",
+                                                        color: "var(--theme-text-secondary)",
+                                                        backgroundColor:
+                                                            "var(--theme-surface)",
+                                                        borderColor:
+                                                            "var(--theme-border)",
+                                                        borderWidth: "1px",
                                                     }}
                                                 >
-                                                    ${budget.spent.toFixed(2)} /
-                                                    $
-                                                    {budget.totalBudget.toFixed(
-                                                        2
-                                                    )}
+                                                    {formatBudgetPeriod(budget)}
                                                 </span>
                                             </div>
-                                            <div className="w-full bg-gray-200 dark:bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="h-2 rounded-full transition-all duration-300"
-                                                    style={{
-                                                        width: `${Math.min(
-                                                            progress,
-                                                            100
-                                                        )}%`,
-                                                        backgroundColor:
-                                                            isOverBudget
-                                                                ? "#dc2626"
-                                                                : "#10b981",
-                                                    }}
-                                                ></div>
+
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="text-center">
+                                                    <p
+                                                        className="text-xs font-medium"
+                                                        style={{
+                                                            color: "var(--theme-text-secondary)",
+                                                        }}
+                                                    >
+                                                        Spent
+                                                    </p>
+                                                    <p
+                                                        className="text-sm font-bold"
+                                                        style={{
+                                                            color: "var(--theme-text)",
+                                                        }}
+                                                    >
+                                                        {budget.spent.toLocaleString(
+                                                            "en-US",
+                                                            {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 0,
+                                                            }
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p
+                                                        className="text-xs font-medium"
+                                                        style={{
+                                                            color: "var(--theme-text-secondary)",
+                                                        }}
+                                                    >
+                                                        Budget
+                                                    </p>
+                                                    <p
+                                                        className="text-sm font-bold"
+                                                        style={{
+                                                            color: "var(--theme-text)",
+                                                        }}
+                                                    >
+                                                        {budget.totalBudget.toLocaleString(
+                                                            "en-US",
+                                                            {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 0,
+                                                            }
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p
+                                                        className="text-xs font-medium"
+                                                        style={{
+                                                            color: "var(--theme-text-secondary)",
+                                                        }}
+                                                    >
+                                                        {budget.spent >
+                                                        budget.totalBudget
+                                                            ? "Over"
+                                                            : "Left"}
+                                                    </p>
+                                                    <p
+                                                        className={`text-sm font-bold ${
+                                                            budget.spent >
+                                                            budget.totalBudget
+                                                                ? "text-red-500"
+                                                                : "text-green-500"
+                                                        }`}
+                                                    >
+                                                        {Math.abs(
+                                                            budget.totalBudget -
+                                                                budget.spent
+                                                        ).toLocaleString(
+                                                            "en-US",
+                                                            {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 0,
+                                                            }
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div
-                                                className="text-xs"
-                                                style={{
-                                                    color: isOverBudget
-                                                        ? "#ef4444"
-                                                        : "var(--theme-text-secondary)",
-                                                }}
-                                            >
-                                                {progress.toFixed(1)}% spent
+
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between items-center">
+                                                    <span
+                                                        className="text-xs font-medium"
+                                                        style={{
+                                                            color: "var(--theme-text-secondary)",
+                                                        }}
+                                                    >
+                                                        Progress
+                                                    </span>
+                                                    <span
+                                                        className={`text-xs font-semibold ${
+                                                            isOverBudget
+                                                                ? "text-red-500"
+                                                                : progress > 80
+                                                                ? "text-yellow-500"
+                                                                : "text-green-500"
+                                                        }`}
+                                                    >
+                                                        {progress.toFixed(0)}%
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    className="w-full rounded-full h-2 overflow-hidden border"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "var(--theme-surface)",
+                                                        borderColor:
+                                                            "var(--theme-text-secondary)",
+                                                        borderWidth: "1px",
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="h-full rounded-full transition-all duration-300 ease-out"
+                                                        style={{
+                                                            width: `${Math.min(
+                                                                progress,
+                                                                100
+                                                            )}%`,
+                                                            backgroundColor:
+                                                                isOverBudget
+                                                                    ? "#ef4444"
+                                                                    : progress >
+                                                                      80
+                                                                    ? "#f59e0b"
+                                                                    : "#22c55e",
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -327,10 +431,11 @@ export default function ExpensePage() {
                         </button>
                         <button
                             onClick={confirmDelete}
-                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
+                            className="text-sm rounded-lg transition-all hover:opacity-90 font-medium px-4 py-2"
                             style={{
-                                backgroundColor: "var(--theme-error)",
+                                backgroundColor: "#dc2626", // Red-600
                                 color: "white",
+                                border: "1px solid #dc2626",
                             }}
                         >
                             Delete

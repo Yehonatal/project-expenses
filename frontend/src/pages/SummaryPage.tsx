@@ -202,8 +202,8 @@ export default function SummaryPage() {
     }));
 
     return (
-        <PageContainer title="Summary Dashboard">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <PageContainer title="Summary Dashboard" className="space-y-12">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                 <div className="glass-card p-4 rounded-xl text-center">
                     <div
                         className="text-xs font-medium mb-2"
@@ -252,7 +252,7 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
                 {typeBreakdown.map((t) => (
                     <div
                         key={t.type}
@@ -281,7 +281,7 @@ export default function SummaryPage() {
             </div>
 
             {trends && trends.trends.length > 0 && (
-                <div className="mb-6">
+                <div className="mb-12">
                     <h2
                         className="text-base font-semibold mb-4"
                         style={{ color: "var(--theme-primary)" }}
@@ -289,7 +289,7 @@ export default function SummaryPage() {
                         Spending Trends
                     </h2>
                     <div className="glass-card p-4 rounded-xl mb-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                             <div className="text-center">
                                 <div
                                     className="text-xs font-medium mb-1"
@@ -423,7 +423,7 @@ export default function SummaryPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div>
                     <h2
                         className="text-base font-semibold mb-4"
@@ -545,7 +545,7 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-16">
                 <h2
                     className="text-xs sm:text-sm lg:text-sm font-semibold mb-3"
                     style={{ color: "var(--theme-primary)" }}
@@ -600,7 +600,7 @@ export default function SummaryPage() {
                 </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-16">
                 <h2
                     className="text-xs sm:text-sm lg:text-sm font-semibold mb-3"
                     style={{ color: "var(--theme-primary)" }}
