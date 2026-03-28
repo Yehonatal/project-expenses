@@ -60,3 +60,79 @@ export type TrendsData = {
         overallPercentageChange: number;
     };
 };
+
+export type InsightItem = {
+    id: string;
+    kind: "trend" | "anomaly" | "recurring" | "opportunity";
+    severity: "high" | "medium" | "low";
+    title: string;
+    message: string;
+    recommendation: string;
+    metricLabel: string;
+    metricValue: number;
+};
+
+export type InsightsData = {
+    generatedAt: string;
+    summary: {
+        insightCount: number;
+        monthlyDeltaPercent: number;
+    };
+    insights: InsightItem[];
+};
+
+export type ForecastData = {
+    generatedAt: string;
+    request: {
+        scenario: "conservative" | "baseline" | "aggressive";
+        windowMonths: 1 | 3 | 6 | 12;
+    };
+    summary: {
+        baselineSpend: number;
+        projectedRecurringSpend: number;
+        projectedSpend: number;
+        projectedCashFlow: number;
+        monthOverMonthDelta: number;
+        confidence: number;
+        projectedMin: number;
+        projectedMax: number;
+        p10: number;
+        p50: number;
+        p90: number;
+    };
+    historical: Array<{
+        year: number;
+        month: number;
+        total: number;
+    }>;
+    forecast: Array<{
+        year: number;
+        month: number;
+        projectedSpend: number;
+        projectedRecurringSpend: number;
+        min: number;
+        max: number;
+        p10: number;
+        p50: number;
+        p90: number;
+    }>;
+    categories: Array<{
+        type: string;
+        expected: number;
+        min: number;
+        max: number;
+        recurring: number;
+        p10: number;
+        p50: number;
+        p90: number;
+    }>;
+    assumptions: {
+        model: string;
+        distribution: string;
+        percentileMethod: string;
+        scenarioMultiplier: number;
+        windowMonths: number;
+        monthlyTrendDrift: number;
+        recurringTreatment: string;
+    };
+};

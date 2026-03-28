@@ -117,6 +117,42 @@ td {
     }
 }
 
+@keyframes skeletonShimmer {
+    0% {
+        background-position: -180% 0;
+    }
+    100% {
+        background-position: 180% 0;
+    }
+}
+
+@keyframes skeletonFloat {
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.02);
+    }
+}
+
+.skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        105deg,
+        rgba(148, 163, 184, 0.14) 8%,
+        rgba(255, 255, 255, 0.32) 18%,
+        rgba(148, 163, 184, 0.14) 33%
+    );
+    background-size: 220% 100%;
+    animation: skeletonShimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton-float {
+    animation: skeletonFloat 4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: no-preference) {
     button,
     a,

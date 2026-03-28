@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import API from "../api/api";
+import API, { getExpenseInsights } from "../api/api";
 import type { Expense } from "../types/expense";
-import type { DashboardData, TrendsData } from "../types/dashboard";
+import type {
+    DashboardData,
+    InsightsData,
+    TrendsData,
+} from "../types/dashboard";
 
 export const monthNames = [
     "Jan",
@@ -21,6 +25,7 @@ export const monthNames = [
 export function useSummaryDashboard() {
     const [summary, setSummary] = useState<DashboardData | null>(null);
     const [trends, setTrends] = useState<TrendsData | null>(null);
+    const [insights, setInsights] = useState<InsightsData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>(
@@ -36,10 +41,12 @@ export function useSummaryDashboard() {
 
         const load = async () => {
             try {
-                const [dashboardRes, trendsRes] = await Promise.allSettled([
+                const [dashboardRes, trendsRes, insightsRes] =
+                    await Promise.allSettled([
                     API.get<DashboardData>("/expenses/dashboard"),
                     API.get<TrendsData>("/expenses/trends"),
-                ]);
+                    getExpenseInsights(),
+                    ]);
 
                 if (!mounted) return;
 
@@ -97,6 +104,10 @@ export function useSummaryDashboard() {
 
                 if (trendsRes.status === "fulfilled") {
                     setTrends(trendsRes.value.data);
+                }
+
+                if (insightsRes.status === "fulfilled") {
+                    setInsights(insightsRes.value.data);
                 }
             } catch (err) {
                 if (mounted) setError("Failed to load summary");
@@ -159,6 +170,9 @@ export function useSummaryDashboard() {
             totalSpent,
             totalCount,
             topTypes: summary.typeBreakdown.slice(0, 5),
+            insightsFeed: insights?.insights || [],
+            insightsSummary: insights?.summary,
+            insightsUpdatedAt: insights?.generatedAt || "",
             updatedLabel: new Date(summary.updatedAt).toLocaleTimeString(
                 undefined,
                 {
@@ -178,11 +192,12 @@ export function useSummaryDashboard() {
                 (trends?.trends || []).map((trend) => [trend.category, trend]),
             ),
         };
-    }, [summary, trends]);
+    }, [summary, trends, insights]);
 
     return {
         summary,
         trends,
+        insights,
         loading,
         error,
         expandedTypes,

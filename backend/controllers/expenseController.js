@@ -209,6 +209,136 @@ const getHealthBand = (score) => {
     return "needs-attention";
 };
 
+const monthKey = (date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+const percentDelta = (current, previous) => {
+    if (!previous && !current) return 0;
+    if (!previous && current) return 100;
+    return ((current - previous) / previous) * 100;
+};
+
+const toneFromDelta = (value) => {
+    if (value >= 25) return "high";
+    if (value >= 10) return "medium";
+    return "low";
+};
+
+const calculateWeightedAverage = (values) => {
+    if (!values.length) return 0;
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    values.forEach((value, index) => {
+        const weight = index + 1;
+        weightedSum += value * weight;
+        totalWeight += weight;
+    });
+
+    return totalWeight ? weightedSum / totalWeight : 0;
+};
+
+const projectRecurringAmountForMonth = (items, monthStart, monthEnd) => {
+    const daysInMonth = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth() + 1,
+        0,
+    ).getDate();
+
+    return items.reduce((sum, item) => {
+        const amount = Number(item.amount || item.price || 0);
+        if (amount <= 0) return sum;
+
+        if (item.frequency === "weekly") {
+            const weeks = Math.ceil(daysInMonth / 7);
+            return sum + amount * weeks;
+        }
+
+        // monthly/yearly-or-unknown are treated as once per month projection
+        if (item.frequency === "yearly") {
+            const dueDate = item.nextDueDate || item.startDate;
+            if (!dueDate) return sum;
+            const due = new Date(dueDate);
+            if (due >= monthStart && due < monthEnd) {
+                return sum + amount;
+            }
+            return sum;
+        }
+
+        return sum + amount;
+    }, 0);
+};
+
+const projectRecurringByCategoryForMonth = (
+    items,
+    monthStart,
+    monthEnd,
+    amountKey = "amount",
+    typeKey = "type",
+) => {
+    const byCategory = new Map();
+    const daysInMonth = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth() + 1,
+        0,
+    ).getDate();
+
+    for (const item of items) {
+        const amount = Number(item[amountKey] || 0);
+        const category = String(item[typeKey] || "other").toLowerCase();
+        if (amount <= 0) continue;
+
+        let projected = amount;
+        if (item.frequency === "weekly") {
+            projected = amount * Math.ceil(daysInMonth / 7);
+        } else if (item.frequency === "yearly") {
+            const dueDate = item.nextDueDate || item.startDate;
+            if (!dueDate) continue;
+            const due = new Date(dueDate);
+            if (!(due >= monthStart && due < monthEnd)) {
+                continue;
+            }
+        }
+
+        byCategory.set(category, (byCategory.get(category) || 0) + projected);
+    }
+
+    return byCategory;
+};
+
+const standardDeviation = (values) => {
+    if (!values.length) return 0;
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const variance =
+        values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+        values.length;
+    return Math.sqrt(variance);
+};
+
+const buildProbabilisticBand = (mean, sigma) => {
+    const safeMean = Number(mean || 0);
+    const safeSigma = Math.max(0, Number(sigma || 0));
+    const z90 = 1.2816;
+
+    const p50 = safeMean;
+    const p10 = Math.max(0, safeMean - z90 * safeSigma);
+    const p90 = Math.max(p50, safeMean + z90 * safeSigma);
+
+    return {
+        p10: Number(p10.toFixed(2)),
+        p50: Number(p50.toFixed(2)),
+        p90: Number(p90.toFixed(2)),
+    };
+};
+
+const mergeCategoryMaps = (first, second) => {
+    const merged = new Map(first);
+    for (const [key, value] of second.entries()) {
+        merged.set(key, (merged.get(key) || 0) + value);
+    }
+    return merged;
+};
+
 /**
  * Add new expense
  * body: { date, description, amount, included, type, isRecurring, frequency }
@@ -934,6 +1064,538 @@ exports.getDashboard = async (req, res) => {
         });
     } catch (err) {
         console.error("getDashboard error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getInsights = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const now = new Date();
+        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        const [recentExpenses, recurringExpenses] = await Promise.all([
+            Expense.find({
+                userId,
+                included: true,
+                date: { $gte: sixMonthsAgo, $lt: nextMonthStart },
+            })
+                .sort({ date: 1 })
+                .select("date amount type description")
+                .lean(),
+            Expense.find({
+                userId,
+                isRecurring: true,
+                nextDueDate: {
+                    $gte: now,
+                    $lt: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+                },
+            })
+                .select("description amount frequency nextDueDate")
+                .lean(),
+        ]);
+
+        if (!recentExpenses.length) {
+            return res.json({
+                generatedAt: new Date().toISOString(),
+                summary: {
+                    insightCount: 1,
+                    monthlyDeltaPercent: 0,
+                },
+                insights: [
+                    {
+                        id: "starter-hint",
+                        kind: "opportunity",
+                        severity: "low",
+                        title: "Start building your insight feed",
+                        message:
+                            "Add a few more expenses and this feed will surface spending anomalies and trend tips automatically.",
+                        recommendation:
+                            "Capture at least a week of expenses to unlock stronger trend analysis.",
+                        metricLabel: "Tracked expenses",
+                        metricValue: 0,
+                    },
+                ],
+            });
+        }
+
+        const insights = [];
+        const monthlyTotals = new Map();
+
+        for (const expense of recentExpenses) {
+            const key = monthKey(new Date(expense.date));
+            monthlyTotals.set(key, (monthlyTotals.get(key) || 0) + Number(expense.amount || 0));
+        }
+
+        const currentMonthTotal = recentExpenses
+            .filter((expense) => new Date(expense.date) >= currentMonthStart)
+            .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+        const previousMonthTotal = recentExpenses
+            .filter(
+                (expense) =>
+                    new Date(expense.date) >= previousMonthStart &&
+                    new Date(expense.date) < currentMonthStart,
+            )
+            .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+
+        const monthlyDeltaPercent = percentDelta(currentMonthTotal, previousMonthTotal);
+        const monthlyTone = toneFromDelta(Math.abs(monthlyDeltaPercent));
+
+        insights.push({
+            id: "month-shift",
+            kind: "trend",
+            severity: monthlyTone,
+            title:
+                monthlyDeltaPercent >= 0
+                    ? "Spending trend is rising this month"
+                    : "Spending trend is cooling this month",
+            message:
+                monthlyDeltaPercent >= 0
+                    ? `Included spend is up ${Math.abs(monthlyDeltaPercent).toFixed(1)}% versus last month.`
+                    : `Included spend is down ${Math.abs(monthlyDeltaPercent).toFixed(1)}% versus last month.`,
+            recommendation:
+                monthlyDeltaPercent >= 15
+                    ? "Review top categories to prevent a month-end budget overrun."
+                    : "Maintain current pacing and keep high-variance categories monitored weekly.",
+            metricLabel: "Month delta",
+            metricValue: Number(monthlyDeltaPercent.toFixed(2)),
+        });
+
+        const currentByType = new Map();
+        const previousByType = new Map();
+        for (const expense of recentExpenses) {
+            const expenseDate = new Date(expense.date);
+            const amount = Number(expense.amount || 0);
+
+            if (expenseDate >= currentMonthStart) {
+                currentByType.set(expense.type, (currentByType.get(expense.type) || 0) + amount);
+            } else if (expenseDate >= previousMonthStart && expenseDate < currentMonthStart) {
+                previousByType.set(
+                    expense.type,
+                    (previousByType.get(expense.type) || 0) + amount,
+                );
+            }
+        }
+
+        let topSpike = null;
+        for (const [type, current] of currentByType.entries()) {
+            const previous = previousByType.get(type) || 0;
+            const delta = percentDelta(current, previous);
+            if (delta <= 20 || current < 150) continue;
+
+            if (!topSpike || delta > topSpike.delta) {
+                topSpike = { type, current, previous, delta };
+            }
+        }
+
+        if (topSpike) {
+            insights.push({
+                id: `type-spike-${topSpike.type}`,
+                kind: "anomaly",
+                severity: toneFromDelta(topSpike.delta),
+                title: `${topSpike.type} spending spiked`,
+                message: `${topSpike.type} is up ${topSpike.delta.toFixed(1)}% month-over-month (${topSpike.current.toFixed(0)} ETB).`,
+                recommendation:
+                    "Check recent transactions in this category and set a tighter filter preset for weekly review.",
+                metricLabel: "Category delta",
+                metricValue: Number(topSpike.delta.toFixed(2)),
+            });
+        }
+
+        const last90Days = recentExpenses
+            .filter(
+                (expense) =>
+                    new Date(expense.date) >=
+                    new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90),
+            )
+            .map((expense) => Number(expense.amount || 0));
+
+        if (last90Days.length >= 8) {
+            const avg =
+                last90Days.reduce((sum, value) => sum + value, 0) /
+                last90Days.length;
+            const variance =
+                last90Days.reduce((sum, value) => sum + (value - avg) ** 2, 0) /
+                last90Days.length;
+            const stdDev = Math.sqrt(variance);
+            const anomalyThreshold = Math.max(avg * 1.6, avg + stdDev * 1.75, 250);
+
+            const anomalous = recentExpenses
+                .filter(
+                    (expense) =>
+                        new Date(expense.date) >=
+                            new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30) &&
+                        Number(expense.amount || 0) >= anomalyThreshold,
+                )
+                .sort((a, b) => b.amount - a.amount)[0];
+
+            if (anomalous) {
+                insights.push({
+                    id: `single-anomaly-${anomalous._id}`,
+                    kind: "anomaly",
+                    severity: "medium",
+                    title: "Unusual high-value expense detected",
+                    message: `${anomalous.description} (${anomalous.type}) at ${Number(anomalous.amount).toFixed(0)} ETB is well above your recent baseline.`,
+                    recommendation:
+                        "Tag this item and decide if it is one-time or should influence your regular monthly planning.",
+                    metricLabel: "Anomaly threshold",
+                    metricValue: Number(anomalyThreshold.toFixed(2)),
+                });
+            }
+        }
+
+        if (recurringExpenses.length > 0) {
+            const recurringTotal = recurringExpenses.reduce(
+                (sum, expense) => sum + Number(expense.amount || 0),
+                0,
+            );
+
+            insights.push({
+                id: "recurring-pressure",
+                kind: "recurring",
+                severity: recurringTotal > currentMonthTotal * 0.45 ? "high" : "low",
+                title: "Upcoming recurring pressure",
+                message: `${recurringExpenses.length} recurring expense${recurringExpenses.length === 1 ? " is" : "s are"} due soon, totaling ${recurringTotal.toFixed(0)} ETB.`,
+                recommendation:
+                    "Reserve this amount early to avoid end-of-month cash flow surprises.",
+                metricLabel: "Upcoming recurring",
+                metricValue: Number(recurringTotal.toFixed(2)),
+            });
+        }
+
+        const ordered = insights
+            .sort((a, b) => {
+                const score = { high: 3, medium: 2, low: 1 };
+                return score[b.severity] - score[a.severity];
+            })
+            .slice(0, 6);
+
+        res.json({
+            generatedAt: new Date().toISOString(),
+            summary: {
+                insightCount: ordered.length,
+                monthlyDeltaPercent: Number(monthlyDeltaPercent.toFixed(2)),
+            },
+            insights: ordered,
+        });
+    } catch (err) {
+        console.error("getInsights error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getForecast = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const scenario = ["conservative", "baseline", "aggressive"].includes(
+            String(req.query.scenario || ""),
+        )
+            ? String(req.query.scenario)
+            : "baseline";
+
+        const requestedWindow = Number.parseInt(String(req.query.window || 6), 10);
+        const windowMonths = [1, 3, 6, 12].includes(requestedWindow)
+            ? requestedWindow
+            : 6;
+
+        const scenarioMultipliers = {
+            conservative: 0.92,
+            baseline: 1,
+            aggressive: 1.12,
+        };
+
+        const now = new Date();
+        const windowStart = new Date(
+            now.getFullYear(),
+            now.getMonth() - (windowMonths - 1),
+            1,
+        );
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const monthAfterNextStart = new Date(
+            now.getFullYear(),
+            now.getMonth() + 2,
+            1,
+        );
+
+        const [monthlyHistory, monthlyTypeHistory, recurringExpenses, recurringTemplates] =
+            await Promise.all([
+                Expense.aggregate([
+                    {
+                        $match: {
+                            userId,
+                            included: true,
+                            date: { $gte: windowStart, $lt: nextMonthStart },
+                        },
+                    },
+                    {
+                        $project: {
+                            year: { $year: "$date" },
+                            month: { $month: "$date" },
+                            amount: 1,
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: { year: "$year", month: "$month" },
+                            total: { $sum: "$amount" },
+                        },
+                    },
+                    { $sort: { "_id.year": 1, "_id.month": 1 } },
+                ]),
+                Expense.aggregate([
+                    {
+                        $match: {
+                            userId,
+                            included: true,
+                            date: { $gte: windowStart, $lt: nextMonthStart },
+                        },
+                    },
+                    {
+                        $project: {
+                            year: { $year: "$date" },
+                            month: { $month: "$date" },
+                            type: "$type",
+                            amount: 1,
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: {
+                                year: "$year",
+                                month: "$month",
+                                type: "$type",
+                            },
+                            total: { $sum: "$amount" },
+                        },
+                    },
+                    { $sort: { "_id.year": 1, "_id.month": 1 } },
+                ]),
+                Expense.find({
+                    userId,
+                    isRecurring: true,
+                })
+                    .select("amount frequency nextDueDate type")
+                    .lean(),
+                Template.find({
+                    userId,
+                    isRecurring: true,
+                    status: "active",
+                    category: "expense",
+                })
+                    .select("price frequency startDate type")
+                    .lean(),
+            ]);
+
+        const monthSlots = Array.from({ length: windowMonths }).map((_, index) => {
+            const cursor = new Date(
+                windowStart.getFullYear(),
+                windowStart.getMonth() + index,
+                1,
+            );
+            return {
+                year: cursor.getFullYear(),
+                month: cursor.getMonth() + 1,
+                key: `${cursor.getFullYear()}-${cursor.getMonth() + 1}`,
+            };
+        });
+
+        const monthlyMap = new Map(
+            monthlyHistory.map((row) => [
+                `${row._id.year}-${row._id.month}`,
+                Number(row.total || 0),
+            ]),
+        );
+
+        const monthlySeries = monthSlots.map((slot) => ({
+            year: slot.year,
+            month: slot.month,
+            total: Number((monthlyMap.get(slot.key) || 0).toFixed(2)),
+        }));
+
+        const historicalTotals = monthlySeries.map((item) => item.total);
+        const scenarioMultiplier = scenarioMultipliers[scenario] || 1;
+        const baselineSpend = calculateWeightedAverage(historicalTotals) * scenarioMultiplier;
+        const historicalStdDev = standardDeviation(historicalTotals);
+
+        const recurringByTypeFromExpenses = projectRecurringByCategoryForMonth(
+            recurringExpenses,
+            nextMonthStart,
+            monthAfterNextStart,
+            "amount",
+            "type",
+        );
+
+        const recurringByTypeFromTemplates = projectRecurringByCategoryForMonth(
+            recurringTemplates,
+            nextMonthStart,
+            monthAfterNextStart,
+            "price",
+            "type",
+        );
+
+        const recurringByCategory = mergeCategoryMaps(
+            recurringByTypeFromExpenses,
+            recurringByTypeFromTemplates,
+        );
+
+        const recurringFromExpenses = projectRecurringAmountForMonth(
+            recurringExpenses,
+            nextMonthStart,
+            monthAfterNextStart,
+        );
+        const recurringFromTemplates = projectRecurringAmountForMonth(
+            recurringTemplates,
+            nextMonthStart,
+            monthAfterNextStart,
+        );
+
+        const projectedRecurringSpend =
+            recurringFromExpenses + recurringFromTemplates;
+        const projectedSpend = baselineSpend + projectedRecurringSpend;
+        const confidenceBandWidth = Math.max(
+            projectedSpend * 0.08,
+            historicalStdDev * 0.7,
+            120,
+        );
+        const projectedMin = Math.max(0, projectedSpend - confidenceBandWidth);
+        const projectedMax = projectedSpend + confidenceBandWidth;
+        const summaryBand = buildProbabilisticBand(
+            projectedSpend,
+            Math.max(historicalStdDev * 0.75, projectedSpend * 0.06),
+        );
+
+        const currentMonthSpend = monthlySeries.length
+            ? monthlySeries[monthlySeries.length - 1].total
+            : 0;
+
+        const monthOverMonthDelta = percentDelta(projectedSpend, currentMonthSpend);
+        const confidence = clamp(
+            Math.round(42 + Math.min(historicalTotals.length, 12) * 4.2),
+            45,
+            93,
+        );
+
+        const categoryMonthlyMap = new Map();
+        for (const row of monthlyTypeHistory) {
+            const type = String(row._id.type || "other").toLowerCase();
+            if (!categoryMonthlyMap.has(type)) {
+                categoryMonthlyMap.set(type, Array(windowMonths).fill(0));
+            }
+
+            const monthIndex = monthSlots.findIndex(
+                (slot) =>
+                    slot.year === row._id.year &&
+                    slot.month === row._id.month,
+            );
+            if (monthIndex >= 0) {
+                categoryMonthlyMap.get(type)[monthIndex] = Number(row.total || 0);
+            }
+        }
+
+        const categories = Array.from(categoryMonthlyMap.entries())
+            .map(([type, totals]) => {
+                const base = calculateWeightedAverage(totals) * scenarioMultiplier;
+                const recurring = recurringByCategory.get(type) || 0;
+                const expected = base + recurring;
+                const volatility = standardDeviation(totals);
+                const width = Math.max(expected * 0.12, volatility * 0.65, 40);
+                const band = buildProbabilisticBand(
+                    expected,
+                    Math.max(volatility * 0.65, expected * 0.08, 18),
+                );
+
+                return {
+                    type,
+                    expected: Number(expected.toFixed(2)),
+                    min: Number(Math.max(0, expected - width).toFixed(2)),
+                    max: Number((expected + width).toFixed(2)),
+                    recurring: Number(recurring.toFixed(2)),
+                    ...band,
+                };
+            })
+            .sort((a, b) => b.expected - a.expected)
+            .slice(0, 8);
+
+        const next3Months = Array.from({ length: 3 }).map((_, idx) => {
+            const monthStart = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1 + idx,
+                1,
+            );
+            const monthEnd = new Date(
+                now.getFullYear(),
+                now.getMonth() + 2 + idx,
+                1,
+            );
+
+            const recurringProjection =
+                projectRecurringAmountForMonth(
+                    recurringExpenses,
+                    monthStart,
+                    monthEnd,
+                ) +
+                projectRecurringAmountForMonth(
+                    recurringTemplates,
+                    monthStart,
+                    monthEnd,
+                );
+
+            const trendGrowthFactor = 1 + idx * 0.03;
+            const total = baselineSpend * trendGrowthFactor + recurringProjection;
+            const bandWidth = Math.max(total * 0.08, historicalStdDev * 0.75, 120);
+            const probabilistic = buildProbabilisticBand(
+                total,
+                Math.max(historicalStdDev * 0.8, total * 0.065),
+            );
+
+            return {
+                year: monthStart.getFullYear(),
+                month: monthStart.getMonth() + 1,
+                projectedSpend: Number(total.toFixed(2)),
+                projectedRecurringSpend: Number(recurringProjection.toFixed(2)),
+                min: Number(Math.max(0, total - bandWidth).toFixed(2)),
+                max: Number((total + bandWidth).toFixed(2)),
+                ...probabilistic,
+            };
+        });
+
+        res.json({
+            generatedAt: new Date().toISOString(),
+            request: {
+                scenario,
+                windowMonths,
+            },
+            summary: {
+                baselineSpend: Number(baselineSpend.toFixed(2)),
+                projectedRecurringSpend: Number(projectedRecurringSpend.toFixed(2)),
+                projectedSpend: Number(projectedSpend.toFixed(2)),
+                projectedCashFlow: Number((-projectedSpend).toFixed(2)),
+                monthOverMonthDelta: Number(monthOverMonthDelta.toFixed(2)),
+                confidence,
+                projectedMin: Number(projectedMin.toFixed(2)),
+                projectedMax: Number(projectedMax.toFixed(2)),
+                ...summaryBand,
+            },
+            historical: monthlySeries,
+            forecast: next3Months,
+            categories,
+            assumptions: {
+                model: "Weighted moving average + recurring commitments",
+                distribution: "Normal approximation over monthly variance",
+                percentileMethod: "P10/P50/P90 computed as mean +/- 1.2816*sigma",
+                scenarioMultiplier,
+                windowMonths,
+                monthlyTrendDrift: 0.03,
+                recurringTreatment:
+                    "Weekly recurring scaled by weeks per month; monthly once per month; yearly if due in projected month",
+            },
+        });
+    } catch (err) {
+        console.error("getForecast error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };

@@ -14,6 +14,7 @@ import Toast from "./components/Toast";
 import { useAuthSession } from "./hooks/useAuthSession";
 import ScrollToTop from "./components/ScrollToTop";
 import ThemeSelector from "./components/ThemeSelector";
+import QuickAddWidget from "./components/QuickAddWidget";
 
 const GeminiModal = lazy(() => import("./components/GeminiModal.tsx"));
 const ExpensePage = lazy(() => import("./pages/ExpensePage.tsx"));
@@ -25,6 +26,7 @@ const RecurringPage = lazy(() => import("./pages/RecurringPage.tsx"));
 const ChartsPage = lazy(() => import("./pages/ChartsPage.tsx"));
 const WorkspacesPage = lazy(() => import("./pages/WorkspacesPage.tsx"));
 const QueuedExpensesPage = lazy(() => import("./pages/QueuedExpensesPage.tsx"));
+const ForecastPage = lazy(() => import("./pages/ForecastPage.tsx"));
 
 export default function App() {
     const { user, loading, logout } = useAuthSession();
@@ -140,6 +142,10 @@ export default function App() {
                                             element={<ChartsPage />}
                                         />
                                         <Route
+                                            path="/forecast"
+                                            element={<ForecastPage />}
+                                        />
+                                        <Route
                                             path="/recurrings"
                                             element={<RecurringPage />}
                                         />
@@ -212,6 +218,11 @@ export default function App() {
                                 />
                             </Suspense>
                         )}
+
+                        <QuickAddWidget
+                            onExpenseAdded={handleExpensesAdded}
+                            onToast={handleToast}
+                        />
                     </div>
                 )}
             </Router>

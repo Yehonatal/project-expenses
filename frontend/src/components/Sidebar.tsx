@@ -10,6 +10,7 @@ import {
     Repeat,
     Users,
     CloudUpload,
+    TrendingUp,
     PanelLeftClose,
     PanelLeftOpen,
     X,
@@ -40,6 +41,7 @@ const navItems = [
     { to: "/recurrings", label: "Recurrings", icon: Repeat },
     { to: "/workspaces", label: "Workspaces", icon: Users },
     { to: "/queued-expenses", label: "Queued", icon: CloudUpload },
+    { to: "/forecast", label: "Forecast", icon: TrendingUp },
     { to: "/charts", label: "Charts", icon: PieChart },
     { to: "/profile", label: "Profile", icon: User },
 ];
@@ -100,11 +102,6 @@ export default function Sidebar({
             </div>
 
             <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
-                {!collapsed && (
-                    <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
-                        Quick access
-                    </p>
-                )}
                 <nav className="flex flex-col gap-1.5">
                     {navItems.map((item) => {
                         const Icon = item.icon;

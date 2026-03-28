@@ -4,6 +4,7 @@ import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import { monthNames, useSummaryDashboard } from "../hooks/useSummaryDashboard";
 import { formatMoneyBirr } from "../utils/formatters";
+import InfoTooltip from "../components/ui/InfoTooltip";
 
 const accountColors = ["#c06ecf", "#3f4ea3", "#b0764e", "#8da84d", "#d89fa0"];
 
@@ -15,6 +16,8 @@ export default function SummaryPage() {
         totalSpent,
         totalCount,
         topTypes,
+        insightsFeed,
+        insightsUpdatedAt,
         updatedLabel,
         nowLabel,
     } = useSummaryDashboard();
@@ -60,6 +63,13 @@ export default function SummaryPage() {
             : hour < 17
               ? "Good afternoon"
               : "Good evening";
+    const insightItems = insightsFeed || [];
+
+    const insightToneClass: Record<string, string> = {
+        high: "text-rose-600",
+        medium: "text-amber-600",
+        low: "text-emerald-600",
+    };
 
     return (
         <PageContainer
@@ -225,10 +235,11 @@ export default function SummaryPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <p
-                            className="text-[10px] uppercase"
+                            className="text-[10px] uppercase inline-flex items-center gap-1"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
                             Financial Health Score
+                            <InfoTooltip label="Why this matters: this score summarizes financial resilience so you can quickly spot whether your spending trend is stable or risky." />
                         </p>
                         <div className="mt-1 flex items-end gap-2">
                             <p className="text-4xl font-semibold leading-none">
@@ -276,6 +287,63 @@ export default function SummaryPage() {
                         </div>
                     </div>
                 </div>
+            </GlassCard>
+
+            <GlassCard className="p-4">
+                <div className="mb-3 flex items-center justify-between">
+                    <div>
+                        <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold inline-flex items-center gap-1">
+                            Personalized Insights Feed
+                            <InfoTooltip label="Why this matters: insight alerts identify anomalies and trend shifts before they become month-end budget problems." />
+                        </h3>
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
+                            AI-style tips from anomalies and trend shifts.
+                        </p>
+                    </div>
+                    <p className="text-[11px] text-[var(--theme-text-secondary)]">
+                        Updated {new Date(insightsUpdatedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                </div>
+
+                {insightItems.length === 0 ? (
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm text-[var(--theme-text-secondary)]">
+                        No insight signals yet. Keep tracking expenses to unlock personalized tips.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+                        {insightItems.map((insight) => (
+                            <div
+                                key={insight.id}
+                                className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3"
+                            >
+                                <div className="mb-1 flex items-center justify-between gap-2">
+                                    <p className="text-sm font-semibold leading-tight">
+                                        {insight.title}
+                                    </p>
+                                    <span
+                                        className={`text-[10px] font-semibold uppercase ${insightToneClass[insight.severity] || "text-[var(--theme-text-secondary)]"}`}
+                                    >
+                                        {insight.severity}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-[var(--theme-text-secondary)]">
+                                    {insight.message}
+                                </p>
+                                <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+                                    <span className="text-[var(--theme-text-secondary)]">
+                                        {insight.metricLabel}
+                                    </span>
+                                    <span className="font-semibold">
+                                        {Number(insight.metricValue).toLocaleString()}
+                                    </span>
+                                </div>
+                                <p className="mt-2 text-xs">
+                                    {insight.recommendation}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </GlassCard>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">

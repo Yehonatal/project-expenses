@@ -22,6 +22,7 @@ import { useExpensePageData } from "../hooks/useExpensePageData";
 import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
 import Toast from "../components/Toast";
+import InfoTooltip from "../components/ui/InfoTooltip";
 import {
     createExpenseFilterPreset,
     deleteExpenseFilterPreset,
@@ -568,8 +569,9 @@ export default function ExpensePage({
 
                     <GlassCard className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                            <h3 className="text-sm font-semibold">
+                            <h3 className="text-sm font-semibold inline-flex items-center gap-1">
                                 Advanced Search & Filters
+                                <InfoTooltip label="Why this matters: precise filters reduce noise and make trend analysis and forecasting more trustworthy." />
                             </h3>
                             <button
                                 type="button"

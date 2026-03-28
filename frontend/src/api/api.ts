@@ -7,6 +7,7 @@ import type {
     ExpenseFilterPresetPayload,
     PaginatedExpensesResponse,
 } from "../types/expense";
+import type { ForecastData, InsightsData } from "../types/dashboard";
 import type { Workspace } from "../types/workspace";
 
 const API = axios.create({
@@ -45,6 +46,11 @@ export const getExpenses = (params?: ExpenseFilterParams) =>
 export const getExpensesPaged = (params: ExpenseFilterParams) =>
     API.get<PaginatedExpensesResponse>("/expenses", { params });
 export const getExpenseStats = () => API.get("/expenses/stats");
+export const getExpenseInsights = () => API.get<InsightsData>("/expenses/insights");
+export const getExpenseForecast = (params?: {
+    scenario?: "conservative" | "baseline" | "aggressive";
+    window?: 1 | 3 | 6 | 12;
+}) => API.get<ForecastData>("/expenses/forecast", { params });
 export const getExpenseFilterPresets = () =>
     API.get<ExpenseFilterPreset[]>("/expenses/filter-presets");
 

@@ -39,6 +39,12 @@ router.get("/dashboard", auth, controller.getDashboard);
 // GET    /api/expenses/trends -> spending trends (current vs previous month)
 router.get("/trends", auth, controller.getTrends);
 
+// GET    /api/expenses/insights -> personalized spending insights
+router.get("/insights", auth, controller.getInsights);
+
+// GET    /api/expenses/forecast -> projected spend and cash flow
+router.get("/forecast", auth, controller.getForecast);
+
 // GET    /api/expenses/stats -> user stats
 router.get("/stats", auth, controller.getStats);
 
