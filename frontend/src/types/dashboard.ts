@@ -89,16 +89,27 @@ export type ForecastData = {
     };
     summary: {
         baselineSpend: number;
+        historicalBaselineSpend: number;
+        anchoredBaselineSpend: number;
         projectedRecurringSpend: number;
+        projectedRecurringIncome: number;
         projectedSpend: number;
         projectedCashFlow: number;
         monthOverMonthDelta: number;
         confidence: number;
+        currentMonthSpend: number;
+        dailyRunRate: number;
+        daysElapsedInMonth: number;
+        daysInMonth: number;
         projectedMin: number;
         projectedMax: number;
         projectedCurrentMonthEndSpend: number;
         next6MonthsSpend: number;
         next12MonthsSpend: number;
+        next6MonthsIncome: number;
+        next12MonthsIncome: number;
+        next6MonthsNet: number;
+        next12MonthsNet: number;
         p10: number;
         p50: number;
         p90: number;
@@ -113,6 +124,8 @@ export type ForecastData = {
         month: number;
         projectedSpend: number;
         projectedRecurringSpend: number;
+        projectedRecurringIncome: number;
+        projectedNetCashFlow: number;
         min: number;
         max: number;
         p10: number;

@@ -53,7 +53,7 @@ export default function Modal({
             />
 
             <div
-                className={`relative mx-2 mb-2 w-[calc(100%-1rem)] max-h-[92vh] overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-background)] shadow-xl sm:mx-4 sm:mb-0 sm:w-full sm:max-h-[86vh] ${maxWidthClass}`}
+                className={`relative mx-2 mb-2 w-[calc(100%-1rem)] max-h-[92vh] overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-background)] shadow-xl sm:mx-4 sm:mb-0 sm:w-full sm:max-h-[86vh] ${maxWidthClass}`}
             >
                 <div
                     className="flex items-center justify-between border-b p-3 sm:p-4"

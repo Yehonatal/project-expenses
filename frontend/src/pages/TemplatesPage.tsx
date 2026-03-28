@@ -31,7 +31,7 @@ export default function TemplatesPage() {
             subtitle="Save reusable entries for subscriptions, bills, and repeating payments."
             className="space-y-6 sm:space-y-8"
         >
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1 space-y-2">
                         <div
@@ -79,7 +79,7 @@ export default function TemplatesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -90,7 +90,7 @@ export default function TemplatesPage() {
                         {templates.length > 0 ? "Active" : "Add template"}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -101,7 +101,7 @@ export default function TemplatesPage() {
                         {types.length}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -248,7 +248,7 @@ export default function TemplatesPage() {
                                                 onClick={() =>
                                                     handleDelete(safeId)
                                                 }
-                                                className="flex h-10 w-10 items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-red-500/20"
+                                                className="flex h-10 w-10 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-red-500/20"
                                                 style={{ color: "#ef4444" }}
                                             >
                                                 <Trash2 className="w-4 h-4" />

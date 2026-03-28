@@ -417,7 +417,7 @@ export default function ExpensePage({
             className="space-y-6 sm:space-y-8"
         >
             <Toast message={toast?.message} type={toast?.type} />
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1 space-y-2">
                         <div
@@ -439,7 +439,7 @@ export default function ExpensePage({
                         <button
                             type="button"
                             onClick={() => setShowCreateModal(true)}
-                            className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
+                            className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-2 text-sm font-medium  transition-colors hover:bg-white/5 sm:w-auto"
                             style={{
                                 backgroundColor: "var(--theme-active)",
                                 color: "var(--theme-text)",
@@ -500,7 +500,7 @@ export default function ExpensePage({
             )}
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -511,7 +511,7 @@ export default function ExpensePage({
                         Birr {total.toFixed(2)}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -522,7 +522,7 @@ export default function ExpensePage({
                         {budgets.length}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -551,7 +551,7 @@ export default function ExpensePage({
                             </div>
                             <button
                                 onClick={handleGenerateRecurring}
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] px-4 py-2 flex items-center gap-2 text-sm font-medium"
+                                className="border border-[var(--theme-border)] bg-[var(--theme-surface)]  rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] px-4 py-2 flex items-center gap-2 text-sm font-medium"
                                 style={{ color: "var(--theme-accent)" }}
                                 title="Generate due recurring expenses"
                             >
@@ -880,7 +880,7 @@ export default function ExpensePage({
                         />
                     </div>
 
-                    <div className="flex flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-3 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 lg:flex-row lg:items-center lg:justify-between">
                         <div className="space-y-0.5 text-xs text-[var(--theme-text-secondary)]">
                             <p>
                                 Showing {pageStartItem}-{pageEndItem} of{" "}

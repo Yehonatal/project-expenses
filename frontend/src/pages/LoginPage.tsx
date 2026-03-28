@@ -38,15 +38,15 @@ export default function Login() {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,var(--theme-aura-one),transparent_28%),radial-gradient(circle_at_82%_80%,var(--theme-aura-two),transparent_32%)]" />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--theme-grid)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-grid)_1px,transparent_1px)] bg-[size:42px_42px] opacity-45" />
 
-            <div className="relative mx-auto flex w-full max-w-5xl flex-col border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[22px] lg:flex-row">
+            <div className="relative mx-auto flex w-full max-w-5xl flex-col border border-[var(--theme-border)] bg-[var(--theme-surface)]  lg:flex-row">
                 <div className="flex-1 border-b border-[var(--theme-border)] p-8 lg:border-b-0 lg:border-r lg:p-10">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)] font-medium">
                         Minimal money clarity
                     </p>
-                    <h1 className="app-heading mt-3 text-4xl leading-tight sm:text-5xl">
+                    <h1 className="app-heading mt-3 text-4xl leading-tight sm:text-5xl text-[var(--theme-text)]">
                         Cashn't
                     </h1>
-                    <p className="mt-4 max-w-md text-sm text-[var(--theme-text-secondary)] sm:text-base">
+                    <p className="mt-4 max-w-md text-sm text-[var(--theme-text-secondary)] sm:text-base leading-relaxed">
                         Track expenses, control budgets, and forecast spending
                         with a clean workspace built for daily financial habits.
                     </p>
@@ -77,10 +77,12 @@ export default function Login() {
                 </div>
 
                 <div className="w-full p-8 lg:w-[390px] lg:p-10">
-                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--theme-text-secondary)]">
+                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--theme-text-secondary)] font-medium">
                         Continue
                     </p>
-                    <h2 className="app-heading mt-2 text-2xl">Welcome back</h2>
+                    <h2 className="app-heading mt-2 text-2xl text-[var(--theme-text)]">
+                        Welcome back
+                    </h2>
                     <p className="mt-2 text-sm text-[var(--theme-text-secondary)]">
                         Sign in once and pick up where you left off.
                     </p>

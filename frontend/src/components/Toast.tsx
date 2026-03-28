@@ -54,7 +54,7 @@ export default function Toast({ message, type = "success" }: ToastProps) {
 
     return (
         <div
-            className="fixed bottom-4 right-4 w-auto max-w-xs border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 py-3 backdrop-blur-[24px] transition-all duration-300 ease-out"
+            className="fixed bottom-4 right-4 w-auto max-w-xs border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 py-3  transition-all duration-300 ease-out"
             role="status"
             aria-live="polite"
         >

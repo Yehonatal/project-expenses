@@ -10,7 +10,13 @@ export type ExpenseWritePayload = {
     tags?: string[];
     workspaceId?: string;
     isRecurring?: boolean;
-    frequency?: "weekly" | "monthly";
+    frequency?: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+    recurrenceRules?: {
+        daysOfWeek?: number[];
+        interval?: number;
+        endDate?: string;
+        occurrenceCount?: number;
+    };
 };
 
 type OfflineOperation =
@@ -118,7 +124,9 @@ export const getOfflineExpenseQueue = (): QueuedExpenseOperation[] =>
     readQueue();
 
 export const removeOfflineExpenseQueueItem = (operationId: string) => {
-    const next = readQueue().filter((operation) => operation.id !== operationId);
+    const next = readQueue().filter(
+        (operation) => operation.id !== operationId,
+    );
     writeQueue(next);
 };
 
@@ -222,51 +230,57 @@ export const deleteExpenseOfflineAware = async (
     }
 };
 
-export const processOfflineExpenseQueue = async (): Promise<ProcessQueueResult> => {
-    const queue = readQueue();
-    if (!queue.length) return { synced: 0, discarded: 0, failed: 0 };
+export const processOfflineExpenseQueue =
+    async (): Promise<ProcessQueueResult> => {
+        const queue = readQueue();
+        if (!queue.length) return { synced: 0, discarded: 0, failed: 0 };
 
-    const remaining: OfflineOperation[] = [];
-    let synced = 0;
-    let discarded = 0;
-    let failed = 0;
+        const remaining: OfflineOperation[] = [];
+        let synced = 0;
+        let discarded = 0;
+        let failed = 0;
 
-    for (const operation of queue) {
-        try {
-            if (operation.kind === "create") {
-                await API.post("/expenses", operation.payload);
-            } else if (operation.kind === "update") {
-                await API.put(`/expenses/${operation.expenseId}`, operation.payload);
-            } else {
-                await API.delete(`/expenses/${operation.expenseId}`);
+        for (const operation of queue) {
+            try {
+                if (operation.kind === "create") {
+                    await API.post("/expenses", operation.payload);
+                } else if (operation.kind === "update") {
+                    await API.put(
+                        `/expenses/${operation.expenseId}`,
+                        operation.payload,
+                    );
+                } else {
+                    await API.delete(`/expenses/${operation.expenseId}`);
+                }
+
+                synced += 1;
+            } catch (error) {
+                if (isRetryableNetworkError(error)) {
+                    remaining.push(operation);
+                    failed += 1;
+                    break;
+                }
+
+                // Non-retryable (validation/authorization) operations are discarded
+                discarded += 1;
             }
+        }
 
-            synced += 1;
-        } catch (error) {
-            if (isRetryableNetworkError(error)) {
-                remaining.push(operation);
-                failed += 1;
-                break;
+        // Keep the current operation and all not-yet-processed operations on retryable failure.
+        if (failed > 0) {
+            const firstFailedIndex = queue.findIndex(
+                (item) => remaining[0]?.id === item.id,
+            );
+            if (firstFailedIndex >= 0) {
+                const tail = queue.slice(firstFailedIndex + 1);
+                writeQueue([...remaining, ...tail]);
+                return { synced, discarded, failed };
             }
-
-            // Non-retryable (validation/authorization) operations are discarded
-            discarded += 1;
         }
-    }
 
-    // Keep the current operation and all not-yet-processed operations on retryable failure.
-    if (failed > 0) {
-        const firstFailedIndex = queue.findIndex((item) => remaining[0]?.id === item.id);
-        if (firstFailedIndex >= 0) {
-            const tail = queue.slice(firstFailedIndex + 1);
-            writeQueue([...remaining, ...tail]);
-            return { synced, discarded, failed };
-        }
-    }
-
-    writeQueue(remaining);
-    return { synced, discarded, failed };
-};
+        writeQueue(remaining);
+        return { synced, discarded, failed };
+    };
 
 export const subscribeToOfflineExpenseQueue = (
     callback: (count: number) => void,

@@ -17,6 +17,26 @@ import PageSkeleton from "../components/ui/PageSkeleton";
 import GlassCard from "../components/ui/GlassCard";
 import { monthNames, useSummaryDashboard } from "../hooks/useSummaryDashboard";
 
+const chartTooltipProps = {
+    contentStyle: {
+        backgroundColor: "var(--theme-surface)",
+        border: "1px solid var(--theme-border)",
+        color: "var(--theme-text)",
+        borderRadius: 0,
+        boxShadow: "none",
+    },
+    labelStyle: {
+        color: "var(--theme-text)",
+    },
+    wrapperStyle: {
+        zIndex: 40,
+    },
+    cursor: {
+        stroke: "var(--theme-border)",
+        strokeWidth: 1,
+    },
+} as const;
+
 export default function ChartsPage() {
     const { loading, error, summary, chartData, trends, topTypes, totalCount } =
         useSummaryDashboard();
@@ -159,6 +179,7 @@ export default function ChartsPage() {
                             formatter={(value) =>
                                 `${Number(value || 0).toLocaleString()} ETB`
                             }
+                            {...chartTooltipProps}
                         />
                         <Legend />
                         <Area
@@ -203,6 +224,7 @@ export default function ChartsPage() {
                                 formatter={(value) =>
                                     `${Number(value || 0).toLocaleString()} ETB`
                                 }
+                                {...chartTooltipProps}
                             />
                             <Area
                                 type="monotone"
@@ -231,6 +253,7 @@ export default function ChartsPage() {
                                 formatter={(value) =>
                                     `${Number(value || 0).toLocaleString()} ETB`
                                 }
+                                {...chartTooltipProps}
                             />
                             <Line
                                 type="monotone"
@@ -282,6 +305,7 @@ export default function ChartsPage() {
                                         formatter={(value) =>
                                             `${Number(value || 0).toLocaleString()} ETB`
                                         }
+                                        {...chartTooltipProps}
                                     />
                                     <Line
                                         type="monotone"

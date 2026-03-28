@@ -28,7 +28,7 @@ export default function NavBar({ user, onLogout, onOpenGemini }: Props) {
     const [avatarError, setAvatarError] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass backdrop-blur-xl">
+        <nav className="fixed top-0 left-0 right-0 z-50">
             <div className="max-w-6xl mx-auto flex gap-8 justify-between items-center px-6 py-3">
                 <div className="flex gap-6">
                     <Link

@@ -20,8 +20,28 @@ import { monthNames } from "../hooks/useSummaryDashboard";
 import { getExpenseForecast } from "../api/api";
 import type { ForecastData } from "../types/dashboard";
 import { formatMoneyBirr } from "../utils/formatters";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import InfoTooltip from "../components/ui/InfoTooltip";
+
+const chartTooltipProps = {
+    contentStyle: {
+        backgroundColor: "var(--theme-surface)",
+        border: "1px solid var(--theme-border)",
+        color: "var(--theme-text)",
+        borderRadius: 0,
+        boxShadow: "none",
+    },
+    labelStyle: {
+        color: "var(--theme-text)",
+    },
+    wrapperStyle: {
+        zIndex: 40,
+    },
+    cursor: {
+        stroke: "var(--theme-border)",
+        strokeWidth: 1,
+    },
+} as const;
 
 type ForecastState = {
     data: ForecastData | null;
@@ -33,9 +53,9 @@ type ForecastState = {
 export default function ForecastPage() {
     const [windowMonths, setWindowMonths] = useState<1 | 3 | 6 | 12>(6);
     const [projectionHorizon, setProjectionHorizon] = useState<6 | 12>(6);
-    const [chartViewMode, setChartViewMode] = useState<"range" | "probabilistic">(
-        "probabilistic",
-    );
+    const [chartViewMode, setChartViewMode] = useState<
+        "range" | "probabilistic"
+    >("probabilistic");
     const [scenario, setScenario] = useState<
         "conservative" | "baseline" | "aggressive"
     >("baseline");
@@ -146,17 +166,140 @@ export default function ForecastPage() {
         );
     }
 
-    const { summary, generatedAt, categories, request, assumptions } = state.data;
+    const { summary, generatedAt, categories, request, assumptions } =
+        state.data;
+
+    const monthNetPositive = summary.projectedCashFlow >= 0;
+
+    const netBadge = (value: number) =>
+        value >= 0
+            ? "border-emerald-600/30 bg-emerald-600/12 text-emerald-600"
+            : "border-rose-600/30 bg-rose-600/12 text-rose-600";
 
     return (
         <PageContainer
             title="Forecast Dashboard"
-            subtitle="Predict next-month spend and cash flow from recent patterns and recurring commitments."
+            subtitle="Understand month-end projection and forward spending using your selected history window."
             className="space-y-5 sm:space-y-6"
         >
             <div
                 className={`border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5 ${revealClass}`}
                 style={revealStyle(0)}
+            >
+                <div className="grid grid-cols-1 gap-2 xl:grid-cols-4">
+                    <div className="border border-[var(--theme-border)] bg-[linear-gradient(135deg,var(--theme-active),var(--theme-surface)_62%)] p-4 xl:col-span-2">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--theme-text-secondary)]">
+                                    Most important
+                                </p>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <Wallet className="h-5 w-5" />
+                                    <h2 className="app-heading text-xl font-semibold sm:text-2xl">
+                                        End-of-month net outcome
+                                    </h2>
+                                </div>
+                            </div>
+                            <span
+                                className={`inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadge(summary.projectedCashFlow)}`}
+                            >
+                                {summary.projectedCashFlow >= 0
+                                    ? "Positive"
+                                    : "Negative"}
+                            </span>
+                        </div>
+
+                        <p
+                            className={`mt-2 text-3xl font-semibold sm:text-4xl ${monthNetPositive ? "text-emerald-600" : "text-rose-600"}`}
+                        >
+                            {formatMoneyBirr(summary.projectedCashFlow)}
+                        </p>
+                        <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                            Recurring income minus projected spend for the next
+                            month.
+                        </p>
+
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Income
+                                </p>
+                                <p className="text-sm font-semibold text-emerald-600">
+                                    {formatMoneyBirr(
+                                        summary.projectedRecurringIncome,
+                                    )}
+                                </p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Spend
+                                </p>
+                                <p className="text-sm font-semibold text-rose-600">
+                                    {formatMoneyBirr(summary.projectedSpend)}
+                                </p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Net
+                                </p>
+                                <p
+                                    className={`text-sm font-semibold ${monthNetPositive ? "text-emerald-600" : "text-rose-600"}`}
+                                >
+                                    {formatMoneyBirr(summary.projectedCashFlow)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            6M net outlook
+                        </p>
+                        <p className="mt-1 text-lg font-semibold">
+                            {formatMoneyBirr(summary.next6MonthsNet)}
+                        </p>
+                        <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                            Income {formatMoneyBirr(summary.next6MonthsIncome)}
+                        </p>
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
+                            Spend {formatMoneyBirr(summary.next6MonthsSpend)}
+                        </p>
+                        <span
+                            className={`mt-2 inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadge(summary.next6MonthsNet)}`}
+                        >
+                            {summary.next6MonthsNet >= 0
+                                ? "Positive"
+                                : "Negative"}
+                        </span>
+                    </div>
+
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            12M net outlook
+                        </p>
+                        <p className="mt-1 text-lg font-semibold">
+                            {formatMoneyBirr(summary.next12MonthsNet)}
+                        </p>
+                        <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                            Income {formatMoneyBirr(summary.next12MonthsIncome)}
+                        </p>
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
+                            Spend {formatMoneyBirr(summary.next12MonthsSpend)}
+                        </p>
+                        <span
+                            className={`mt-2 inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadge(summary.next12MonthsNet)}`}
+                        >
+                            {summary.next12MonthsNet >= 0
+                                ? "Positive"
+                                : "Negative"}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                className={`border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5 ${revealClass}`}
+                style={revealStyle(70)}
             >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
@@ -172,18 +315,22 @@ export default function ForecastPage() {
                             })}
                         </p>
                         <h2 className="app-heading mt-2 text-2xl font-semibold tracking-[-0.01em] sm:text-3xl">
-                            Projected spend:{" "}
+                            Next month estimate:{" "}
                             {formatMoneyBirr(summary.projectedSpend)}
                         </h2>
                         <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
-                            Based on last {request.windowMonths === 1 ? "month" : `${request.windowMonths} months`} using {request.scenario} scenario.
+                            Blends this month-end run-rate with last{" "}
+                            {request.windowMonths === 1
+                                ? "1 completed month"
+                                : `${request.windowMonths} completed months`}{" "}
+                            using {request.scenario} scenario.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                                MoM delta
+                                Next vs month-end
                             </p>
                             <p
                                 className={`text-xl font-semibold ${summary.monthOverMonthDelta > 0 ? "text-rose-600" : "text-emerald-600"}`}
@@ -205,12 +352,14 @@ export default function ForecastPage() {
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap gap-2">
-                        {([
-                            { label: "Last month", value: 1 },
-                            { label: "Last 3", value: 3 },
-                            { label: "Last 6", value: 6 },
-                            { label: "Last year", value: 12 },
-                        ] as const).map((item) => (
+                        {(
+                            [
+                                { label: "Last month", value: 1 },
+                                { label: "Last 3", value: 3 },
+                                { label: "Last 6", value: 6 },
+                                { label: "Last year", value: 12 },
+                            ] as const
+                        ).map((item) => (
                             <button
                                 key={item.value}
                                 type="button"
@@ -223,11 +372,22 @@ export default function ForecastPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {([
-                            { label: "Conservative", value: "conservative" },
-                            { label: "Baseline", value: "baseline" },
-                            { label: "Aggressive", value: "aggressive" },
-                        ] as const).map((item) => (
+                        {(
+                            [
+                                {
+                                    label: "Conservative (-45%)",
+                                    value: "conservative",
+                                },
+                                {
+                                    label: "Baseline",
+                                    value: "baseline",
+                                },
+                                {
+                                    label: "Aggressive (+60%)",
+                                    value: "aggressive",
+                                },
+                            ] as const
+                        ).map((item) => (
                             <button
                                 key={item.value}
                                 type="button"
@@ -252,47 +412,23 @@ export default function ForecastPage() {
             </div>
 
             <div
-                className={`grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8 ${revealClass}`}
-                style={revealStyle(90)}
+                className={`grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-6 ${revealClass}`}
+                style={revealStyle(140)}
             >
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        Baseline spend
+                        This month spent so far
                     </p>
                     <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.baselineSpend)}
+                        {formatMoneyBirr(summary.currentMonthSpend)}
                     </p>
                 </div>
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        Recurring projection
+                        Daily run-rate
                     </p>
                     <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.projectedRecurringSpend)}
-                    </p>
-                </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        Cash flow
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.projectedCashFlow)}
-                    </p>
-                </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        Min projection
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.projectedMin)}
-                    </p>
-                </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        Max projection
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.projectedMax)}
+                        {formatMoneyBirr(summary.dailyRunRate)}
                     </p>
                 </div>
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
@@ -301,6 +437,22 @@ export default function ForecastPage() {
                     </p>
                     <p className="text-lg font-semibold sm:text-xl">
                         {formatMoneyBirr(summary.projectedCurrentMonthEndSpend)}
+                    </p>
+                </div>
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                        Next month estimate
+                    </p>
+                    <p className="text-lg font-semibold sm:text-xl">
+                        {formatMoneyBirr(summary.projectedSpend)}
+                    </p>
+                </div>
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                        Recurring income (next month)
+                    </p>
+                    <p className="text-lg font-semibold text-emerald-600 sm:text-xl">
+                        {formatMoneyBirr(summary.projectedRecurringIncome)}
                     </p>
                 </div>
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
@@ -319,37 +471,14 @@ export default function ForecastPage() {
                         {formatMoneyBirr(summary.next12MonthsSpend)}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        P10
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.p10)}
-                    </p>
-                </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        P50
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.p50)}
-                    </p>
-                </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
-                        P90
-                    </p>
-                    <p className="text-lg font-semibold sm:text-xl">
-                        {formatMoneyBirr(summary.p90)}
-                    </p>
-                </div>
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2 md:col-span-2 xl:col-span-2 flex items-center justify-between gap-2">
                     <div>
                         <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
                             Take action
                         </p>
                         <p className="text-xs text-[var(--theme-text-secondary)]">
-                            Tune recurring and category controls.
+                            Review recurring plans and check advanced model
+                            outputs below.
                         </p>
                     </div>
                     <Link
@@ -363,11 +492,15 @@ export default function ForecastPage() {
 
             <div
                 className={`grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 ${revealClass}`}
-                style={revealStyle(170)}
+                style={revealStyle(220)}
             >
                 <GlassCard className="p-4">
                     <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
-                        Historical Spend ({request.windowMonths === 1 ? "1 month" : `${request.windowMonths} months`})
+                        Historical Spend (
+                        {request.windowMonths === 1
+                            ? "1 completed month"
+                            : `${request.windowMonths} completed months`}
+                        )
                     </h3>
                     <ResponsiveContainer width="100%" height={260}>
                         <AreaChart data={historicalSeries}>
@@ -381,6 +514,7 @@ export default function ForecastPage() {
                                 formatter={(value) =>
                                     formatMoneyBirr(Number(value || 0))
                                 }
+                                {...chartTooltipProps}
                             />
                             <Area
                                 type="monotone"
@@ -396,7 +530,7 @@ export default function ForecastPage() {
                 <GlassCard className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-2">
                         <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold">
-                            Projection with Confidence Bands
+                            Forward Projection
                         </h3>
                         <div className="inline-flex flex-wrap items-center gap-1">
                             <button
@@ -422,7 +556,9 @@ export default function ForecastPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setChartViewMode("probabilistic")}
+                                onClick={() =>
+                                    setChartViewMode("probabilistic")
+                                }
                                 className={`px-2 py-1 text-[11px] border ${chartViewMode === "probabilistic" ? "border-[var(--theme-accent)] bg-[var(--theme-accent)] text-[var(--theme-background)]" : "border-[var(--theme-border)] bg-[var(--theme-surface)]"}`}
                             >
                                 Probabilistic
@@ -441,6 +577,7 @@ export default function ForecastPage() {
                                 formatter={(value) =>
                                     formatMoneyBirr(Number(value || 0))
                                 }
+                                {...chartTooltipProps}
                             />
                             {chartViewMode === "probabilistic" ? (
                                 <>
@@ -512,6 +649,78 @@ export default function ForecastPage() {
                             />
                         </LineChart>
                     </ResponsiveContainer>
+                    <p className="mt-2 text-xs text-[var(--theme-text-secondary)]">
+                        Projection horizon is based on your selected history
+                        window and scenario. Use 6M or 12M to inspect cumulative
+                        impact.
+                    </p>
+                </GlassCard>
+            </div>
+
+            <div className={revealClass} style={revealStyle(220)}>
+                <GlassCard className="p-4">
+                    <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-2">
+                        Advanced Model Outputs
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                History-only baseline
+                            </p>
+                            <p className="text-sm font-semibold">
+                                {formatMoneyBirr(
+                                    summary.historicalBaselineSpend,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Blended baseline
+                            </p>
+                            <p className="text-sm font-semibold">
+                                {formatMoneyBirr(summary.anchoredBaselineSpend)}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Recurring (next month)
+                            </p>
+                            <p className="text-sm font-semibold">
+                                {formatMoneyBirr(
+                                    summary.projectedRecurringSpend,
+                                )}
+                            </p>
+                            <p className="mt-1 text-[10px] text-[var(--theme-text-secondary)]">
+                                Plus income{" "}
+                                {formatMoneyBirr(
+                                    summary.projectedRecurringIncome,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Range (min/max)
+                            </p>
+                            <p className="text-sm font-semibold">
+                                {formatMoneyBirr(summary.projectedMin)} -{" "}
+                                {formatMoneyBirr(summary.projectedMax)}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                P10/P50/P90
+                            </p>
+                            <p className="text-sm font-semibold">
+                                {formatMoneyBirr(summary.p10)} /{" "}
+                                {formatMoneyBirr(summary.p50)} /{" "}
+                                {formatMoneyBirr(summary.p90)}
+                            </p>
+                            <p className="mt-1 text-[10px] text-[var(--theme-text-secondary)]">
+                                Scenario-adjusted expected:{" "}
+                                {formatMoneyBirr(summary.baselineSpend)}
+                            </p>
+                        </div>
+                    </div>
                 </GlassCard>
             </div>
 
@@ -523,7 +732,8 @@ export default function ForecastPage() {
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                         {categories.length === 0 ? (
                             <p className="text-sm text-[var(--theme-text-secondary)]">
-                                Add more categorized expenses to unlock decomposition insights.
+                                Add more categorized expenses to unlock
+                                decomposition insights.
                             </p>
                         ) : (
                             categories.map((category) => (
@@ -535,34 +745,67 @@ export default function ForecastPage() {
                                         {category.type}
                                     </p>
                                     <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
-                                        Expected: {formatMoneyBirr(category.expected)}
+                                        Expected:{" "}
+                                        {formatMoneyBirr(category.expected)}
                                     </p>
                                     <p className="text-xs text-[var(--theme-text-secondary)]">
-                                        Range: {formatMoneyBirr(category.min)} - {formatMoneyBirr(category.max)}
+                                        Range: {formatMoneyBirr(category.min)} -{" "}
+                                        {formatMoneyBirr(category.max)}
                                     </p>
                                     <p className="text-xs text-[var(--theme-text-secondary)]">
-                                        Probabilistic: {formatMoneyBirr(category.p10)} / {formatMoneyBirr(category.p50)} / {formatMoneyBirr(category.p90)}
+                                        Probabilistic:{" "}
+                                        {formatMoneyBirr(category.p10)} /{" "}
+                                        {formatMoneyBirr(category.p50)} /{" "}
+                                        {formatMoneyBirr(category.p90)}
                                     </p>
                                     <p className="text-xs text-[var(--theme-text-secondary)]">
-                                        Recurring share: {formatMoneyBirr(category.recurring)}
+                                        Recurring share:{" "}
+                                        {formatMoneyBirr(category.recurring)}
                                     </p>
                                     <div className="mt-2 h-20 w-full">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
                                             <BarChart
                                                 data={[
-                                                    { label: "P10", value: category.p10 },
-                                                    { label: "P50", value: category.p50 },
-                                                    { label: "P90", value: category.p90 },
+                                                    {
+                                                        label: "P10",
+                                                        value: category.p10,
+                                                    },
+                                                    {
+                                                        label: "P50",
+                                                        value: category.p50,
+                                                    },
+                                                    {
+                                                        label: "P90",
+                                                        value: category.p90,
+                                                    },
                                                 ]}
-                                                margin={{ top: 2, right: 0, left: 0, bottom: 0 }}
+                                                margin={{
+                                                    top: 2,
+                                                    right: 0,
+                                                    left: 0,
+                                                    bottom: 0,
+                                                }}
                                             >
-                                                <XAxis dataKey="label" tick={{ fontSize: 9 }} />
+                                                <XAxis
+                                                    dataKey="label"
+                                                    tick={{ fontSize: 9 }}
+                                                />
                                                 <Tooltip
                                                     formatter={(value) =>
-                                                        formatMoneyBirr(Number(value || 0))
+                                                        formatMoneyBirr(
+                                                            Number(value || 0),
+                                                        )
                                                     }
+                                                    {...chartTooltipProps}
                                                 />
-                                                <Bar dataKey="value" fill="var(--theme-accent)" radius={0} />
+                                                <Bar
+                                                    dataKey="value"
+                                                    fill="var(--theme-accent)"
+                                                    radius={0}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -573,53 +816,75 @@ export default function ForecastPage() {
                 </GlassCard>
             </div>
 
-                <div className={revealClass} style={revealStyle(320)}>
-                    <GlassCard className="p-4">
-                        <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
-                            Forecast Assumptions
-                        </h3>
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
-                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
-                                    Model
-                                    <InfoTooltip label="Why this matters: model choice controls how strongly recent months influence your forecast baseline." />
-                                </p>
-                                <p className="mt-1">{assumptions.model}</p>
-                                <p className="mt-2">{assumptions.distribution}</p>
-                            </div>
-                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
-                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
-                                    Percentiles
-                                    <InfoTooltip label="Why this matters: percentile bands represent uncertainty bounds around expected spending." />
-                                </p>
-                                <p className="mt-1">{assumptions.percentileMethod}</p>
-                                <p className="mt-2">Scenario multiplier: {assumptions.scenarioMultiplier.toFixed(2)}</p>
-                            </div>
-                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
-                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
-                                    History window
-                                    <InfoTooltip label="Why this matters: shorter windows react faster, longer windows smooth seasonality and one-off spikes." />
-                                </p>
-                                <p className="mt-1">{assumptions.windowMonths} month(s) used for baseline fitting.</p>
-                                <p className="mt-2">Monthly drift assumption: {(assumptions.monthlyTrendDrift * 100).toFixed(1)}%</p>
-                            </div>
-                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
-                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
-                                    Current month estimate
-                                    <InfoTooltip label="Why this matters: end-of-month projection blends spend run-rate and baseline to avoid overreacting to early-month noise." />
-                                </p>
-                                <p className="mt-1">{assumptions.currentMonthProjection}</p>
-                            </div>
-                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
-                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
-                                    Recurring treatment
-                                    <InfoTooltip label="Why this matters: recurring commitments can dominate near-term forecasts, so frequency expansion affects cash-flow realism." />
-                                </p>
-                                <p className="mt-1">{assumptions.recurringTreatment}</p>
-                            </div>
+            <div className={revealClass} style={revealStyle(320)}>
+                <GlassCard className="p-4">
+                    <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
+                        Forecast Assumptions
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                            <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                Model
+                                <InfoTooltip label="Why this matters: model choice controls how strongly recent months influence your forecast baseline." />
+                            </p>
+                            <p className="mt-1">{assumptions.model}</p>
+                            <p className="mt-2">{assumptions.distribution}</p>
                         </div>
-                    </GlassCard>
-                </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                            <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                Percentiles
+                                <InfoTooltip label="Why this matters: percentile bands represent uncertainty bounds around expected spending." />
+                            </p>
+                            <p className="mt-1">
+                                {assumptions.percentileMethod}
+                            </p>
+                            <p className="mt-2">
+                                Scenario multiplier:{" "}
+                                {assumptions.scenarioMultiplier.toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                            <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                History window
+                                <InfoTooltip label="Why this matters: shorter windows react faster, longer windows smooth seasonality and one-off spikes." />
+                            </p>
+                            <p className="mt-1">
+                                {assumptions.windowMonths} month(s) used for
+                                baseline fitting.
+                            </p>
+                            <p className="mt-2">
+                                Monthly drift assumption:{" "}
+                                {(assumptions.monthlyTrendDrift * 100).toFixed(
+                                    1,
+                                )}
+                                %
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                            <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                Current month estimate
+                                <InfoTooltip label="Why this matters: end-of-month projection blends spend run-rate and baseline to avoid overreacting to early-month noise." />
+                            </p>
+                            <p className="mt-1">
+                                {assumptions.currentMonthProjection}
+                            </p>
+                            <p className="mt-2">
+                                Elapsed: {summary.daysElapsedInMonth}/
+                                {summary.daysInMonth} days
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                            <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                Recurring treatment
+                                <InfoTooltip label="Why this matters: recurring commitments can dominate near-term forecasts, so frequency expansion affects cash-flow realism." />
+                            </p>
+                            <p className="mt-1">
+                                {assumptions.recurringTreatment}
+                            </p>
+                        </div>
+                    </div>
+                </GlassCard>
+            </div>
         </PageContainer>
     );
 }

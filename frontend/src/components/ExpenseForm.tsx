@@ -20,13 +20,25 @@ type ExpenseFormData = {
     tagsInput: string;
     workspaceId: string;
     isRecurring: boolean;
-    frequency: "weekly" | "monthly";
+    frequency: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+    recurrenceRules: {
+        daysOfWeek: number[];
+        interval: number;
+        endDate: string;
+        occurrenceCount: string;
+    };
 };
 
 type QueuedExpense = ExpenseWritePayload & {
     tags: string[];
     isRecurring: boolean;
-    frequency: "weekly" | "monthly";
+    frequency: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+    recurrenceRules?: {
+        daysOfWeek?: number[];
+        interval?: number;
+        endDate?: string;
+        occurrenceCount?: number;
+    };
 };
 
 type ExpenseFormProps = {
@@ -80,6 +92,12 @@ export default function ExpenseForm({
         workspaceId: defaultWorkspaceId || "",
         isRecurring: false,
         frequency: "monthly",
+        recurrenceRules: {
+            daysOfWeek: [],
+            interval: 1,
+            endDate: "",
+            occurrenceCount: "",
+        },
     });
 
     useEffect(() => {
@@ -97,6 +115,18 @@ export default function ExpenseForm({
                         : editExpense.workspaceId?._id || "",
                 isRecurring: editExpense.isRecurring || false,
                 frequency: editExpense.frequency || "monthly",
+                recurrenceRules: {
+                    daysOfWeek: editExpense.recurrenceRules?.daysOfWeek || [],
+                    interval: editExpense.recurrenceRules?.interval || 1,
+                    endDate: editExpense.recurrenceRules?.endDate
+                        ? new Date(editExpense.recurrenceRules.endDate)
+                              .toISOString()
+                              .split("T")[0]
+                        : "",
+                    occurrenceCount:
+                        editExpense.recurrenceRules?.occurrenceCount?.toString() ||
+                        "",
+                },
             });
         }
     }, [editExpense]);
@@ -139,6 +169,12 @@ export default function ExpenseForm({
             workspaceId: defaultWorkspaceId || "",
             isRecurring: false,
             frequency: "monthly",
+            recurrenceRules: {
+                daysOfWeek: [],
+                interval: 1,
+                endDate: "",
+                occurrenceCount: "",
+            },
         });
     };
 
@@ -222,6 +258,19 @@ export default function ExpenseForm({
             workspaceId: form.workspaceId || undefined,
             isRecurring: form.isRecurring,
             frequency: form.frequency,
+            recurrenceRules: form.isRecurring
+                ? {
+                      interval: form.recurrenceRules.interval,
+                      daysOfWeek:
+                          form.recurrenceRules.daysOfWeek.length > 0
+                              ? form.recurrenceRules.daysOfWeek
+                              : undefined,
+                      endDate: form.recurrenceRules.endDate || undefined,
+                      occurrenceCount: form.recurrenceRules.occurrenceCount
+                          ? parseInt(form.recurrenceRules.occurrenceCount)
+                          : undefined,
+                  }
+                : undefined,
         };
     };
 
@@ -258,6 +307,14 @@ export default function ExpenseForm({
             workspaceId: item.workspaceId || "",
             isRecurring: item.isRecurring,
             frequency: item.frequency,
+            recurrenceRules: {
+                daysOfWeek: item.recurrenceRules?.daysOfWeek || [],
+                interval: item.recurrenceRules?.interval || 1,
+                endDate: item.recurrenceRules?.endDate || "",
+                occurrenceCount: item.recurrenceRules?.occurrenceCount
+                    ? String(item.recurrenceRules.occurrenceCount)
+                    : "",
+            },
         });
         setEditingQueueIndex(index);
     };
@@ -357,11 +414,15 @@ export default function ExpenseForm({
                 return;
             }
 
-            const result = await updateExpenseOfflineAware(editExpense._id, payload);
+            const result = await updateExpenseOfflineAware(
+                editExpense._id,
+                payload,
+            );
             if (result.queued) {
                 onAdd(undefined, { queued: true });
                 setToast({
-                    message: "Update queued offline. It will sync automatically.",
+                    message:
+                        "Update queued offline. It will sync automatically.",
                     type: "info",
                 });
             } else {
@@ -541,18 +602,137 @@ export default function ExpenseForm({
                     </div>
 
                     {form.isRecurring && (
-                        <div className="space-y-2">
-                            <label className={uiControl.label}>Frequency</label>
-                            <select
-                                name="frequency"
-                                value={form.frequency}
-                                onChange={handleChange}
-                                className={uiControl.select}
-                            >
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                            </select>
-                        </div>
+                        <>
+                            <div className="space-y-2">
+                                <label className={uiControl.label}>
+                                    Frequency
+                                </label>
+                                <select
+                                    name="frequency"
+                                    value={form.frequency}
+                                    onChange={handleChange}
+                                    className={uiControl.select}
+                                >
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className={uiControl.label}>
+                                    Every (Interval)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={form.recurrenceRules.interval}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            recurrenceRules: {
+                                                ...f.recurrenceRules,
+                                                interval: parseInt(
+                                                    e.target.value,
+                                                ),
+                                            },
+                                        }))
+                                    }
+                                    className={uiControl.input}
+                                />
+                            </div>
+                            {form.frequency === "weekly" && (
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className={uiControl.label}>
+                                        On Days
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            "Sun",
+                                            "Mon",
+                                            "Tue",
+                                            "Wed",
+                                            "Thu",
+                                            "Fri",
+                                            "Sat",
+                                        ].map((day, idx) => (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                onClick={() => {
+                                                    const current =
+                                                        form.recurrenceRules
+                                                            .daysOfWeek;
+                                                    const next =
+                                                        current.includes(idx)
+                                                            ? current.filter(
+                                                                  (d) =>
+                                                                      d !== idx,
+                                                              )
+                                                            : [...current, idx];
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        recurrenceRules: {
+                                                            ...f.recurrenceRules,
+                                                            daysOfWeek: next,
+                                                        },
+                                                    }));
+                                                }}
+                                                className={`px-3 py-1 text-[11px] border transition-colors ${
+                                                    form.recurrenceRules.daysOfWeek.includes(
+                                                        idx,
+                                                    )
+                                                        ? "bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]"
+                                                        : "bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border-[var(--theme-border)]"
+                                                }`}
+                                            >
+                                                {day}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <label className={uiControl.label}>
+                                    Stop After (Occurrences)
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Optional"
+                                    value={form.recurrenceRules.occurrenceCount}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            recurrenceRules: {
+                                                ...f.recurrenceRules,
+                                                occurrenceCount: e.target.value,
+                                            },
+                                        }))
+                                    }
+                                    className={uiControl.input}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={uiControl.label}>
+                                    Until (Date)
+                                </label>
+                                <input
+                                    type="date"
+                                    value={form.recurrenceRules.endDate}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            recurrenceRules: {
+                                                ...f.recurrenceRules,
+                                                endDate: e.target.value,
+                                            },
+                                        }))
+                                    }
+                                    className={uiControl.input}
+                                />
+                            </div>
+                        </>
                     )}
                 </div>
 

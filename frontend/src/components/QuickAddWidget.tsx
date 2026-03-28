@@ -170,7 +170,7 @@ export default function QuickAddWidget({
     return (
         <div className="quick-add-panel-anchor fixed bottom-4 z-40 flex flex-col gap-2 pointer-events-none">
             {open && (
-                <div className="pointer-events-auto w-[min(92vw,380px)] border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 shadow-lg backdrop-blur-[24px]">
+                <div className="pointer-events-auto w-[min(92vw,380px)] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 shadow-lg ">
                     <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
                             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">

@@ -58,7 +58,7 @@ export default function Sidebar({
 
     return (
         <aside
-            className={`fixed inset-y-2 left-2 z-40 flex h-[calc(100vh-1rem)] flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-surface)] p-2 shadow-xl transition-transform duration-300 lg:sticky lg:top-2 lg:z-10 lg:translate-x-0 lg:bg-[var(--theme-glass)] lg:shadow-none ${
+            className={`fixed inset-y-2 left-2 z-40 flex h-[calc(100vh-1rem)] flex-col gap-3 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2 shadow-xl transition-transform duration-300 lg:sticky lg:top-2 lg:z-10 lg:translate-x-0 lg:bg-[var(--theme-surface)] lg:shadow-none ${
                 mobileOpen ? "translate-x-0" : "-translate-x-[110%]"
             } ${collapsed ? "w-[88px] lg:w-[78px]" : "w-[292px] lg:w-[292px]"}`}
         >
@@ -104,7 +104,7 @@ export default function Sidebar({
                 <div className="mb-2">
                     <button
                         onClick={onOpenGemini}
-                        className={`flex w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-xs transition-colors hover:bg-white/5 ${
+                        className={`flex w-full border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-2 text-xs transition-colors hover:bg-white/5 ${
                             collapsed
                                 ? "items-center justify-center"
                                 : "items-center justify-start gap-2"
@@ -207,7 +207,7 @@ export default function Sidebar({
 
                     <button
                         onClick={onLogout}
-                        className="inline-flex h-10 w-10 items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] transition-colors hover:bg-white/5"
+                        className="inline-flex h-10 w-10 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] transition-colors hover:bg-white/5"
                         type="button"
                         aria-label="Logout"
                         title="Logout"

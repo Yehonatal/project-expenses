@@ -1,4 +1,9 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import {
+    createContext,
+    useState,
+    useLayoutEffect,
+    type ReactNode,
+} from "react";
 
 export type Theme =
     | "classic-cream"
@@ -335,7 +340,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         setAppearance(defaultAppearance);
     };
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         localStorage.setItem("theme", theme);
         localStorage.setItem("appearance-settings", JSON.stringify(appearance));
 
@@ -369,8 +374,8 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         root.style.setProperty("--theme-accent", colors.accent);
         root.style.setProperty("--theme-background", colors.background);
         root.style.setProperty("--theme-surface", colors.surface);
-        root.style.setProperty("--theme-glass", colors.glass);
-        root.style.setProperty("--theme-glass-border", colors.glassBorder);
+        root.style.setProperty("--theme-glass", colors.surface);
+        root.style.setProperty("--theme-glass-border", colors.border);
         root.style.setProperty("--theme-text", colors.text);
         root.style.setProperty("--theme-text-secondary", colors.textSecondary);
         root.style.setProperty("--theme-border", colors.border);

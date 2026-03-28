@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import API, { getExpenseInsights } from "../api/api";
+import API, { getExpenseForecast, getExpenseInsights } from "../api/api";
 import type { Expense } from "../types/expense";
 import type {
     DashboardData,
+    ForecastData,
     InsightsData,
     TrendsData,
 } from "../types/dashboard";
@@ -26,6 +27,7 @@ export function useSummaryDashboard() {
     const [summary, setSummary] = useState<DashboardData | null>(null);
     const [trends, setTrends] = useState<TrendsData | null>(null);
     const [insights, setInsights] = useState<InsightsData | null>(null);
+    const [forecast, setForecast] = useState<ForecastData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>(
@@ -41,11 +43,12 @@ export function useSummaryDashboard() {
 
         const load = async () => {
             try {
-                const [dashboardRes, trendsRes, insightsRes] =
+                const [dashboardRes, trendsRes, insightsRes, forecastRes] =
                     await Promise.allSettled([
-                    API.get<DashboardData>("/expenses/dashboard"),
-                    API.get<TrendsData>("/expenses/trends"),
-                    getExpenseInsights(),
+                        API.get<DashboardData>("/expenses/dashboard"),
+                        API.get<TrendsData>("/expenses/trends"),
+                        getExpenseInsights(),
+                        getExpenseForecast({ scenario: "baseline", window: 6 }),
                     ]);
 
                 if (!mounted) return;
@@ -108,6 +111,10 @@ export function useSummaryDashboard() {
 
                 if (insightsRes.status === "fulfilled") {
                     setInsights(insightsRes.value.data);
+                }
+
+                if (forecastRes.status === "fulfilled") {
+                    setForecast(forecastRes.value.data);
                 }
             } catch (err) {
                 if (mounted) setError("Failed to load summary");
@@ -198,6 +205,7 @@ export function useSummaryDashboard() {
         summary,
         trends,
         insights,
+        forecast,
         loading,
         error,
         expandedTypes,

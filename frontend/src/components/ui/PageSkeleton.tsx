@@ -4,7 +4,7 @@ type Props = {
 
 export default function PageSkeleton({ title = "Loading" }: Props) {
     return (
-        <div className="relative overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-4 sm:p-5">
+        <div className="relative overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
             <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-[var(--theme-aura-one)] blur-3xl skeleton-float" />
             <div className="pointer-events-none absolute -bottom-16 right-10 h-44 w-44 rounded-full bg-[var(--theme-aura-two)] blur-3xl skeleton-float" />
 

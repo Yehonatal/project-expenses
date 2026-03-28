@@ -7,6 +7,14 @@ const ExpenseFilterPreset = require("../models/expenseFilterPresetModel");
 const Workspace = require("../models/workspaceModel");
 const { normalizeType } = require("../utils/normalizeType");
 
+const ALLOWED_RECURRING_FREQUENCIES = new Set([
+    "daily",
+    "weekly",
+    "monthly",
+    "yearly",
+    "custom",
+]);
+
 const normalizeTags = (tags) => {
     if (!tags) return [];
     const input = Array.isArray(tags)
@@ -66,14 +74,129 @@ const sanitizePresetFilters = (filters = {}) => {
     return normalized;
 };
 
-// Helper to calculate next due date for recurring expenses
-const calculateNextDueDate = (currentDate, frequency) => {
-    const nextDate = new Date(currentDate);
-    if (frequency === "weekly") {
-        nextDate.setDate(nextDate.getDate() + 7);
-    } else if (frequency === "monthly") {
-        nextDate.setMonth(nextDate.getMonth() + 1);
+const normalizeRecurrenceRules = (rules = {}) => {
+    const interval = Math.max(1, Number.parseInt(rules.interval, 10) || 1);
+
+    const normalized = {
+        interval,
+    };
+
+    if (Array.isArray(rules.daysOfWeek)) {
+        const days = Array.from(
+            new Set(
+                rules.daysOfWeek
+                    .map((day) => Number.parseInt(day, 10))
+                    .filter(
+                        (day) => Number.isFinite(day) && day >= 0 && day <= 6,
+                    ),
+            ),
+        ).sort((a, b) => a - b);
+
+        if (days.length) {
+            normalized.daysOfWeek = days;
+        }
     }
+
+    if (rules.endDate) {
+        const parsedEnd = new Date(rules.endDate);
+        if (!Number.isNaN(parsedEnd.getTime())) {
+            normalized.endDate = parsedEnd;
+        }
+    }
+
+    const occurrenceCount = Number.parseInt(rules.occurrenceCount, 10);
+    if (Number.isFinite(occurrenceCount) && occurrenceCount > 0) {
+        normalized.occurrenceCount = occurrenceCount;
+    }
+
+    return normalized;
+};
+
+const addMonthsClamped = (date, months) => {
+    const source = new Date(date);
+    const day = source.getDate();
+    source.setDate(1);
+    source.setMonth(source.getMonth() + months);
+    const lastDayOfMonth = new Date(
+        source.getFullYear(),
+        source.getMonth() + 1,
+        0,
+    ).getDate();
+    source.setDate(Math.min(day, lastDayOfMonth));
+    return source;
+};
+
+const addYearsClamped = (date, years) => {
+    const source = new Date(date);
+    const month = source.getMonth();
+    const day = source.getDate();
+    source.setDate(1);
+    source.setFullYear(source.getFullYear() + years, month, 1);
+    const lastDayOfMonth = new Date(
+        source.getFullYear(),
+        source.getMonth() + 1,
+        0,
+    ).getDate();
+    source.setDate(Math.min(day, lastDayOfMonth));
+    return source;
+};
+
+// Helper to calculate next due date for recurring expenses
+const calculateNextDueDate = (currentDate, frequency, recurrenceRules = {}) => {
+    const nextDate = new Date(currentDate);
+    if (Number.isNaN(nextDate.getTime())) {
+        return new Date();
+    }
+
+    const interval = Math.max(
+        1,
+        Number.parseInt(recurrenceRules.interval, 10) || 1,
+    );
+    const daysOfWeek = Array.isArray(recurrenceRules.daysOfWeek)
+        ? Array.from(
+              new Set(
+                  recurrenceRules.daysOfWeek
+                      .map((day) => Number.parseInt(day, 10))
+                      .filter(
+                          (day) => Number.isFinite(day) && day >= 0 && day <= 6,
+                      ),
+              ),
+          ).sort((a, b) => a - b)
+        : [];
+
+    if (frequency === "daily" || frequency === "custom") {
+        nextDate.setDate(nextDate.getDate() + interval);
+        return nextDate;
+    }
+
+    if (frequency === "weekly") {
+        if (daysOfWeek.length === 0) {
+            nextDate.setDate(nextDate.getDate() + 7 * interval);
+            return nextDate;
+        }
+
+        const currentDay = nextDate.getDay();
+        const nextDay = daysOfWeek.find((day) => day > currentDay);
+
+        if (nextDay !== undefined) {
+            nextDate.setDate(nextDate.getDate() + (nextDay - currentDay));
+            return nextDate;
+        }
+
+        const daysUntilFirstInNextCycle =
+            7 * interval - currentDay + daysOfWeek[0];
+        nextDate.setDate(nextDate.getDate() + daysUntilFirstInNextCycle);
+        return nextDate;
+    }
+
+    if (frequency === "monthly") {
+        return addMonthsClamped(nextDate, interval);
+    }
+
+    if (frequency === "yearly") {
+        return addYearsClamped(nextDate, interval);
+    }
+
     return nextDate;
 };
 
@@ -238,34 +361,70 @@ const calculateWeightedAverage = (values) => {
     return totalWeight ? weightedSum / totalWeight : 0;
 };
 
-const projectRecurringAmountForMonth = (items, monthStart, monthEnd) => {
-    const daysInMonth = new Date(
-        monthStart.getFullYear(),
-        monthStart.getMonth() + 1,
-        0,
-    ).getDate();
+const countOccurrencesInMonth = (item, monthStart, monthEnd) => {
+    const { frequency } = item;
+    if (!frequency || !ALLOWED_RECURRING_FREQUENCIES.has(frequency)) {
+        return 0;
+    }
 
+    const recurrenceRules = normalizeRecurrenceRules(
+        item.recurrenceRules || {},
+    );
+    const startOfProjectedMonth = new Date(monthStart);
+    const endOfProjectedMonth = new Date(monthEnd);
+
+    const baseDate = item.nextDueDate || item.date || item.startDate;
+    if (!baseDate) return 0;
+
+    let currentDate = new Date(baseDate);
+    if (Number.isNaN(currentDate.getTime())) return 0;
+
+    const stopDateRaw = recurrenceRules.endDate || item.endDate;
+    const stopDate = stopDateRaw ? new Date(stopDateRaw) : null;
+    if (stopDate && stopDate < startOfProjectedMonth) return 0;
+
+    const occurrenceLimit =
+        Number.parseInt(recurrenceRules.occurrenceCount, 10) > 0
+            ? Number.parseInt(recurrenceRules.occurrenceCount, 10)
+            : null;
+
+    let count = 0;
+    let seenOccurrences = 0;
+    let guard = 0;
+    while (currentDate < endOfProjectedMonth && guard < 5000) {
+        guard++;
+
+        if (stopDate && currentDate > stopDate) break;
+
+        seenOccurrences += 1;
+        if (occurrenceLimit && seenOccurrences > occurrenceLimit) break;
+
+        if (
+            currentDate >= startOfProjectedMonth &&
+            currentDate < endOfProjectedMonth
+        ) {
+            count++;
+        }
+
+        const next = calculateNextDueDate(
+            currentDate,
+            frequency,
+            recurrenceRules,
+        );
+        if (next.getTime() <= currentDate.getTime()) break;
+        currentDate = next;
+    }
+
+    return count;
+};
+
+const projectRecurringAmountForMonth = (items, monthStart, monthEnd) => {
     return items.reduce((sum, item) => {
         const amount = Number(item.amount || item.price || 0);
         if (amount <= 0) return sum;
 
-        if (item.frequency === "weekly") {
-            const weeks = Math.ceil(daysInMonth / 7);
-            return sum + amount * weeks;
-        }
-
-        // monthly/yearly-or-unknown are treated as once per month projection
-        if (item.frequency === "yearly") {
-            const dueDate = item.nextDueDate || item.startDate;
-            if (!dueDate) return sum;
-            const due = new Date(dueDate);
-            if (due >= monthStart && due < monthEnd) {
-                return sum + amount;
-            }
-            return sum;
-        }
-
-        return sum + amount;
+        const occurrences = countOccurrencesInMonth(item, monthStart, monthEnd);
+        return sum + amount * occurrences;
     }, 0);
 };
 
@@ -277,30 +436,21 @@ const projectRecurringByCategoryForMonth = (
     typeKey = "type",
 ) => {
     const byCategory = new Map();
-    const daysInMonth = new Date(
-        monthStart.getFullYear(),
-        monthStart.getMonth() + 1,
-        0,
-    ).getDate();
 
     for (const item of items) {
         const amount = Number(item[amountKey] || 0);
         const category = String(item[typeKey] || "other").toLowerCase();
         if (amount <= 0) continue;
 
-        let projected = amount;
-        if (item.frequency === "weekly") {
-            projected = amount * Math.ceil(daysInMonth / 7);
-        } else if (item.frequency === "yearly") {
-            const dueDate = item.nextDueDate || item.startDate;
-            if (!dueDate) continue;
-            const due = new Date(dueDate);
-            if (!(due >= monthStart && due < monthEnd)) {
-                continue;
-            }
-        }
+        const occurrences = countOccurrencesInMonth(item, monthStart, monthEnd);
+        const projected = amount * occurrences;
 
-        byCategory.set(category, (byCategory.get(category) || 0) + projected);
+        if (projected > 0) {
+            byCategory.set(
+                category,
+                (byCategory.get(category) || 0) + projected,
+            );
+        }
     }
 
     return byCategory;
@@ -370,11 +520,16 @@ exports.addExpense = async (req, res) => {
                 .json({ message: "frequency required for recurring expenses" });
         }
 
-        if (isRecurring && !["weekly", "monthly"].includes(frequency)) {
-            return res
-                .status(400)
-                .json({ message: "frequency must be 'weekly' or 'monthly'" });
+        if (isRecurring && !ALLOWED_RECURRING_FREQUENCIES.has(frequency)) {
+            return res.status(400).json({
+                message:
+                    "frequency must be one of: daily, weekly, monthly, yearly, custom",
+            });
         }
+
+        const normalizedRecurrenceRules = isRecurring
+            ? normalizeRecurrenceRules(req.body.recurrenceRules || {})
+            : undefined;
 
         const expenseDate = date ? new Date(date) : new Date();
         let validatedWorkspaceId = null;
@@ -414,8 +569,13 @@ exports.addExpense = async (req, res) => {
             createdBy: req.user._id,
             isRecurring: !!isRecurring,
             frequency: isRecurring ? frequency : undefined,
+            recurrenceRules: normalizedRecurrenceRules,
             nextDueDate: isRecurring
-                ? calculateNextDueDate(expenseDate, frequency)
+                ? calculateNextDueDate(
+                      expenseDate,
+                      frequency,
+                      normalizedRecurrenceRules,
+                  )
                 : undefined,
         });
 
@@ -782,10 +942,62 @@ exports.updateExpense = async (req, res) => {
             updates.tags = normalizeTags(updates.tags);
         }
 
+        const existing = await Expense.findById(id);
+        if (!existing || existing.userId.toString() !== req.user._id.toString())
+            return res.status(404).json({ message: "Expense not found" });
+
+        const nextIsRecurring =
+            updates.isRecurring !== undefined
+                ? Boolean(updates.isRecurring)
+                : Boolean(existing.isRecurring);
+
+        const nextFrequency = updates.frequency || existing.frequency;
+
+        if (nextIsRecurring && !nextFrequency) {
+            return res
+                .status(400)
+                .json({ message: "frequency required for recurring expenses" });
+        }
+
+        if (
+            nextIsRecurring &&
+            !ALLOWED_RECURRING_FREQUENCIES.has(String(nextFrequency))
+        ) {
+            return res.status(400).json({
+                message:
+                    "frequency must be one of: daily, weekly, monthly, yearly, custom",
+            });
+        }
+
+        if (nextIsRecurring) {
+            const mergedRules = normalizeRecurrenceRules({
+                ...(existing.recurrenceRules?.toObject?.() ||
+                    existing.recurrenceRules ||
+                    {}),
+                ...(updates.recurrenceRules || {}),
+            });
+
+            updates.recurrenceRules = mergedRules;
+            updates.frequency = nextFrequency;
+            updates.nextDueDate = calculateNextDueDate(
+                updates.date ||
+                    existing.nextDueDate ||
+                    existing.date ||
+                    new Date(),
+                String(nextFrequency),
+                mergedRules,
+            );
+            updates.isRecurring = true;
+        } else if (updates.isRecurring === false) {
+            updates.frequency = undefined;
+            updates.recurrenceRules = undefined;
+            updates.nextDueDate = undefined;
+        }
+
         const updated = await Expense.findByIdAndUpdate(id, updates, {
             new: true,
         });
-        if (!updated || updated.userId.toString() !== req.user._id.toString())
+        if (!updated)
             return res.status(404).json({ message: "Expense not found" });
 
         res.json(updated);
@@ -1073,9 +1285,21 @@ exports.getInsights = async (req, res) => {
         const userId = req.user._id;
         const now = new Date();
         const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const currentMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            1,
+        );
+        const previousMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1,
+        );
+        const nextMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1,
+        );
 
         const [recentExpenses, recurringExpenses] = await Promise.all([
             Expense.find({
@@ -1091,7 +1315,11 @@ exports.getInsights = async (req, res) => {
                 isRecurring: true,
                 nextDueDate: {
                     $gte: now,
-                    $lt: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+                    $lt: new Date(
+                        now.getFullYear(),
+                        now.getMonth() + 1,
+                        now.getDate(),
+                    ),
                 },
             })
                 .select("description amount frequency nextDueDate")
@@ -1127,7 +1355,10 @@ exports.getInsights = async (req, res) => {
 
         for (const expense of recentExpenses) {
             const key = monthKey(new Date(expense.date));
-            monthlyTotals.set(key, (monthlyTotals.get(key) || 0) + Number(expense.amount || 0));
+            monthlyTotals.set(
+                key,
+                (monthlyTotals.get(key) || 0) + Number(expense.amount || 0),
+            );
         }
 
         const currentMonthTotal = recentExpenses
@@ -1141,7 +1372,10 @@ exports.getInsights = async (req, res) => {
             )
             .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
-        const monthlyDeltaPercent = percentDelta(currentMonthTotal, previousMonthTotal);
+        const monthlyDeltaPercent = percentDelta(
+            currentMonthTotal,
+            previousMonthTotal,
+        );
         const monthlyTone = toneFromDelta(Math.abs(monthlyDeltaPercent));
 
         insights.push({
@@ -1171,8 +1405,14 @@ exports.getInsights = async (req, res) => {
             const amount = Number(expense.amount || 0);
 
             if (expenseDate >= currentMonthStart) {
-                currentByType.set(expense.type, (currentByType.get(expense.type) || 0) + amount);
-            } else if (expenseDate >= previousMonthStart && expenseDate < currentMonthStart) {
+                currentByType.set(
+                    expense.type,
+                    (currentByType.get(expense.type) || 0) + amount,
+                );
+            } else if (
+                expenseDate >= previousMonthStart &&
+                expenseDate < currentMonthStart
+            ) {
                 previousByType.set(
                     expense.type,
                     (previousByType.get(expense.type) || 0) + amount,
@@ -1209,7 +1449,11 @@ exports.getInsights = async (req, res) => {
             .filter(
                 (expense) =>
                     new Date(expense.date) >=
-                    new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90),
+                    new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        now.getDate() - 90,
+                    ),
             )
             .map((expense) => Number(expense.amount || 0));
 
@@ -1221,13 +1465,21 @@ exports.getInsights = async (req, res) => {
                 last90Days.reduce((sum, value) => sum + (value - avg) ** 2, 0) /
                 last90Days.length;
             const stdDev = Math.sqrt(variance);
-            const anomalyThreshold = Math.max(avg * 1.6, avg + stdDev * 1.75, 250);
+            const anomalyThreshold = Math.max(
+                avg * 1.6,
+                avg + stdDev * 1.75,
+                250,
+            );
 
             const anomalous = recentExpenses
                 .filter(
                     (expense) =>
                         new Date(expense.date) >=
-                            new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30) &&
+                            new Date(
+                                now.getFullYear(),
+                                now.getMonth(),
+                                now.getDate() - 30,
+                            ) &&
                         Number(expense.amount || 0) >= anomalyThreshold,
                 )
                 .sort((a, b) => b.amount - a.amount)[0];
@@ -1256,7 +1508,8 @@ exports.getInsights = async (req, res) => {
             insights.push({
                 id: "recurring-pressure",
                 kind: "recurring",
-                severity: recurringTotal > currentMonthTotal * 0.45 ? "high" : "low",
+                severity:
+                    recurringTotal > currentMonthTotal * 0.45 ? "high" : "low",
                 title: "Upcoming recurring pressure",
                 message: `${recurringExpenses.length} recurring expense${recurringExpenses.length === 1 ? " is" : "s are"} due soon, totaling ${recurringTotal.toFixed(0)} ETB.`,
                 recommendation:
@@ -1296,112 +1549,166 @@ exports.getForecast = async (req, res) => {
             ? String(req.query.scenario)
             : "baseline";
 
-        const requestedWindow = Number.parseInt(String(req.query.window || 6), 10);
+        const requestedWindow = Number.parseInt(
+            String(req.query.window || 6),
+            10,
+        );
         const windowMonths = [1, 3, 6, 12].includes(requestedWindow)
             ? requestedWindow
             : 6;
 
-        const scenarioMultipliers = {
-            conservative: 0.92,
-            baseline: 1,
-            aggressive: 1.12,
+        const scenarioProfiles = {
+            conservative: {
+                variableMultiplier: 0.55,
+            },
+            baseline: {
+                variableMultiplier: 1,
+            },
+            aggressive: {
+                variableMultiplier: 1.6,
+            },
         };
 
         const now = new Date();
         const windowStart = new Date(
             now.getFullYear(),
-            now.getMonth() - (windowMonths - 1),
+            now.getMonth() - windowMonths,
             1,
         );
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const currentMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            1,
+        );
+        const nextMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1,
+        );
         const monthAfterNextStart = new Date(
             now.getFullYear(),
             now.getMonth() + 2,
             1,
         );
 
-        const [monthlyHistory, monthlyTypeHistory, recurringExpenses, recurringTemplates] =
-            await Promise.all([
-                Expense.aggregate([
-                    {
-                        $match: {
-                            userId,
-                            included: true,
-                            date: { $gte: windowStart, $lt: nextMonthStart },
-                        },
+        const [
+            monthlyHistory,
+            monthlyTypeHistory,
+            currentMonthAgg,
+            recurringExpenses,
+            recurringTemplates,
+            recurringIncomeTemplates,
+        ] = await Promise.all([
+            Expense.aggregate([
+                {
+                    $match: {
+                        userId,
+                        included: true,
+                        date: { $gte: windowStart, $lt: currentMonthStart },
                     },
-                    {
-                        $project: {
-                            year: { $year: "$date" },
-                            month: { $month: "$date" },
-                            amount: 1,
-                        },
+                },
+                {
+                    $project: {
+                        year: { $year: "$date" },
+                        month: { $month: "$date" },
+                        amount: 1,
                     },
-                    {
-                        $group: {
-                            _id: { year: "$year", month: "$month" },
-                            total: { $sum: "$amount" },
-                        },
+                },
+                {
+                    $group: {
+                        _id: { year: "$year", month: "$month" },
+                        total: { $sum: "$amount" },
                     },
-                    { $sort: { "_id.year": 1, "_id.month": 1 } },
-                ]),
-                Expense.aggregate([
-                    {
-                        $match: {
-                            userId,
-                            included: true,
-                            date: { $gte: windowStart, $lt: nextMonthStart },
-                        },
+                },
+                { $sort: { "_id.year": 1, "_id.month": 1 } },
+            ]),
+            Expense.aggregate([
+                {
+                    $match: {
+                        userId,
+                        included: true,
+                        date: { $gte: windowStart, $lt: currentMonthStart },
                     },
-                    {
-                        $project: {
-                            year: { $year: "$date" },
-                            month: { $month: "$date" },
+                },
+                {
+                    $project: {
+                        year: { $year: "$date" },
+                        month: { $month: "$date" },
+                        type: "$type",
+                        amount: 1,
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            year: "$year",
+                            month: "$month",
                             type: "$type",
-                            amount: 1,
                         },
+                        total: { $sum: "$amount" },
                     },
-                    {
-                        $group: {
-                            _id: {
-                                year: "$year",
-                                month: "$month",
-                                type: "$type",
-                            },
-                            total: { $sum: "$amount" },
-                        },
+                },
+                { $sort: { "_id.year": 1, "_id.month": 1 } },
+            ]),
+            Expense.aggregate([
+                {
+                    $match: {
+                        userId,
+                        included: true,
+                        date: { $gte: currentMonthStart, $lt: nextMonthStart },
                     },
-                    { $sort: { "_id.year": 1, "_id.month": 1 } },
-                ]),
-                Expense.find({
-                    userId,
-                    isRecurring: true,
-                })
-                    .select("amount frequency nextDueDate type")
-                    .lean(),
-                Template.find({
-                    userId,
-                    isRecurring: true,
-                    status: "active",
-                    category: "expense",
-                })
-                    .select("price frequency startDate type")
-                    .lean(),
-            ]);
+                },
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: "$amount" },
+                    },
+                },
+            ]),
+            Expense.find({
+                userId,
+                isRecurring: true,
+            })
+                .select(
+                    "amount frequency nextDueDate recurrenceRules endDate date type",
+                )
+                .lean(),
+            Template.find({
+                userId,
+                isRecurring: true,
+                status: "active",
+                category: "expense",
+            })
+                .select(
+                    "price frequency startDate recurrenceRules endDate dayOfMonth type",
+                )
+                .lean(),
+            Template.find({
+                userId,
+                isRecurring: true,
+                status: "active",
+                category: "income",
+            })
+                .select(
+                    "price frequency startDate recurrenceRules endDate dayOfMonth type",
+                )
+                .lean(),
+        ]);
 
-        const monthSlots = Array.from({ length: windowMonths }).map((_, index) => {
-            const cursor = new Date(
-                windowStart.getFullYear(),
-                windowStart.getMonth() + index,
-                1,
-            );
-            return {
-                year: cursor.getFullYear(),
-                month: cursor.getMonth() + 1,
-                key: `${cursor.getFullYear()}-${cursor.getMonth() + 1}`,
-            };
-        });
+        const monthSlots = Array.from({ length: windowMonths }).map(
+            (_, index) => {
+                const cursor = new Date(
+                    windowStart.getFullYear(),
+                    windowStart.getMonth() + index,
+                    1,
+                );
+                return {
+                    year: cursor.getFullYear(),
+                    month: cursor.getMonth() + 1,
+                    key: `${cursor.getFullYear()}-${cursor.getMonth() + 1}`,
+                };
+            },
+        );
 
         const monthlyMap = new Map(
             monthlyHistory.map((row) => [
@@ -1417,9 +1724,73 @@ exports.getForecast = async (req, res) => {
         }));
 
         const historicalTotals = monthlySeries.map((item) => item.total);
-        const scenarioMultiplier = scenarioMultipliers[scenario] || 1;
-        const baselineSpend = calculateWeightedAverage(historicalTotals) * scenarioMultiplier;
-        const historicalStdDev = standardDeviation(historicalTotals);
+        const nonZeroHistoryTotals = historicalTotals.filter(
+            (value) => value > 0,
+        );
+        const scenarioProfile =
+            scenarioProfiles[scenario] || scenarioProfiles.baseline;
+        const scenarioMultiplier = scenarioProfile.variableMultiplier;
+        const historicalStdDev = standardDeviation(
+            nonZeroHistoryTotals.length
+                ? nonZeroHistoryTotals
+                : historicalTotals,
+        );
+
+        const currentMonthSpend = Number(currentMonthAgg[0]?.total || 0);
+        const daysInCurrentMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0,
+        ).getDate();
+        const daysElapsedInMonth = Math.max(1, now.getDate());
+        const remainingDaysInMonth = Math.max(
+            0,
+            daysInCurrentMonth - daysElapsedInMonth,
+        );
+        const dailyRunRate =
+            currentMonthSpend > 0 ? currentMonthSpend / daysElapsedInMonth : 0;
+        const projectedCurrentMonthEndSpend = Number(
+            (currentMonthSpend + dailyRunRate * remainingDaysInMonth).toFixed(
+                2,
+            ),
+        );
+
+        const baselineWindowValues =
+            nonZeroHistoryTotals.length > 0
+                ? nonZeroHistoryTotals
+                : historicalTotals.length > 0
+                  ? historicalTotals
+                  : [projectedCurrentMonthEndSpend || currentMonthSpend || 0];
+        const historicalBaseline =
+            calculateWeightedAverage(baselineWindowValues);
+
+        const currentMonthMomentum =
+            projectedCurrentMonthEndSpend ||
+            currentMonthSpend ||
+            historicalBaseline;
+        const currentMonthBlendWeight = clamp(
+            0.2 + (daysElapsedInMonth / daysInCurrentMonth) * 0.6,
+            0.25,
+            0.8,
+        );
+        const anchoredBaselineBeforeScenario = historicalBaseline
+            ? historicalBaseline * (1 - currentMonthBlendWeight) +
+              currentMonthMomentum * currentMonthBlendWeight
+            : currentMonthMomentum;
+        const baselineSpend =
+            anchoredBaselineBeforeScenario * scenarioMultiplier;
+
+        const trendSeries = baselineWindowValues
+            .filter((value) => value > 0)
+            .concat(currentMonthMomentum > 0 ? [currentMonthMomentum] : []);
+
+        const trendRateRaw =
+            trendSeries.length >= 2 && trendSeries[0] > 0
+                ? (trendSeries[trendSeries.length - 1] - trendSeries[0]) /
+                  trendSeries[0] /
+                  Math.max(1, trendSeries.length - 1)
+                : 0;
+        const monthlyTrendDrift = clamp(trendRateRaw, -0.03, 0.03);
 
         const recurringByTypeFromExpenses = projectRecurringByCategoryForMonth(
             recurringExpenses,
@@ -1452,10 +1823,18 @@ exports.getForecast = async (req, res) => {
             nextMonthStart,
             monthAfterNextStart,
         );
+        const recurringIncomeFromTemplates = projectRecurringAmountForMonth(
+            recurringIncomeTemplates,
+            nextMonthStart,
+            monthAfterNextStart,
+        );
 
         const projectedRecurringSpend =
             recurringFromExpenses + recurringFromTemplates;
+        const projectedRecurringIncome = recurringIncomeFromTemplates;
         const projectedSpend = baselineSpend + projectedRecurringSpend;
+        const projectedNetCashFlow = projectedRecurringIncome - projectedSpend;
+
         const confidenceBandWidth = Math.max(
             projectedSpend * 0.08,
             historicalStdDev * 0.7,
@@ -1468,29 +1847,12 @@ exports.getForecast = async (req, res) => {
             Math.max(historicalStdDev * 0.75, projectedSpend * 0.06),
         );
 
-        const currentMonthSpend = monthlySeries.length
-            ? monthlySeries[monthlySeries.length - 1].total
-            : 0;
-
-        const daysInCurrentMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            0,
-        ).getDate();
-        const currentDay = Math.max(1, now.getDate());
-        const runRateProjection =
-            currentMonthSpend > 0
-                ? (currentMonthSpend / currentDay) * daysInCurrentMonth
-                : 0;
-        const blendedCurrentMonthEndProjection =
-            runRateProjection * 0.75 + (baselineSpend + projectedRecurringSpend) * 0.25;
-        const projectedCurrentMonthEndSpend = Number(
-            Math.max(currentMonthSpend, blendedCurrentMonthEndProjection).toFixed(2),
+        const monthOverMonthDelta = percentDelta(
+            projectedSpend,
+            projectedCurrentMonthEndSpend,
         );
-
-        const monthOverMonthDelta = percentDelta(projectedSpend, currentMonthSpend);
         const confidence = clamp(
-            Math.round(42 + Math.min(historicalTotals.length, 12) * 4.2),
+            Math.round(42 + Math.min(baselineWindowValues.length, 12) * 4.2),
             45,
             93,
         );
@@ -1504,17 +1866,19 @@ exports.getForecast = async (req, res) => {
 
             const monthIndex = monthSlots.findIndex(
                 (slot) =>
-                    slot.year === row._id.year &&
-                    slot.month === row._id.month,
+                    slot.year === row._id.year && slot.month === row._id.month,
             );
             if (monthIndex >= 0) {
-                categoryMonthlyMap.get(type)[monthIndex] = Number(row.total || 0);
+                categoryMonthlyMap.get(type)[monthIndex] = Number(
+                    row.total || 0,
+                );
             }
         }
 
         const categories = Array.from(categoryMonthlyMap.entries())
             .map(([type, totals]) => {
-                const base = calculateWeightedAverage(totals) * scenarioMultiplier;
+                const base =
+                    calculateWeightedAverage(totals) * scenarioMultiplier;
                 const recurring = recurringByCategory.get(type) || 0;
                 const expected = base + recurring;
                 const volatility = standardDeviation(totals);
@@ -1559,10 +1923,21 @@ exports.getForecast = async (req, res) => {
                     monthStart,
                     monthEnd,
                 );
+            const recurringIncomeProjection = projectRecurringAmountForMonth(
+                recurringIncomeTemplates,
+                monthStart,
+                monthEnd,
+            );
 
-            const trendGrowthFactor = 1 + idx * 0.03;
-            const total = baselineSpend * trendGrowthFactor + recurringProjection;
-            const bandWidth = Math.max(total * 0.08, historicalStdDev * 0.75, 120);
+            const trendGrowthFactor = Math.pow(1 + monthlyTrendDrift, idx + 1);
+            const total =
+                baselineSpend * trendGrowthFactor + recurringProjection;
+            const netCashFlow = recurringIncomeProjection - total;
+            const bandWidth = Math.max(
+                total * 0.08,
+                historicalStdDev * 0.75,
+                120,
+            );
             const probabilistic = buildProbabilisticBand(
                 total,
                 Math.max(historicalStdDev * 0.8, total * 0.065),
@@ -1573,6 +1948,10 @@ exports.getForecast = async (req, res) => {
                 month: monthStart.getMonth() + 1,
                 projectedSpend: Number(total.toFixed(2)),
                 projectedRecurringSpend: Number(recurringProjection.toFixed(2)),
+                projectedRecurringIncome: Number(
+                    recurringIncomeProjection.toFixed(2),
+                ),
+                projectedNetCashFlow: Number(netCashFlow.toFixed(2)),
                 min: Number(Math.max(0, total - bandWidth).toFixed(2)),
                 max: Number((total + bandWidth).toFixed(2)),
                 ...probabilistic,
@@ -1591,6 +1970,23 @@ exports.getForecast = async (req, res) => {
                 .reduce((sum, month) => sum + month.projectedSpend, 0)
                 .toFixed(2),
         );
+        const next6MonthsIncome = Number(
+            next12Months
+                .slice(0, 6)
+                .reduce((sum, month) => sum + month.projectedRecurringIncome, 0)
+                .toFixed(2),
+        );
+        const next12MonthsIncome = Number(
+            next12Months
+                .reduce((sum, month) => sum + month.projectedRecurringIncome, 0)
+                .toFixed(2),
+        );
+        const next6MonthsNet = Number(
+            (next6MonthsIncome - next6MonthsSpend).toFixed(2),
+        );
+        const next12MonthsNet = Number(
+            (next12MonthsIncome - next12MonthsSpend).toFixed(2),
+        );
 
         res.json({
             generatedAt: new Date().toISOString(),
@@ -1600,16 +1996,33 @@ exports.getForecast = async (req, res) => {
             },
             summary: {
                 baselineSpend: Number(baselineSpend.toFixed(2)),
-                projectedRecurringSpend: Number(projectedRecurringSpend.toFixed(2)),
+                historicalBaselineSpend: Number(historicalBaseline.toFixed(2)),
+                anchoredBaselineSpend: Number(
+                    anchoredBaselineBeforeScenario.toFixed(2),
+                ),
+                projectedRecurringSpend: Number(
+                    projectedRecurringSpend.toFixed(2),
+                ),
+                projectedRecurringIncome: Number(
+                    projectedRecurringIncome.toFixed(2),
+                ),
                 projectedSpend: Number(projectedSpend.toFixed(2)),
-                projectedCashFlow: Number((-projectedSpend).toFixed(2)),
+                projectedCashFlow: Number(projectedNetCashFlow.toFixed(2)),
                 monthOverMonthDelta: Number(monthOverMonthDelta.toFixed(2)),
                 confidence,
+                currentMonthSpend: Number(currentMonthSpend.toFixed(2)),
+                dailyRunRate: Number(dailyRunRate.toFixed(2)),
+                daysElapsedInMonth,
+                daysInMonth: daysInCurrentMonth,
                 projectedMin: Number(projectedMin.toFixed(2)),
                 projectedMax: Number(projectedMax.toFixed(2)),
                 projectedCurrentMonthEndSpend,
                 next6MonthsSpend,
                 next12MonthsSpend,
+                next6MonthsIncome,
+                next12MonthsIncome,
+                next6MonthsNet,
+                next12MonthsNet,
                 ...summaryBand,
             },
             historical: monthlySeries,
@@ -1618,14 +2031,15 @@ exports.getForecast = async (req, res) => {
             assumptions: {
                 model: "Weighted moving average + recurring commitments",
                 distribution: "Normal approximation over monthly variance",
-                percentileMethod: "P10/P50/P90 computed as mean +/- 1.2816*sigma",
+                percentileMethod:
+                    "P10/P50/P90 computed as mean +/- 1.2816*sigma",
                 scenarioMultiplier,
                 windowMonths,
-                monthlyTrendDrift: 0.03,
+                monthlyTrendDrift,
                 currentMonthProjection:
-                    "Blended run-rate (75%) and weighted baseline (25%), floored at actual spend-to-date",
+                    "Current month uses run-rate projection, then blended with history baseline using elapsed-day confidence weighting",
                 recurringTreatment:
-                    "Weekly recurring scaled by weeks per month; monthly once per month; yearly if due in projected month",
+                    "Recurring expenses and incomes are treated as fixed commitments by frequency and are not scaled by scenario",
             },
         });
     } catch (err) {
@@ -1984,6 +2398,7 @@ exports.generateRecurringExpenses = async (req, res) => {
             const nextDueDate = calculateNextDueDate(
                 recurringExpense.nextDueDate,
                 recurringExpense.frequency,
+                recurringExpense.recurrenceRules,
             );
 
             await Expense.findByIdAndUpdate(recurringExpense._id, {

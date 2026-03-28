@@ -184,9 +184,9 @@ td {
 .loading-progress-bar {
     background: linear-gradient(
         90deg,
-        rgba(59, 130, 246, 0.85),
-        rgba(16, 185, 129, 0.85),
-        rgba(249, 115, 22, 0.85)
+        color-mix(in srgb, var(--theme-accent) 86%, transparent),
+        color-mix(in srgb, var(--theme-secondary) 82%, transparent),
+        color-mix(in srgb, var(--theme-primary) 78%, transparent)
     );
     animation: loadingProgressSlide 1.4s ease-in-out infinite;
 }
@@ -200,37 +200,19 @@ td {
     overflow: hidden;
     color: var(--theme-text-secondary);
     border-color: var(--theme-border);
-    background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--theme-surface) 78%, transparent),
-        color-mix(in srgb, var(--theme-active) 22%, transparent)
-    );
-    box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--theme-border) 70%, transparent);
+    background: var(--theme-surface);
+    box-shadow: inset 0 0 0 0.5px var(--theme-border);
 }
 
 .quick-shortcut-chip::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-140%);
-    background: linear-gradient(
-        100deg,
-        transparent 34%,
-        rgba(255, 255, 255, 0.28) 50%,
-        transparent 66%
-    );
-    animation: quickShortcutShimmer 5.4s ease-in-out infinite;
+    content: none;
     pointer-events: none;
 }
 
 .quick-shortcut-chip:hover {
     color: var(--theme-text);
-    border-color: color-mix(in srgb, var(--theme-accent) 65%, var(--theme-border));
-    background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--theme-active) 52%, transparent),
-        color-mix(in srgb, var(--theme-surface) 60%, transparent)
-    );
+    border-color: var(--theme-accent);
+    background: var(--theme-hover);
 }
 
 .quick-shortcut-kbd {
@@ -239,8 +221,8 @@ td {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     padding: 2px 6px;
-    border: 1px solid color-mix(in srgb, var(--theme-border) 80%, transparent);
-    background-color: color-mix(in srgb, var(--theme-surface) 80%, transparent);
+    border: 1px solid var(--theme-border);
+    background-color: var(--theme-surface);
 }
 
 .quick-shortcut-icon {
@@ -366,4 +348,13 @@ html[data-quick-add-position="right"] .quick-shortcut-mobile-row {
     display: none;
     width: 0;
     height: 0;
+}
+
+.forecast-snap-row {
+    scroll-padding-inline: 0.5rem;
+}
+
+.forecast-snap-card {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
 }

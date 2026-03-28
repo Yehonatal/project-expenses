@@ -12,7 +12,7 @@ export default function ExpandableExpenseTable({
         return (
             <div className="mt-2 ml-6">
                 <div
-                    className="rounded-md border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-4 text-center text-sm backdrop-blur-[24px]"
+                    className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 text-center text-sm "
                     style={{
                         color: "var(--theme-text-secondary)",
                     }}
@@ -25,10 +25,10 @@ export default function ExpandableExpenseTable({
 
     return (
         <div className="mt-2 ml-6">
-            <div className="overflow-hidden rounded-md border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px]">
+            <div className="overflow-hidden rounded-md border border-[var(--theme-border)] bg-[var(--theme-surface)] ">
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-[var(--theme-border)]/20 bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5">
+                        <tr className="border-b border-[var(--theme-border)]/20 bg-[var(--theme-surface)]  transition-colors hover:bg-white/5">
                             <th
                                 className="px-3 py-2 text-left text-xs font-semibold w-24 align-middle"
                                 style={{ color: "var(--theme-text)" }}

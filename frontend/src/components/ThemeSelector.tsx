@@ -99,7 +99,7 @@ export default function ThemeSelector() {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="group relative flex h-10 w-10 cursor-pointer items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-0 backdrop-blur-[20px] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--theme-hover)] active:translate-y-0"
+                className="group relative flex h-10 w-10 cursor-pointer items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] p-0  transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--theme-hover)] active:translate-y-0"
                 title={`Appearance: ${activeTheme?.label ?? "Theme"}`}
                 aria-label="Open appearance settings"
             >
@@ -115,7 +115,7 @@ export default function ThemeSelector() {
             </button>
 
             {open && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 py-8 backdrop-blur-[2px]">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 py-8 ">
                     <div className="w-full max-w-[960px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-0 shadow-xl">
                         <div className="flex items-start justify-between border-b border-[var(--theme-border)] px-5 py-4">
                             <div>

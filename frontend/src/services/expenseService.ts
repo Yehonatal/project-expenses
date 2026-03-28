@@ -8,7 +8,13 @@ export interface ExpenseData {
     included: boolean;
     type: string;
     isRecurring?: boolean;
-    frequency?: "weekly" | "monthly";
+    frequency?: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+    recurrenceRules?: {
+        daysOfWeek?: number[];
+        interval?: number;
+        endDate?: string;
+        occurrenceCount?: number;
+    };
 }
 
 export class ExpenseService {
@@ -32,7 +38,7 @@ export class ExpenseService {
     }
 
     static async addExpenses(
-        expenseDataArray: ExpenseData[]
+        expenseDataArray: ExpenseData[],
     ): Promise<Expense[]> {
         const results: Expense[] = [];
 
@@ -43,7 +49,7 @@ export class ExpenseService {
             } catch (error) {
                 console.error(
                     `Failed to add expense "${expenseData.description}":`,
-                    error
+                    error,
                 );
                 // Continue with other expenses even if one fails
             }

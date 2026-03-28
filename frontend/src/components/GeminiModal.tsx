@@ -295,7 +295,7 @@ export default function GeminiModal({
 
                     {isLoading && (
                         <div className="absolute inset-0 flex items-center justify-center z-10 ">
-                            <div className="rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-background)]/80 p-6 shadow-xl backdrop-blur-md">
+                            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-6 shadow-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
                                         <Loader2

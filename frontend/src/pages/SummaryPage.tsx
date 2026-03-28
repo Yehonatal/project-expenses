@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight, TrendingDown, TrendingUp } from "lucide-react";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
@@ -18,6 +19,7 @@ export default function SummaryPage() {
         topTypes,
         insightsFeed,
         insightsUpdatedAt,
+        forecast,
         updatedLabel,
         nowLabel,
     } = useSummaryDashboard();
@@ -70,6 +72,11 @@ export default function SummaryPage() {
         medium: "text-amber-600",
         low: "text-emerald-600",
     };
+
+    const netBadgeClass = (value: number) =>
+        value >= 0
+            ? "border-emerald-600/40 bg-emerald-600/12 text-emerald-600"
+            : "border-rose-600/40 bg-rose-600/12 text-rose-600";
 
     return (
         <PageContainer
@@ -231,6 +238,133 @@ export default function SummaryPage() {
                 </div>
             </div>
 
+            {forecast && (
+                <GlassCard className="p-4 sm:p-5 overflow-hidden">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold inline-flex items-center gap-1">
+                                Forecast Highlights
+                                <InfoTooltip label="Why this matters: this section summarizes projected net outcomes from recurring income and forecasted spend for month, 6 months, and 12 months." />
+                            </h3>
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                Fast view of projected income, spend, and net
+                                outcome.
+                            </p>
+                        </div>
+                        <Link
+                            to="/forecast"
+                            className="inline-flex items-center gap-1 border border-[var(--theme-border)] bg-[var(--theme-background)] px-3 py-1.5 text-xs transition-colors hover:bg-[var(--theme-hover)]"
+                        >
+                            Open full forecast
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                    </div>
+
+                    <div className="forecast-snap-row -mx-1 mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1 xl:mx-0 xl:grid xl:grid-cols-3 xl:overflow-visible xl:px-0">
+                        <Link
+                            to="/forecast"
+                            className="forecast-snap-card min-w-[280px] snap-center border border-[var(--theme-border)] bg-[linear-gradient(135deg,var(--theme-active),var(--theme-surface)_65%)] p-3 transition-colors hover:bg-[var(--theme-hover)] xl:min-w-0"
+                        >
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)] inline-flex items-center gap-1">
+                                Month-end net
+                                <InfoTooltip label="Computed as projected recurring income minus projected spend for the next month." />
+                            </p>
+                            <p className="mt-1 text-xl font-semibold">
+                                {formatMoneyBirr(
+                                    forecast.summary.projectedCashFlow,
+                                )}
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                                Income{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.projectedRecurringIncome,
+                                )}{" "}
+                                | Spend{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.projectedSpend,
+                                )}
+                            </p>
+                            <span
+                                className={`mt-2 inline-flex items-center gap-1 border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadgeClass(forecast.summary.projectedCashFlow)}`}
+                            >
+                                {forecast.summary.projectedCashFlow >= 0 ? (
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                ) : (
+                                    <TrendingDown className="h-3.5 w-3.5" />
+                                )}
+                                {forecast.summary.projectedCashFlow >= 0
+                                    ? "Positive"
+                                    : "Negative"}
+                            </span>
+                        </Link>
+
+                        <Link
+                            to="/forecast"
+                            className="forecast-snap-card min-w-[280px] snap-center border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 transition-colors hover:bg-[var(--theme-hover)] xl:min-w-0"
+                        >
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)] inline-flex items-center gap-1">
+                                6M net outlook
+                                <InfoTooltip label="Six-month net = six-month recurring income minus six-month forecast spend." />
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    forecast.summary.next6MonthsNet,
+                                )}
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                                Income{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.next6MonthsIncome,
+                                )}{" "}
+                                | Spend{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.next6MonthsSpend,
+                                )}
+                            </p>
+                            <span
+                                className={`mt-2 inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadgeClass(forecast.summary.next6MonthsNet)}`}
+                            >
+                                {forecast.summary.next6MonthsNet >= 0
+                                    ? "Positive"
+                                    : "Negative"}
+                            </span>
+                        </Link>
+
+                        <Link
+                            to="/forecast"
+                            className="forecast-snap-card min-w-[280px] snap-center border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 transition-colors hover:bg-[var(--theme-hover)] xl:min-w-0"
+                        >
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)] inline-flex items-center gap-1">
+                                12M net outlook
+                                <InfoTooltip label="Twelve-month net = twelve-month recurring income minus twelve-month forecast spend." />
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    forecast.summary.next12MonthsNet,
+                                )}
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
+                                Income{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.next12MonthsIncome,
+                                )}{" "}
+                                | Spend{" "}
+                                {formatMoneyBirr(
+                                    forecast.summary.next12MonthsSpend,
+                                )}
+                            </p>
+                            <span
+                                className={`mt-2 inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${netBadgeClass(forecast.summary.next12MonthsNet)}`}
+                            >
+                                {forecast.summary.next12MonthsNet >= 0
+                                    ? "Positive"
+                                    : "Negative"}
+                            </span>
+                        </Link>
+                    </div>
+                </GlassCard>
+            )}
+
             <GlassCard className="p-4">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -301,13 +435,20 @@ export default function SummaryPage() {
                         </p>
                     </div>
                     <p className="text-[11px] text-[var(--theme-text-secondary)]">
-                        Updated {new Date(insightsUpdatedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        Updated{" "}
+                        {new Date(
+                            insightsUpdatedAt || Date.now(),
+                        ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })}
                     </p>
                 </div>
 
                 {insightItems.length === 0 ? (
                     <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm text-[var(--theme-text-secondary)]">
-                        No insight signals yet. Keep tracking expenses to unlock personalized tips.
+                        No insight signals yet. Keep tracking expenses to unlock
+                        personalized tips.
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
@@ -334,7 +475,9 @@ export default function SummaryPage() {
                                         {insight.metricLabel}
                                     </span>
                                     <span className="font-semibold">
-                                        {Number(insight.metricValue).toLocaleString()}
+                                        {Number(
+                                            insight.metricValue,
+                                        ).toLocaleString()}
                                     </span>
                                 </div>
                                 <p className="mt-2 text-xs">

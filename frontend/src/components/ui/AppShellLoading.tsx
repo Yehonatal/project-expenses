@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-    Banknote,
-    CreditCard,
-    PiggyBank,
-    Receipt,
-    Wallet,
-} from "lucide-react";
+import { Banknote, CreditCard, PiggyBank, Receipt, Wallet } from "lucide-react";
 
 const loadingIcons = [Wallet, Receipt, CreditCard, PiggyBank, Banknote];
 
@@ -23,7 +17,7 @@ export default function AppShellLoading() {
     const ActiveIcon = loadingIcons[iconIndex];
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--theme-background)] p-4 text-[var(--theme-text)]">
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_100%_0%,var(--theme-aura-one)_0%,transparent_36%),radial-gradient(circle_at_0%_100%,var(--theme-aura-two)_0%,transparent_40%)]" />
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(to_right,var(--theme-grid)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-grid)_1px,transparent_1px)] bg-[size:44px_44px] opacity-45" />
 
@@ -42,7 +36,7 @@ export default function AppShellLoading() {
                 ))}
             </div>
 
-            <div className="w-full max-w-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-6 py-8 text-center backdrop-blur-[22px]">
+            <div className="w-full max-w-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-6 py-8 text-center ">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-accent)] loading-logo-pulse">
                     <ActiveIcon size={26} />
                 </div>

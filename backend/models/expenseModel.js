@@ -31,10 +31,16 @@ const expenseSchema = new mongoose.Schema(
         isRecurring: { type: Boolean, default: false },
         frequency: {
             type: String,
-            enum: ["weekly", "monthly"],
+            enum: ["daily", "weekly", "monthly", "yearly", "custom"],
             required: function () {
                 return this.isRecurring;
             },
+        },
+        recurrenceRules: {
+            daysOfWeek: [Number], // 0-6 (Sunday-Saturday)
+            interval: { type: Number, default: 1 }, // every X days/weeks/months
+            endDate: { type: Date },
+            occurrenceCount: { type: Number }, // Stop after X times
         },
         nextDueDate: { type: Date },
         parentExpenseId: {

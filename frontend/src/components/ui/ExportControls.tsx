@@ -19,7 +19,7 @@ export default function ExportControls({
             <button
                 onClick={onCSV}
                 disabled={exporting}
-                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 backdrop-blur-[20px] transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4  transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ color: "var(--theme-text)" }}
             >
                 <Download size={20} />
@@ -29,7 +29,7 @@ export default function ExportControls({
             <button
                 onClick={onPDF}
                 disabled={exporting}
-                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 backdrop-blur-[20px] transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4  transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ color: "var(--theme-text)" }}
             >
                 <FileText size={20} />
@@ -38,7 +38,7 @@ export default function ExportControls({
 
             <button
                 onClick={onDrive}
-                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 backdrop-blur-[20px] transition-colors hover:bg-white/5"
+                className="flex h-14 items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4  transition-colors hover:bg-white/5"
                 style={{ color: "var(--theme-text)" }}
             >
                 <Cloud size={20} />

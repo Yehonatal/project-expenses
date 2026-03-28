@@ -1,6 +1,44 @@
 const Template = require("../models/templateModel");
 const mongoose = require("mongoose");
 
+const normalizeRecurrenceRules = (rules = {}) => {
+    const interval = Math.max(1, Number.parseInt(rules.interval, 10) || 1);
+
+    const normalized = {
+        interval,
+    };
+
+    if (Array.isArray(rules.daysOfWeek)) {
+        const days = Array.from(
+            new Set(
+                rules.daysOfWeek
+                    .map((day) => Number.parseInt(day, 10))
+                    .filter(
+                        (day) => Number.isFinite(day) && day >= 0 && day <= 6,
+                    ),
+            ),
+        ).sort((a, b) => a - b);
+
+        if (days.length) {
+            normalized.daysOfWeek = days;
+        }
+    }
+
+    if (rules.endDate) {
+        const parsedEnd = new Date(rules.endDate);
+        if (!Number.isNaN(parsedEnd.getTime())) {
+            normalized.endDate = parsedEnd;
+        }
+    }
+
+    const occurrenceCount = Number.parseInt(rules.occurrenceCount, 10);
+    if (Number.isFinite(occurrenceCount) && occurrenceCount > 0) {
+        normalized.occurrenceCount = occurrenceCount;
+    }
+
+    return normalized;
+};
+
 exports.getTemplates = async (req, res) => {
     try {
         const { status, category } = req.query;
@@ -28,6 +66,7 @@ exports.addTemplate = async (req, res) => {
             price,
             category,
             frequency,
+            recurrenceRules,
             dayOfMonth,
             startDate,
             endDate,
@@ -47,6 +86,7 @@ exports.addTemplate = async (req, res) => {
             price: Number(price),
             category: category || "expense",
             frequency: frequency || "monthly",
+            recurrenceRules: normalizeRecurrenceRules(recurrenceRules || {}),
             dayOfMonth:
                 dayOfMonth == null || dayOfMonth === ""
                     ? undefined
@@ -104,6 +144,11 @@ exports.updateTemplate = async (req, res) => {
         }
         if (updates.startDate) updates.startDate = new Date(updates.startDate);
         if (updates.endDate) updates.endDate = new Date(updates.endDate);
+        if (Object.prototype.hasOwnProperty.call(updates, "recurrenceRules")) {
+            updates.recurrenceRules = normalizeRecurrenceRules(
+                updates.recurrenceRules || {},
+            );
+        }
 
         const updated = await Template.findByIdAndUpdate(id, updates, {
             new: true,

@@ -30,6 +30,26 @@ import { useBudgetPageData, type BudgetType } from "../hooks/useBudgetPageData";
 import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
 
+const chartTooltipProps = {
+    contentStyle: {
+        backgroundColor: "var(--theme-surface)",
+        border: "1px solid var(--theme-border)",
+        color: "var(--theme-text)",
+        borderRadius: 0,
+        boxShadow: "none",
+    },
+    labelStyle: {
+        color: "var(--theme-text)",
+    },
+    wrapperStyle: {
+        zIndex: 40,
+    },
+    cursor: {
+        stroke: "var(--theme-border)",
+        strokeWidth: 1,
+    },
+} as const;
+
 export default function GoalsPage() {
     const {
         budgets,
@@ -89,7 +109,7 @@ export default function GoalsPage() {
                 subtitle="Create target plans, monitor budget usage, and quickly spot goals at risk."
                 className="space-y-6 sm:space-y-8"
             >
-                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex-1 space-y-2">
                             <div
@@ -111,7 +131,7 @@ export default function GoalsPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowCreateModal(true)}
-                                className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
+                                className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-2 text-sm font-medium  transition-colors hover:bg-white/5 sm:w-auto"
                                 style={{
                                     backgroundColor: "var(--theme-active)",
                                     color: "var(--theme-text)",
@@ -145,7 +165,11 @@ export default function GoalsPage() {
                                     Remaining
                                 </div>
                                 <div className="text-2xl font-semibold">
-                                    Birr {Math.max(totalBudget - totalSpent, 0).toLocaleString()}
+                                    Birr{" "}
+                                    {Math.max(
+                                        totalBudget - totalSpent,
+                                        0,
+                                    ).toLocaleString()}
                                 </div>
                             </div>
                         </div>
@@ -153,7 +177,7 @@ export default function GoalsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                    <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                         <div
                             className="text-xs font-semibold uppercase"
                             style={{ color: "var(--theme-text-secondary)" }}
@@ -164,7 +188,7 @@ export default function GoalsPage() {
                             Birr {totalBudget.toLocaleString()}
                         </div>
                     </div>
-                    <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                         <div
                             className="text-xs font-semibold uppercase"
                             style={{ color: "var(--theme-text-secondary)" }}
@@ -175,7 +199,7 @@ export default function GoalsPage() {
                             Birr {totalSpent.toLocaleString()}
                         </div>
                     </div>
-                    <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] rounded-none p-3">
                         <div
                             className="text-xs font-semibold uppercase"
                             style={{ color: "var(--theme-text-secondary)" }}
@@ -232,7 +256,11 @@ export default function GoalsPage() {
                                             Remaining total
                                         </p>
                                         <p className="text-xl font-semibold sm:text-2xl">
-                                            {Math.max(totalBudget - totalSpent, 0).toLocaleString()} ETB
+                                            {Math.max(
+                                                totalBudget - totalSpent,
+                                                0,
+                                            ).toLocaleString()}{" "}
+                                            ETB
                                         </p>
                                     </div>
                                 </div>
@@ -260,7 +288,11 @@ export default function GoalsPage() {
                                         Remaining
                                     </p>
                                     <p className="text-sm font-semibold sm:text-base">
-                                        {Math.max(totalBudget - totalSpent, 0).toLocaleString()} ETB
+                                        {Math.max(
+                                            totalBudget - totalSpent,
+                                            0,
+                                        ).toLocaleString()}{" "}
+                                        ETB
                                     </p>
                                 </div>
                                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
@@ -288,7 +320,12 @@ export default function GoalsPage() {
                                 <ResponsiveContainer width="100%" height={300}>
                                     <ComposedChart
                                         data={chartData}
-                                        margin={{ top: 6, right: 6, left: -8, bottom: 0 }}
+                                        margin={{
+                                            top: 6,
+                                            right: 6,
+                                            left: -8,
+                                            bottom: 0,
+                                        }}
                                     >
                                         <CartesianGrid strokeDasharray="2 2" />
                                         <XAxis
@@ -305,6 +342,7 @@ export default function GoalsPage() {
 
                                                 return `${Number(value || 0).toLocaleString()} ETB`;
                                             }}
+                                            {...chartTooltipProps}
                                         />
                                         <Legend />
                                         <Area
@@ -454,7 +492,7 @@ export default function GoalsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleEdit(budget)}
-                                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-1 text-xs"
+                                            className="border border-[var(--theme-border)] bg-[var(--theme-surface)]  rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-1 text-xs"
                                             style={{
                                                 color: "var(--theme-text)",
                                             }}
@@ -464,8 +502,10 @@ export default function GoalsPage() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => handleDelete(budget._id)}
-                                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-1 text-xs"
+                                            onClick={() =>
+                                                handleDelete(budget._id)
+                                            }
+                                            className="border border-[var(--theme-border)] bg-[var(--theme-surface)]  rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-1 text-xs"
                                             style={{ color: "#b91c1c" }}
                                         >
                                             <Trash2 size={12} />
@@ -552,7 +592,9 @@ export default function GoalsPage() {
                                         color: "var(--theme-text-secondary)",
                                     }}
                                 >
-                                    {progress.toFixed(1)}% used. {remaining.toLocaleString()} ETB still available in this goal window.
+                                    {progress.toFixed(1)}% used.{" "}
+                                    {remaining.toLocaleString()} ETB still
+                                    available in this goal window.
                                 </p>
                             </GlassCard>
                         );

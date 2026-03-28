@@ -12,8 +12,14 @@ const templateSchema = new mongoose.Schema(
         },
         frequency: {
             type: String,
-            enum: ["weekly", "monthly", "yearly"],
+            enum: ["daily", "weekly", "monthly", "yearly", "custom"],
             default: "monthly",
+        },
+        recurrenceRules: {
+            daysOfWeek: [Number], // 0-6 (Sunday-Saturday)
+            interval: { type: Number, default: 1 }, // every X days/weeks/months
+            endDate: { type: Date },
+            occurrenceCount: { type: Number }, // Stop after X times
         },
         dayOfMonth: { type: Number, min: 1, max: 31 },
         startDate: { type: Date },

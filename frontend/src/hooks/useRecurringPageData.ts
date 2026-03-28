@@ -16,12 +16,18 @@ export type RecurringForm = {
     type: string;
     price: string;
     category: "expense" | "income";
-    frequency: "weekly" | "monthly" | "yearly";
+    frequency: "daily" | "weekly" | "monthly" | "yearly" | "custom";
     dayOfMonth: string;
     startDate: string;
     endDate: string;
     provider: string;
     status: "active" | "paused";
+    recurrenceRules: {
+        daysOfWeek: number[];
+        interval: number;
+        endDate: string;
+        occurrenceCount: string;
+    };
 };
 
 const emptyForm: RecurringForm = {
@@ -35,6 +41,12 @@ const emptyForm: RecurringForm = {
     endDate: "",
     provider: DEFAULT_PROVIDER,
     status: "active",
+    recurrenceRules: {
+        daysOfWeek: [],
+        interval: 1,
+        endDate: "",
+        occurrenceCount: "",
+    },
 };
 
 export function useRecurringPageData() {
@@ -138,6 +150,17 @@ export function useRecurringPageData() {
                 : "",
             provider: template.provider || DEFAULT_PROVIDER,
             status: template.status || "active",
+            recurrenceRules: {
+                daysOfWeek: template.recurrenceRules?.daysOfWeek || [],
+                interval: template.recurrenceRules?.interval || 1,
+                endDate: template.recurrenceRules?.endDate
+                    ? new Date(template.recurrenceRules.endDate)
+                          .toISOString()
+                          .split("T")[0]
+                    : "",
+                occurrenceCount:
+                    template.recurrenceRules?.occurrenceCount?.toString() || "",
+            },
         });
         setShowCreateModal(true);
     };
@@ -171,6 +194,17 @@ export function useRecurringPageData() {
             provider: form.provider || DEFAULT_PROVIDER,
             status: form.status,
             isRecurring: true,
+            recurrenceRules: {
+                interval: form.recurrenceRules.interval,
+                daysOfWeek:
+                    form.recurrenceRules.daysOfWeek.length > 0
+                        ? form.recurrenceRules.daysOfWeek
+                        : undefined,
+                endDate: form.recurrenceRules.endDate || undefined,
+                occurrenceCount: form.recurrenceRules.occurrenceCount
+                    ? parseInt(form.recurrenceRules.occurrenceCount)
+                    : undefined,
+            },
         };
 
         try {

@@ -208,7 +208,7 @@ export default function WorkspacesPage() {
             className="space-y-6 sm:space-y-8"
         >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <div className="text-xs font-semibold uppercase text-[var(--theme-text-secondary)]">
                         Shared included total
                     </div>
@@ -216,7 +216,7 @@ export default function WorkspacesPage() {
                         Birr {sharedTotal.toFixed(2)}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <div className="text-xs font-semibold uppercase text-[var(--theme-text-secondary)]">
                         Personal included total
                     </div>
@@ -224,7 +224,7 @@ export default function WorkspacesPage() {
                         Birr {personalTotal.toFixed(2)}
                     </div>
                 </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <div className="text-xs font-semibold uppercase text-[var(--theme-text-secondary)]">
                         Shared entries
                     </div>

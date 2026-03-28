@@ -24,7 +24,13 @@ export interface Expense {
     createdAt: string;
     // Recurring expense fields
     isRecurring?: boolean;
-    frequency?: "weekly" | "monthly";
+    frequency?: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+    recurrenceRules?: {
+        daysOfWeek?: number[]; // [0, 1, 2, 3, 4, 5, 6]
+        interval?: number;
+        endDate?: string;
+        occurrenceCount?: number;
+    };
     nextDueDate?: string;
     parentExpenseId?: string;
 }

@@ -18,6 +18,7 @@ function getDueLabel(startDate?: string, frequency?: string) {
 export default function RecurringPage() {
     const {
         loading,
+        templates,
         filteredTemplates,
         providers,
         counts,
@@ -40,6 +41,17 @@ export default function RecurringPage() {
 
     if (loading) return <PageSkeleton title="Loading recurring transactions" />;
 
+    const recurringIncomeTotal = templates
+        .filter((template) => (template.category || "expense") === "income")
+        .reduce((sum, template) => sum + Number(template.price || 0), 0);
+
+    const recurringExpenseTotal = templates
+        .filter((template) => (template.category || "expense") === "expense")
+        .reduce((sum, template) => sum + Number(template.price || 0), 0);
+
+    const recurringNet = recurringIncomeTotal - recurringExpenseTotal;
+    const recurringNetPositive = recurringNet >= 0;
+
     return (
         <>
             <PageContainer
@@ -47,7 +59,7 @@ export default function RecurringPage() {
                 subtitle="Manage repeating income and expenses with status, timing, and provider tracking."
                 className="space-y-6"
             >
-                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                             <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl inline-flex items-center gap-1">
@@ -65,7 +77,7 @@ export default function RecurringPage() {
                         <button
                             type="button"
                             onClick={openCreateModal}
-                            className="inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
+                            className="inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-2 text-sm font-medium  transition-colors hover:bg-white/5 sm:w-auto"
                             style={{
                                 backgroundColor: "var(--theme-active)",
                                 color: "var(--theme-text)",
@@ -79,21 +91,21 @@ export default function RecurringPage() {
                     <div className="mt-5 flex flex-wrap items-center gap-2">
                         <button
                             type="button"
-                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "all" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "all" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                             onClick={() => setCategoryFilter("all")}
                         >
                             All ({counts.all})
                         </button>
                         <button
                             type="button"
-                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "expense" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "expense" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                             onClick={() => setCategoryFilter("expense")}
                         >
                             Expenses ({counts.expense})
                         </button>
                         <button
                             type="button"
-                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "income" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                            className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "income" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                             onClick={() => setCategoryFilter("income")}
                         >
                             Income ({counts.income})
@@ -102,26 +114,71 @@ export default function RecurringPage() {
                         <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
                             <button
                                 type="button"
-                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "active" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "active" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                                 onClick={() => setStatusFilter("active")}
                             >
                                 Active
                             </button>
                             <button
                                 type="button"
-                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "paused" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "paused" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                                 onClick={() => setStatusFilter("paused")}
                             >
                                 Paused
                             </button>
                             <button
                                 type="button"
-                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "all" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                                className={`inline-flex items-center px-2.5 py-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)]  transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "all" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
                                 onClick={() => setStatusFilter("all")}
                             >
                                 All
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            Recurring input
+                        </p>
+                        <p className="text-lg font-semibold text-emerald-600 sm:text-xl">
+                            {recurringIncomeTotal.toLocaleString()} ETB
+                        </p>
+                    </div>
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            Recurring output
+                        </p>
+                        <p className="text-lg font-semibold text-rose-600 sm:text-xl">
+                            {recurringExpenseTotal.toLocaleString()} ETB
+                        </p>
+                    </div>
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            Recurring net
+                        </p>
+                        <p
+                            className={`text-lg font-semibold sm:text-xl ${recurringNetPositive ? "text-emerald-600" : "text-rose-600"}`}
+                        >
+                            {recurringNet.toLocaleString()} ETB
+                        </p>
+                    </div>
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2 md:col-span-1 xl:col-span-5 flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Recurring mix
+                            </p>
+                            <p className="text-sm mt-1 text-[var(--theme-text-secondary)]">
+                                Income: {counts.income} | Expense:{" "}
+                                {counts.expense}
+                            </p>
+                        </div>
+                        <span
+                            className={`inline-flex border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${recurringNetPositive ? "border-emerald-600/30 bg-emerald-600/12 text-emerald-600" : "border-rose-600/30 bg-rose-600/12 text-rose-600"}`}
+                        >
+                            {recurringNetPositive ? "Positive" : "Negative"}
+                        </span>
                     </div>
                 </div>
 
@@ -139,7 +196,7 @@ export default function RecurringPage() {
                         <button
                             type="button"
                             onClick={openCreateModal}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-4 inline-flex items-center gap-2 text-sm"
+                            className="border border-[var(--theme-border)] bg-[var(--theme-surface)]  rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-4 inline-flex items-center gap-2 text-sm"
                             style={{
                                 backgroundColor: "var(--theme-active)",
                                 color: "var(--theme-text)",
@@ -348,17 +405,109 @@ export default function RecurringPage() {
                                 onChange={(e) =>
                                     setForm((prev) => ({
                                         ...prev,
-                                        frequency: e.target.value as
-                                            | "weekly"
-                                            | "monthly"
-                                            | "yearly",
+                                        frequency: e.target.value as any,
                                     }))
                                 }
                             >
+                                <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly">Monthly</option>
                                 <option value="yearly">Yearly</option>
+                                <option value="custom">Custom</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-medium">
+                                Every (Interval)
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                className={uiControl.input}
+                                value={form.recurrenceRules.interval}
+                                onChange={(e) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        recurrenceRules: {
+                                            ...prev.recurrenceRules,
+                                            interval:
+                                                parseInt(e.target.value) || 1,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    {form.frequency === "weekly" && (
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium">
+                                On Days
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {[
+                                    "Sun",
+                                    "Mon",
+                                    "Tue",
+                                    "Wed",
+                                    "Thu",
+                                    "Fri",
+                                    "Sat",
+                                ].map((day, idx) => (
+                                    <button
+                                        key={day}
+                                        type="button"
+                                        onClick={() => {
+                                            const current =
+                                                form.recurrenceRules.daysOfWeek;
+                                            const next = current.includes(idx)
+                                                ? current.filter(
+                                                      (d) => d !== idx,
+                                                  )
+                                                : [...current, idx];
+                                            setForm((f) => ({
+                                                ...f,
+                                                recurrenceRules: {
+                                                    ...f.recurrenceRules,
+                                                    daysOfWeek: next,
+                                                },
+                                            }));
+                                        }}
+                                        className={`px-3 py-1.5 text-[11px] border transition-colors ${
+                                            form.recurrenceRules.daysOfWeek.includes(
+                                                idx,
+                                            )
+                                                ? "bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]"
+                                                : "bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border-[var(--theme-border)]"
+                                        }`}
+                                    >
+                                        {day}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-medium">
+                                Stop After (Occurrences)
+                            </label>
+                            <input
+                                type="number"
+                                placeholder="Optional"
+                                className={uiControl.input}
+                                value={form.recurrenceRules.occurrenceCount}
+                                onChange={(e) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        recurrenceRules: {
+                                            ...prev.recurrenceRules,
+                                            occurrenceCount: e.target.value,
+                                        },
+                                    }))
+                                }
+                            />
                         </div>
                         <div>
                             <label className="text-xs font-medium">
@@ -376,6 +525,7 @@ export default function RecurringPage() {
                                         dayOfMonth: e.target.value,
                                     }))
                                 }
+                                disabled={form.frequency !== "monthly"}
                             />
                         </div>
                     </div>

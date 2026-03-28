@@ -41,7 +41,7 @@ export default function SegmentedControl<T extends string>({
         <div
             role="tablist"
             aria-label="Segmented control"
-            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] shadow-none flex gap-2 p-1.5 rounded-xl"
+            className="border border-[var(--theme-border)] bg-[var(--theme-surface)]  shadow-none flex gap-2 p-1.5 rounded-xl"
         >
             {options.map((opt, idx) => {
                 const isActive = value === opt;
