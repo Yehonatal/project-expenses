@@ -49,7 +49,7 @@ export default function DateGroup({
             {/* date header row - spans the table but keep it a single td so clickable area covers table width */}
             <tr
                 onClick={onToggle}
-                className="cursor-pointer font-semibold transition-all duration-200 glass-button/30 hover:glass-button/50 border-b border-theme-border/20"
+                className="cursor-pointer border-b border-[var(--theme-border)]/20 bg-[var(--theme-glass)] font-semibold transition-colors hover:bg-white/5"
             >
                 <td colSpan={6} className="p-0">
                     <div className="flex items-center justify-between px-3 py-2 select-none">

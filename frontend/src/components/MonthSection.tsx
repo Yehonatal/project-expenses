@@ -53,14 +53,12 @@ export default function MonthSection({
             acc[dateKey].push(exp);
             return acc;
         },
-        {}
+        {},
     );
 
     return (
         <section
-            className={`glass-card overflow-hidden ${
-                isExpanded ? "rounded-md" : "rounded-t-md"
-            }`}
+            className="overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px]"
             key={ym}
         >
             <header
@@ -105,7 +103,7 @@ export default function MonthSection({
                         style={{ color: "var(--theme-text)" }}
                     >
                         <thead
-                            className="glass-button/50"
+                            className="border-b border-[var(--theme-glass-border)] bg-[var(--theme-glass)]"
                             style={{
                                 color: "var(--theme-text-secondary)",
                                 fontSize: "0.75rem",
@@ -148,7 +146,7 @@ export default function MonthSection({
                                         onEdit={onEdit}
                                         onDelete={onDelete}
                                     />
-                                )
+                                ),
                             )}
                         </tbody>
                     </table>
@@ -171,7 +169,7 @@ export default function MonthSection({
                                             onClick={() =>
                                                 toggleDate(ym, dateKey)
                                             }
-                                            className="cursor-pointer flex items-center justify-between space-x-3 font-semibold rounded-md px-3 py-2 select-none glass-button transition-all duration-200 hover:glass-button/80"
+                                            className="cursor-pointer select-none border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 font-semibold transition-colors hover:bg-white/5"
                                         >
                                             <div className="flex items-center space-x-3">
                                                 {isExpandedDate ? (
@@ -193,12 +191,12 @@ export default function MonthSection({
                                                     {
                                                         monthNames[
                                                             new Date(
-                                                                dateKey
+                                                                dateKey,
                                                             ).getMonth()
                                                         ]
                                                     }{" "}
                                                     {new Date(
-                                                        dateKey
+                                                        dateKey,
                                                     ).getDate()}
                                                 </span>
                                             </div>
@@ -223,7 +221,7 @@ export default function MonthSection({
                                             ))}
                                     </section>
                                 );
-                            }
+                            },
                         )}
                     </div>
                 </div>

@@ -13,6 +13,7 @@ import API from "../api/api";
 import { ExpenseService } from "../services/expenseService";
 import type { Expense } from "../types/expense";
 import type { AxiosError } from "axios";
+import { modalCopy } from "../content/modalCopy";
 
 type AIParsingType = "expense" | "template" | "budget" | "recurring";
 
@@ -76,14 +77,13 @@ export default function GeminiModal({
                 if (parsedExpenses.length === 0) {
                     onToast?.(
                         `No ${successMessage}s found in the description`,
-                        "error"
+                        "error",
                     );
                     return;
                 }
 
-                const addedExpenses = await ExpenseService.addExpenses(
-                    parsedExpenses
-                );
+                const addedExpenses =
+                    await ExpenseService.addExpenses(parsedExpenses);
 
                 if (addedExpenses.length > 0) {
                     onAddExpenses(addedExpenses);
@@ -93,7 +93,7 @@ export default function GeminiModal({
                         } ${successMessage}${
                             addedExpenses.length > 1 ? "s" : ""
                         }! ✨`,
-                        "success"
+                        "success",
                     );
                     setDescription("");
                     setTimeout(() => onClose(), 2000);
@@ -122,7 +122,7 @@ export default function GeminiModal({
                         console.error(
                             "Failed to create template:",
                             template,
-                            error
+                            error,
                         );
                     }
                 }
@@ -134,7 +134,7 @@ export default function GeminiModal({
                         } template${
                             createdTemplates.length > 1 ? "s" : ""
                         }! ✨`,
-                        "success"
+                        "success",
                     );
                     setDescription("");
                     setTimeout(() => onClose(), 2000);
@@ -166,7 +166,7 @@ export default function GeminiModal({
             const axiosError = error as AxiosError<{ error: string }>;
             onToast?.(
                 axiosError.response?.data?.error || "Failed to process with AI",
-                "error"
+                "error",
             );
         } finally {
             setIsLoading(false);
@@ -185,7 +185,7 @@ export default function GeminiModal({
         switch (activeTab) {
             case "expense":
                 return {
-                    title: "Add Expense",
+                    title: modalCopy.ai.expenseTitle,
                     buttonText: "Add Expense",
                     icon: Receipt,
                     placeholder:
@@ -200,7 +200,7 @@ export default function GeminiModal({
                 };
             case "template":
                 return {
-                    title: "Create Template",
+                    title: modalCopy.ai.templateTitle,
                     buttonText: "Create Template",
                     icon: FileText,
                     placeholder:
@@ -215,7 +215,7 @@ export default function GeminiModal({
                 };
             case "budget":
                 return {
-                    title: "Set Budget",
+                    title: modalCopy.ai.budgetTitle,
                     buttonText: "Set Budget",
                     icon: Calendar,
                     placeholder:
@@ -229,7 +229,7 @@ export default function GeminiModal({
                 };
             case "recurring":
                 return {
-                    title: "Add Recurring Expense",
+                    title: modalCopy.ai.recurringTitle,
                     buttonText: "Add Recurring Expense",
                     icon: RotateCcw,
                     placeholder:
@@ -259,7 +259,7 @@ export default function GeminiModal({
                         <button
                             onClick={handleClose}
                             disabled={isLoading}
-                            className="glass-button text-sm rounded-lg transition-all hover:bg-theme-surface/30 px-4 py-2"
+                            className="rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 py-2 text-sm backdrop-blur-[20px] transition-colors hover:bg-white/5"
                             style={{ color: "var(--theme-text)" }}
                         >
                             Cancel
@@ -267,7 +267,7 @@ export default function GeminiModal({
                         <button
                             onClick={handleSubmit}
                             disabled={isLoading || !description.trim()}
-                            className="glass-button text-sm rounded-lg transition-all hover:bg-theme-surface/30 px-4 py-2 flex items-center gap-2 disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 py-2 text-sm backdrop-blur-[20px] transition-colors hover:bg-white/5 disabled:opacity-50"
                             style={{
                                 backgroundColor: "var(--theme-accent)",
                                 color: "var(--theme-background)",
@@ -299,7 +299,7 @@ export default function GeminiModal({
 
                     {isLoading && (
                         <div className="absolute inset-0 flex items-center justify-center z-10 ">
-                            <div className="glass-card p-6 bg-theme-background/80 backdrop-blur-md rounded-xl shadow-xl border border-theme-surface/30">
+                            <div className="rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-background)]/80 p-6 shadow-xl backdrop-blur-md">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
                                         <Loader2
@@ -358,7 +358,7 @@ export default function GeminiModal({
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder={tabConfig.placeholder}
-                                className="w-full glass-button rounded-xl resize-none"
+                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl resize-none"
                                 style={{
                                     color: "var(--theme-text)",
                                     minHeight: "120px",

@@ -12,4 +12,7 @@ router.post("/", auth, controller.addTemplate);
 // DELETE /api/templates/:id
 router.delete("/:id", auth, controller.deleteTemplate);
 
+// PUT /api/templates/:id
+router.put("/:id", auth, controller.updateTemplate);
+
 module.exports = router;

@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { Template } from "../types/template";
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_RENDER_URL || "http://localhost:5000/api",
@@ -38,6 +39,20 @@ export const getExpenses = (params?: {
     page?: number;
 }) => API.get("/expenses", { params });
 export const getExpenseStats = () => API.get("/expenses/stats");
+
+// Template/recurring APIs
+export const getTemplates = (params?: {
+    status?: "active" | "paused";
+    category?: "expense" | "income";
+}) => API.get<Template[]>("/templates", { params });
+
+export const createTemplate = (data: Partial<Template>) =>
+    API.post<Template>("/templates", data);
+
+export const updateTemplate = (id: string, data: Partial<Template>) =>
+    API.put<Template>(`/templates/${id}`, data);
+
+export const removeTemplate = (id: string) => API.delete(`/templates/${id}`);
 
 // Export APIs
 export const exportExpenses = (format: "csv" | "pdf") =>

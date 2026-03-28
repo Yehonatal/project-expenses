@@ -13,7 +13,7 @@ export default function ExpenseCard({
     onDelete,
 }: ExpenseCardProps) {
     return (
-        <article className="glass-card rounded-xl p-3 space-y-2">
+        <article className="space-y-2 rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 backdrop-blur-[24px]">
             <div
                 className="flex justify-between items-center text-xs font-mono"
                 style={{ color: "var(--theme-text-secondary)" }}
@@ -23,7 +23,7 @@ export default function ExpenseCard({
                     minute: "2-digit",
                 })}
                 <span
-                    className="inline-flex items-center space-x-1 px-2 py-1 text-xs rounded-full font-semibold glass-button"
+                    className="inline-flex items-center space-x-1 rounded-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-2 py-1 text-xs font-semibold backdrop-blur-[20px] transition-colors hover:bg-white/5"
                     style={{
                         backgroundColor: exp.included
                             ? "var(--theme-accent)"
@@ -62,11 +62,11 @@ export default function ExpenseCard({
                 Birr {exp.amount.toFixed(2)}
             </p>
             {(onEdit || onDelete) && (
-                <div className="flex justify-end space-x-2 pt-2 border-t border-theme-border/20">
+                <div className="flex justify-end space-x-2 border-t border-[var(--theme-border)]/20 pt-2">
                     {onEdit && (
                         <button
                             onClick={() => onEdit(exp)}
-                            className="p-2 rounded-lg glass-button hover:glass-button/80 transition-all duration-200"
+                            className="rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-2 backdrop-blur-[20px] transition-colors hover:bg-white/5"
                             style={{ color: "var(--theme-text)" }}
                             title="Edit expense"
                         >
@@ -78,7 +78,7 @@ export default function ExpenseCard({
                             onClick={() =>
                                 onDelete(exp._id || exp.id?.toString() || "")
                             }
-                            className="p-2 rounded-lg glass-button hover:bg-red-500/20 transition-all duration-200"
+                            className="rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-2 backdrop-blur-[20px] transition-colors hover:bg-red-500/20"
                             style={{ color: "#ef4444" }}
                             title="Delete expense"
                         >

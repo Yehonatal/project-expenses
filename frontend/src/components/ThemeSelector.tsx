@@ -39,7 +39,7 @@ export default function ThemeSelector() {
     return (
         <button
             onClick={cycleTheme}
-            className="w-10 h-10 rounded-xl glass-button flex items-center justify-center hover:glass-button/80 transition-all duration-200 cursor-pointer p-0"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-0 backdrop-blur-[20px] transition-colors hover:bg-white/5 active:bg-white/[0.02]"
             title="Change theme"
             aria-label="Change theme"
         >

@@ -26,7 +26,7 @@ export default function TemplatesPage() {
 
     return (
         <PageContainer title="Templates" className="space-y-8">
-            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
                 <div className="flex-1 space-y-2">
                     <div
                         className="text-xs uppercase tracking-[0.2em]"
@@ -34,7 +34,7 @@ export default function TemplatesPage() {
                     >
                         Recurring presets
                     </div>
-                    <h2 className="section-title text-2xl font-semibold">
+                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
                         Save recurring expenses as templates
                     </h2>
                     <p
@@ -72,7 +72,7 @@ export default function TemplatesPage() {
             </div>
 
             <div className="kpi-strip">
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -83,7 +83,7 @@ export default function TemplatesPage() {
                         {templates.length > 0 ? "Active" : "Add template"}
                     </div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -92,7 +92,7 @@ export default function TemplatesPage() {
                     </div>
                     <div className="text-xl font-semibold">{types.length}</div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -121,7 +121,7 @@ export default function TemplatesPage() {
                                         value={form.description}
                                         onChange={handleChange}
                                         placeholder="Description"
-                                        className="w-full glass-button rounded-xl"
+                                        className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
                                         style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
@@ -142,7 +142,7 @@ export default function TemplatesPage() {
                                             value={form.type}
                                             onChange={handleChange}
                                             placeholder="Type"
-                                            className="w-full glass-button rounded-xl"
+                                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
                                             style={{
                                                 color: "var(--theme-text)",
                                             }}
@@ -171,7 +171,7 @@ export default function TemplatesPage() {
                                         placeholder="0.00"
                                         type="number"
                                         step="0.01"
-                                        className="w-full glass-button rounded-xl"
+                                        className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
                                         style={{ color: "var(--theme-text)" }}
                                     />
                                 </div>
@@ -180,7 +180,7 @@ export default function TemplatesPage() {
                             <div className="flex justify-end pt-4">
                                 <button
                                     type="submit"
-                                    className="glass-button rounded-xl flex items-center gap-2 font-medium transition-all duration-200 hover:glass-button/80"
+                                    className="flex items-center gap-2 rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5"
                                     style={{
                                         backgroundColor: "var(--theme-accent)",
                                         color: "var(--theme-background)",
@@ -246,7 +246,7 @@ export default function TemplatesPage() {
                                                 onClick={() =>
                                                     handleDelete(safeId)
                                                 }
-                                                className="w-10 h-10 rounded-full flex items-center justify-center glass-button hover:bg-red-500/20 transition-all duration-200 cursor-pointer"
+                                                className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] hover:bg-red-500/20 transition-all duration-200 cursor-pointer"
                                                 style={{ color: "#ef4444" }}
                                             >
                                                 <Trash2 className="w-4 h-4" />

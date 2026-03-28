@@ -194,7 +194,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
     return (
         <>
             <Toast message={toast?.message} type={toast?.type} />
-            <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] rounded-none shadow-none p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-theme-text-secondary">
@@ -205,7 +205,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                             name="date"
                             value={form.date}
                             onChange={handleChange}
-                            className="w-full glass-button rounded-xl text-sm"
+                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
                             style={{
                                 color: "var(--theme-text)",
                             }}
@@ -219,7 +219,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                         <select
                             name="template"
                             onChange={handleTemplateChange}
-                            className="w-full glass-button rounded-xl text-sm"
+                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
                             style={{
                                 color: "var(--theme-text)",
                             }}
@@ -246,7 +246,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                             placeholder="Enter description"
                             value={form.description}
                             onChange={handleChange}
-                            className="w-full glass-button rounded-xl text-sm"
+                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
                             style={{
                                 color: "var(--theme-text)",
                             }}
@@ -263,7 +263,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                             value={form.type}
                             onChange={handleChange}
                             placeholder="Enter type"
-                            className="w-full glass-button rounded-xl text-sm"
+                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
                             style={{
                                 color: "var(--theme-text)",
                             }}
@@ -286,7 +286,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                             value={form.amount}
                             onChange={handleChange}
                             step="1"
-                            className="w-full glass-button rounded-xl text-sm text-right"
+                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm text-right"
                             style={{
                                 color: "var(--theme-text)",
                             }}
@@ -341,7 +341,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                 name="frequency"
                                 value={form.frequency}
                                 onChange={handleChange}
-                                className="w-full glass-button rounded-xl text-sm"
+                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
                                 style={{
                                     color: "var(--theme-text)",
                                 }}
@@ -357,7 +357,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                     <button
                         type="submit"
                         aria-label="Add expense"
-                        className="glass-button rounded-xl flex items-center gap-2 text-sm font-medium"
+                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl flex items-center gap-2 text-sm font-medium"
                         style={{
                             backgroundColor: "var(--theme-accent)",
                             color: "var(--theme-background)",

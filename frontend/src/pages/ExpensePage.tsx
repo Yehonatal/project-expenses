@@ -9,6 +9,7 @@ import GlassCard from "../components/ui/GlassCard";
 import { formatBudgetPeriod } from "../utils/dateFormatter";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import { useExpensePageData } from "../hooks/useExpensePageData";
+import { modalCopy } from "../content/modalCopy";
 
 export default function ExpensePage({
     expenseUpdateTrigger,
@@ -32,6 +33,7 @@ export default function ExpensePage({
         showAddButton?: boolean;
     } | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(
@@ -61,9 +63,8 @@ export default function ExpensePage({
 
     const handleGenerateRecurring = () => {
         setRecurringModalContent({
-            title: "Generate Recurring",
-            message:
-                "This will create due recurring expenses based on your templates.",
+            title: modalCopy.expense.recurringTitle,
+            message: modalCopy.expense.recurringBody,
             showAddButton: true,
         });
         setShowRecurringModal(true);
@@ -75,7 +76,7 @@ export default function ExpensePage({
 
     return (
         <PageContainer title="Expense Tracker" className="space-y-8">
-            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
                 <div className="flex-1 space-y-2">
                     <div
                         className="text-xs uppercase tracking-[0.2em]"
@@ -83,7 +84,7 @@ export default function ExpensePage({
                     >
                         Daily tracking
                     </div>
-                    <h2 className="section-title text-2xl font-semibold">
+                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
                         Keep every expense in one place
                     </h2>
                     <p
@@ -93,6 +94,18 @@ export default function ExpensePage({
                         Track spending, monitor budgets, and generate recurring
                         entries when needed.
                     </p>
+                    <button
+                        type="button"
+                        onClick={() => setShowCreateModal(true)}
+                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-2 flex items-center gap-2 text-sm font-medium"
+                        style={{
+                            backgroundColor: "var(--theme-active)",
+                            color: "var(--theme-text)",
+                        }}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Add expense
+                    </button>
                 </div>
                 <div className="flex flex-wrap gap-6">
                     <div>
@@ -120,8 +133,8 @@ export default function ExpensePage({
                 </div>
             </div>
 
-            <div className="kpi-strip">
-                <div className="kpi-card">
+            <div className="kpi-strip flex flex-row w-full items-center justify-start gap-6 ">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -132,7 +145,7 @@ export default function ExpensePage({
                         Birr {total.toFixed(2)}
                     </div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -143,7 +156,7 @@ export default function ExpensePage({
                         {budgets.length}
                     </div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -155,8 +168,6 @@ export default function ExpensePage({
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <ExpenseForm onAdd={addExpense} />
-
                     <GlassCard>
                         <div className="flex items-center justify-between mb-4">
                             <div>
@@ -172,7 +183,7 @@ export default function ExpensePage({
                             </div>
                             <button
                                 onClick={handleGenerateRecurring}
-                                className="glass-button px-4 py-2 flex items-center gap-2 text-sm font-medium"
+                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] px-4 py-2 flex items-center gap-2 text-sm font-medium"
                                 style={{ color: "var(--theme-accent)" }}
                                 title="Generate due recurring expenses"
                             >
@@ -380,28 +391,24 @@ export default function ExpensePage({
                         <button
                             onClick={() => {
                                 setShowRecurringModal(false);
-                                (
-                                    document.querySelector(
-                                        'input[name="description"]',
-                                    ) as HTMLInputElement
-                                )?.focus();
+                                setShowCreateModal(true);
                             }}
-                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90 flex items-center gap-2"
+                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90 flex items-center gap-2"
                             style={{
                                 backgroundColor: "var(--theme-primary)",
                                 color: "white",
                             }}
                         >
                             <Plus className="w-4 h-4" />
-                            Add Recurring Expense
+                            {modalCopy.expense.recurringConfirm}
                         </button>
                     ) : (
                         <button
                             onClick={() => setShowRecurringModal(false)}
-                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
+                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90"
                             style={{ color: "var(--theme-text)" }}
                         >
-                            OK
+                            {modalCopy.common.close}
                         </button>
                     )
                 }
@@ -412,9 +419,22 @@ export default function ExpensePage({
             </Modal>
 
             <Modal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                title={modalCopy.expense.createTitle}
+            >
+                <ExpenseForm
+                    onAdd={(createdExpense) => {
+                        addExpense(createdExpense);
+                        setShowCreateModal(false);
+                    }}
+                />
+            </Modal>
+
+            <Modal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
-                title="Edit Expense"
+                title={modalCopy.expense.editTitle}
             >
                 {editingExpense && (
                     <ExpenseForm
@@ -434,7 +454,7 @@ export default function ExpensePage({
                     setShowDeleteModal(false);
                     setDeletingExpenseId(null);
                 }}
-                title="Delete Expense"
+                title={modalCopy.expense.deleteTitle}
                 actions={
                     <>
                         <button
@@ -442,28 +462,27 @@ export default function ExpensePage({
                                 setShowDeleteModal(false);
                                 setDeletingExpenseId(null);
                             }}
-                            className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
+                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90"
                             style={{ color: "var(--theme-text)" }}
                         >
-                            Cancel
+                            {modalCopy.common.cancel}
                         </button>
                         <button
                             onClick={confirmDelete}
-                            className="text-sm rounded-lg transition-all hover:opacity-90 font-medium px-4 py-2"
+                            className="text-sm transition-all hover:opacity-90 font-medium px-4 py-2"
                             style={{
                                 backgroundColor: "#dc2626", // Red-600
                                 color: "white",
                                 border: "1px solid #dc2626",
                             }}
                         >
-                            Delete
+                            {modalCopy.expense.deleteConfirm}
                         </button>
                     </>
                 }
             >
                 <p style={{ color: "var(--theme-text)" }}>
-                    Are you sure you want to delete this expense? This action
-                    cannot be undone.
+                    {modalCopy.expense.deleteBody}
                 </p>
             </Modal>
         </PageContainer>

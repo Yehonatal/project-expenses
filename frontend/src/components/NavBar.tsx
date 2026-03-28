@@ -121,7 +121,7 @@ export default function NavBar({ user, onLogout, onOpenGemini }: Props) {
                         title={user.name}
                     >
                         <div
-                            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+                            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0"
                             style={{
                                 border: "1px solid var(--theme-border)",
                                 backgroundColor:

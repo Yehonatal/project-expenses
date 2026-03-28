@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getExpenses } from "../api/api";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import Modal from "../components/Modal";
+import { modalCopy } from "../content/modalCopy";
 import ExportControls from "../components/ui/ExportControls";
 import StatCard from "../components/ui/StatCard";
 import ProfileHeader from "../components/ui/ProfileHeader";
@@ -129,7 +130,7 @@ export default function ProfilePage() {
 
     return (
         <PageContainer title="Profile" className="space-y-6">
-            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
                 <div className="flex-1 space-y-2">
                     <div
                         className="text-xs uppercase tracking-[0.2em]"
@@ -137,7 +138,7 @@ export default function ProfilePage() {
                     >
                         Account overview
                     </div>
-                    <h2 className="section-title text-2xl font-semibold">
+                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
                         Welcome back, {user.name}
                     </h2>
                     <p
@@ -175,7 +176,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="kpi-strip">
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -186,7 +187,7 @@ export default function ProfilePage() {
                         Birr {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
                     </div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -197,7 +198,7 @@ export default function ProfilePage() {
                         Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
                     </div>
                 </div>
-                <div className="kpi-card">
+                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -388,25 +389,23 @@ export default function ProfilePage() {
             <Modal
                 isOpen={showGoogleDriveModal}
                 onClose={() => setShowGoogleDriveModal(false)}
-                title="Google Drive Sync - Coming Soon"
+                title={modalCopy.profile.syncTitle}
                 actions={
                     <button
                         onClick={() => setShowGoogleDriveModal(false)}
-                        className="glass-button text-sm rounded-lg transition-all hover:opacity-90"
+                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm rounded-lg transition-all hover:opacity-90"
                         style={{
                             backgroundColor: "var(--theme-primary)",
                             color: "white",
                         }}
                     >
-                        Got it
+                        {modalCopy.profile.syncConfirm}
                     </button>
                 }
             >
                 <div className="space-y-4">
                     <p style={{ color: "var(--theme-text)" }}>
-                        We're working hard to bring you Google Drive
-                        synchronization for your expense data. This feature will
-                        allow you to:
+                        {modalCopy.profile.syncBody}
                     </p>
                     <ul
                         className="list-disc list-inside space-y-2"

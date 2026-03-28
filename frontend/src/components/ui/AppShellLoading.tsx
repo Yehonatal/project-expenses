@@ -1,26 +1,26 @@
 export default function AppShellLoading() {
     return (
-        <div className="app-shell app-shell-loading">
-            <aside className="app-sidebar skeleton-sidebar">
-                <div className="skeleton-line w-28" />
-                <div className="skeleton-panel" />
-                <div className="skeleton-panel" />
+        <div className="grid min-h-screen grid-cols-1 gap-2 p-2 lg:grid-cols-[174px_1fr]">
+            <aside className="flex animate-pulse flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-2">
+                <div className="h-3 w-28 bg-[var(--theme-border)]" />
+                <div className="h-56 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
+                <div className="h-56 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
             </aside>
-            <main className="app-content">
-                <div className="page-skeleton">
-                    <div className="skeleton-hero">
-                        <div className="skeleton-line w-40" />
-                        <div className="skeleton-line w-72" />
-                        <div className="skeleton-line w-64" />
+            <main className="flex flex-col gap-4 px-2 pb-6 pt-1">
+                <div className="flex animate-pulse flex-col gap-6">
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-6">
+                        <div className="mb-3 h-3 w-40 bg-[var(--theme-border)]" />
+                        <div className="mb-3 h-3 w-72 bg-[var(--theme-border)]" />
+                        <div className="h-3 w-64 bg-[var(--theme-border)]" />
                     </div>
-                    <div className="skeleton-kpis">
-                        <div className="skeleton-card" />
-                        <div className="skeleton-card" />
-                        <div className="skeleton-card" />
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="h-28 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
+                        <div className="h-28 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
+                        <div className="h-28 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
                     </div>
-                    <div className="skeleton-grid">
-                        <div className="skeleton-panel" />
-                        <div className="skeleton-panel" />
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div className="h-64 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
+                        <div className="h-64 border border-[var(--theme-border)] bg-[var(--theme-surface)]" />
                     </div>
                 </div>
             </main>

@@ -9,7 +9,7 @@ interface ExpenseRowProps {
 
 export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
     return (
-        <tr className="transition-all duration-200 hover:glass-button/20 border-b border-gray-200 border-theme-border/10">
+        <tr className="border-b border-[var(--theme-border)]/10 transition-colors hover:bg-white/5">
             <td
                 className="px-3 py-2 align-middle font-mono w-24 text-xs"
                 style={{ color: "var(--theme-text-secondary)" }}

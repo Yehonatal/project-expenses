@@ -29,10 +29,10 @@ export default function Login() {
             className="min-h-screen flex items-center justify-center p-6"
             style={{ backgroundColor: "var(--theme-background)" }}
         >
-            <div className="glass-card p-8 text-center">
+            <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] rounded-none shadow-none p-8 text-center">
                 <button
                     onClick={handleGoogleLogin}
-                    className="glass-button rounded-xl flex items-center justify-center gap-3 mx-auto font-medium transition-all duration-200 hover:glass-button/80"
+                    className="mx-auto flex items-center justify-center gap-3 rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5"
                     style={{
                         backgroundColor: "var(--theme-surface)",
                         color: "var(--theme-text)",

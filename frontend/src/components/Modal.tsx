@@ -7,6 +7,7 @@ interface ModalProps {
     title: string;
     children: ReactNode;
     actions?: ReactNode;
+    maxWidthClass?: string;
 }
 
 export default function Modal({
@@ -15,20 +16,23 @@ export default function Modal({
     title,
     children,
     actions,
+    maxWidthClass = "max-w-2xl",
 }: ModalProps) {
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
-                className="absolute inset-0 backdrop-blur-xl"
+                className="absolute inset-0"
                 style={{
-                    backdropFilter: "blur(20px)",
+                    backgroundColor: "rgba(0, 0, 0, 0.2)",
                 }}
                 onClick={onClose}
             />
 
-            <div className="relative max-w-lg w-full mx-4 glass-card rounded-lg shadow-xl border border-theme-glass-border/50">
+            <div
+                className={`relative mx-4 w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] shadow-none backdrop-blur-[24px] ${maxWidthClass}`}
+            >
                 <div
                     className="flex items-center justify-between p-4 border-b"
                     style={{ borderColor: "var(--theme-border)" }}
@@ -41,7 +45,7 @@ export default function Modal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-theme-surface/50 transition-all duration-200 cursor-pointer"
+                        className="w-10 h-10 flex items-center justify-center hover:bg-theme-surface/50 transition-all duration-200 cursor-pointer"
                         style={{
                             color: "var(--theme-text-secondary)",
                         }}
