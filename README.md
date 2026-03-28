@@ -17,14 +17,19 @@ Track my expenses, manage budgets, create recurring transactions, and visualize 
 
 - **AI-Powered Expense Parsing**: Use natural language to add expenses with Google Gemini AI integration - simply describe your expenses in plain English
 - **Smart Expense Categorization**: Automatic expense type detection and intelligent categorization
-- **Expense Tracking**: Add, edit, and delete expenses with detailed categorization
-- **Recurring Expenses**: Set up automatic recurring transactions with customizable frequencies
-- **Budget Management**: Create and monitor budgets with visual progress indicators across multiple time periods (weekly, monthly, multi-month, yearly)
-- **Templates**: Save frequently used expense templates for quick entry
-- **Export & Sync**: Export expense data to CSV or PDF formats, with Google Drive backup integration
+- **Expense Tracking**: Add, edit, and delete expenses with advanced filtering, keyword search, tags, and saved filter presets
+- **Offline Queue & Sync**: Create, update, and delete expenses offline and sync them later from the queued expenses view
+- **Recurring Expenses**: Set up recurring transactions, generate due items, and manage recurring templates
+- **Budget Management**: Create and monitor budgets with polished progress indicators across weekly, monthly, multi-month, and yearly windows
+- **Quick Add Panel**: Keyboard-first mini expense panel with template prefill and instant entry flow
+- **Forecast Dashboard**: Scenario-based forecasting (conservative/baseline/aggressive), history windows (1/3/6/12), confidence ranges, and probabilistic bands (P10/P50/P90)
+- **Personalized Insights Feed**: Trend, anomaly, recurring-pressure, and opportunity-style insights based on recent spending
+- **Workspaces**: Shared household/workspace collaboration with invite codes, members view, and scoped shared vs personal expense tracking
+- **Templates**: Save frequently used expense templates for quick entry and recurring workflow support
+- **Export & Sync**: Export full expense history to CSV/PDF (including metadata), with Google Drive backup placeholder flow
 - **User Authentication**: Secure login system with Google OAuth integration
-- **Data Visualization**: Interactive charts and graphs for expense analysis
-- **Theme Support**: Multiple theme options for personalized experience
+- **Data Visualization**: Interactive charts and graphs for expense analysis across categories and time
+- **Theme & Appearance System**: Multiple themes with runtime controls for font family, font size, border width, corner radius, shadow intensity, and quick-add chip position
 - **Mobile Responsive**: Optimized interface for desktop and mobile devices with consistent grid layouts
 - **Real-time Updates**: Automatic expense generation for due recurring transactions
 
@@ -149,6 +154,16 @@ Before running this application, ensure you have the following installed:
 - `PUT /api/expenses/:id` - Update expense
 - `DELETE /api/expenses/:id` - Delete expense
 - `POST /api/expenses/generate-recurring` - Generate due recurring expenses
+- `GET /api/expenses/stats` - Profile and account stats
+- `GET /api/expenses/summary` - Summary aggregates
+- `GET /api/expenses/dashboard` - Dashboard payload (totals, breakdowns, recent data)
+- `GET /api/expenses/trends` - Category month-over-month trend analysis
+- `GET /api/expenses/insights` - Personalized insight feed
+- `GET /api/expenses/forecast` - Forecast model output with scenarios and confidence bands
+- `GET /api/expenses/filter-presets` - List saved expense filter presets
+- `POST /api/expenses/filter-presets` - Create saved filter preset
+- `DELETE /api/expenses/filter-presets/:id` - Delete filter preset
+- `PATCH /api/expenses/filter-presets/:id/default` - Set default filter preset
 
 ### Budget Endpoints
 - `GET /api/budgets` - Get all budgets
@@ -165,3 +180,9 @@ Before running this application, ensure you have the following installed:
 - `POST /api/templates` - Create new template
 - `PUT /api/templates/:id` - Update template
 - `DELETE /api/templates/:id` - Delete template
+
+### Workspace Endpoints
+- `GET /api/workspaces` - List user workspaces
+- `POST /api/workspaces` - Create workspace
+- `POST /api/workspaces/join` - Join workspace via invite code
+- `GET /api/workspaces/:workspaceId/members` - List workspace members

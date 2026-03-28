@@ -304,9 +304,10 @@ export default function WorkspacesPage() {
                     ) : (
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             {workspaces.map((workspace) => (
-                                <button
+                                <div
                                     key={workspace._id}
-                                    type="button"
+                                    role="button"
+                                    tabIndex={0}
                                     className={`border p-3 text-left transition-colors ${selectedWorkspaceId === workspace._id ? "bg-[var(--theme-active)]" : "bg-[var(--theme-surface)] hover:bg-[var(--theme-hover)]"}`}
                                     style={{
                                         borderColor: "var(--theme-border)",
@@ -314,6 +315,18 @@ export default function WorkspacesPage() {
                                     onClick={() => {
                                         setSelectedWorkspaceId(workspace._id);
                                         setSelectedMemberId("");
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === "Enter" ||
+                                            event.key === " "
+                                        ) {
+                                            event.preventDefault();
+                                            setSelectedWorkspaceId(
+                                                workspace._id,
+                                            );
+                                            setSelectedMemberId("");
+                                        }
                                     }}
                                 >
                                     <div className="flex items-start justify-between gap-2">
@@ -345,7 +358,7 @@ export default function WorkspacesPage() {
                                             Copy invite
                                         </button>
                                     </div>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     )}
