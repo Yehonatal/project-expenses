@@ -1,6 +1,7 @@
 const Expense = require("../models/expenseModel");
 const mongoose = require("mongoose");
 const Type = require("../models/typeModel");
+const Template = require("../models/templateModel");
 const Budget = require("../models/budgetModel");
 const { normalizeType } = require("../utils/normalizeType");
 
@@ -21,7 +22,7 @@ const calculateSpent = async (
     startMonth,
     startYear,
     endMonth,
-    endYear
+    endYear,
 ) => {
     const startDate = new Date(startYear, startMonth - 1, 1);
     const endDate = new Date(endYear, endMonth, 1); // First day of the next month
@@ -57,7 +58,7 @@ const updateOverlappingBudgets = async (userId, expenseDate) => {
             budget.startMonth,
             budget.startYear,
             budget.endMonth,
-            budget.endYear
+            budget.endYear,
         );
         await budget.save();
     }
@@ -121,7 +122,7 @@ exports.addExpense = async (req, res) => {
                 await Type.updateOne(
                     { name: type, userId: req.user._id },
                     { $setOnInsert: { name: type, userId: req.user._id } },
-                    { upsert: true }
+                    { upsert: true },
                 );
             }
         } catch (tErr) {
@@ -301,7 +302,7 @@ exports.getSummary = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-            { $sort: { "_id.year": 1, "_id.month": 1 } }
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
         );
 
         const monthly = await Expense.aggregate(monthlyPipeline);
@@ -317,7 +318,7 @@ exports.getSummary = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-            { $sort: { total: -1 } }
+            { $sort: { total: -1 } },
         );
 
         const typeBreakdown = await Expense.aggregate(typePipeline);
@@ -343,6 +344,110 @@ exports.getSummary = async (req, res) => {
         });
     } catch (err) {
         console.error("getSummary error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+/**
+ * Dashboard endpoint (summary-style content for UI)
+ * Returns totals, recent expenses, type breakdown, monthly breakdown, templates
+ */
+exports.getDashboard = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const totalsAgg = await Expense.aggregate([
+            { $match: { userId } },
+            {
+                $group: {
+                    _id: null,
+                    totalIncluded: {
+                        $sum: { $cond: ["$included", "$amount", 0] },
+                    },
+                    totalExcluded: {
+                        $sum: {
+                            $cond: [{ $not: ["$included"] }, "$amount", 0],
+                        },
+                    },
+                    countIncluded: { $sum: { $cond: ["$included", 1, 0] } },
+                    countExcluded: {
+                        $sum: { $cond: [{ $not: ["$included"] }, 1, 0] },
+                    },
+                },
+            },
+        ]);
+
+        const monthlyAgg = await Expense.aggregate([
+            { $match: { userId, included: true } },
+            {
+                $project: {
+                    year: { $year: "$date" },
+                    month: { $month: "$date" },
+                    amount: 1,
+                },
+            },
+            {
+                $group: {
+                    _id: { year: "$year", month: "$month" },
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { "_id.year": -1, "_id.month": -1 } },
+            { $limit: 6 },
+        ]);
+
+        const typeAgg = await Expense.aggregate([
+            { $match: { userId } },
+            {
+                $group: {
+                    _id: "$type",
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { total: -1 } },
+            { $limit: 6 },
+        ]);
+
+        const recentExpenses = await Expense.find({ userId })
+            .sort({ date: -1, createdAt: -1 })
+            .limit(6)
+            .select("date description amount type included")
+            .lean();
+
+        const templates = await Template.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(4)
+            .select("description type price")
+            .lean();
+
+        res.json({
+            totals: totalsAgg[0] || {
+                totalIncluded: 0,
+                totalExcluded: 0,
+                countIncluded: 0,
+                countExcluded: 0,
+            },
+            monthlyBreakdown: monthlyAgg
+                .map((m) => ({
+                    year: m._id.year,
+                    month: m._id.month,
+                    total: m.total,
+                    count: m.count,
+                }))
+                .reverse(),
+            typeBreakdown: typeAgg.map((t) => ({
+                type: t._id,
+                total: t.total,
+                count: t.count,
+            })),
+            recentExpenses,
+            templates,
+            updatedAt: new Date().toISOString(),
+        });
+    } catch (err) {
+        console.error("getDashboard error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -449,11 +554,11 @@ exports.getTrends = async (req, res) => {
         // Calculate overall totals
         const currentTotal = trends.reduce(
             (sum, item) => sum + item.currentMonth,
-            0
+            0,
         );
         const previousTotal = trends.reduce(
             (sum, item) => sum + item.previousMonth,
-            0
+            0,
         );
         let overallPercentageChange = 0;
         if (previousTotal > 0) {
@@ -626,11 +731,11 @@ exports.getTrends = async (req, res) => {
         // Calculate overall totals
         const currentTotal = trends.reduce(
             (sum, item) => sum + item.currentMonth,
-            0
+            0,
         );
         const previousTotal = trends.reduce(
             (sum, item) => sum + item.previousMonth,
-            0
+            0,
         );
         let overallPercentageChange = 0;
         if (previousTotal > 0) {
@@ -693,7 +798,7 @@ exports.generateRecurringExpenses = async (req, res) => {
             // Update the recurring expense's next due date
             const nextDueDate = calculateNextDueDate(
                 recurringExpense.nextDueDate,
-                recurringExpense.frequency
+                recurringExpense.frequency,
             );
 
             await Expense.findByIdAndUpdate(recurringExpense._id, {

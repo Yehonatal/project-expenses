@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 
-export type Theme = "light" | "gray" | "dark";
+export type Theme = "light" | "gray" | "dark" | "cafe";
 
 interface ThemeColors {
     primary: string;
@@ -63,6 +63,21 @@ const themes: Record<Theme, ThemeColors> = {
         hover: "#2a2a2a",
         focus: "#404040",
         active: "#4a4a4a",
+    },
+    cafe: {
+        primary: "#3f2f26",
+        secondary: "#7b5c4b",
+        accent: "#d08b5b",
+        background: "#faf6f1",
+        surface: "#f3e8dc",
+        glass: "rgba(250, 246, 241, 0.7)",
+        glassBorder: "rgba(63, 47, 38, 0.12)",
+        text: "#2f241f",
+        textSecondary: "#7b6b62",
+        border: "#e2d2c6",
+        hover: "#f0e3d7",
+        focus: "#e7d7cc",
+        active: "#dbcbbf",
     },
 };
 

@@ -9,6 +9,11 @@ const themeOptions: { value: Theme; label: string; preview: string }[] = [
         preview: "bg-white border border-gray-300",
     },
     {
+        value: "cafe",
+        label: "Cafe",
+        preview: "bg-[#f3e8dc] border border-[#d9c7b7]",
+    },
+    {
         value: "gray",
         label: "Gray",
         preview: "bg-gray-100 border border-gray-300",
@@ -25,7 +30,7 @@ export default function ThemeSelector() {
 
     const cycleTheme = () => {
         const currentIndex = themeOptions.findIndex(
-            (option) => option.value === theme
+            (option) => option.value === theme,
         );
         const nextIndex = (currentIndex + 1) % themeOptions.length;
         setTheme(themeOptions[nextIndex].value);

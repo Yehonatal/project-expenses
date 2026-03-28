@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import API, { authAPI, getExpenses } from "../api/api";
-import Loading from "../components/Loading";
+import { useState } from "react";
+import { getExpenses } from "../api/api";
+import PageSkeleton from "../components/ui/PageSkeleton";
 import Modal from "../components/Modal";
 import ExportControls from "../components/ui/ExportControls";
 import StatCard from "../components/ui/StatCard";
@@ -10,45 +9,11 @@ import Papa from "papaparse";
 import jsPDF from "jspdf";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
-
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-    picture: string;
-    createdAt: string;
-}
-
-interface Expense {
-    _id: string;
-    amount: number;
-    description: string;
-    type: string;
-    date: string;
-    recurring: boolean;
-}
-
-interface MonthlyData {
-    _id: string;
-    total: number;
-    count: number;
-    maxExpense: number;
-    minExpense: number;
-}
-
-interface Stats {
-    totalExpenses: number;
-    totalTypes: number;
-    mostExpensive: Expense | null;
-    cheapest: Expense | null;
-    monthlyAssessment: MonthlyData[];
-}
+import type { ProfileExpense } from "../types/profile";
+import { useProfilePageData } from "../hooks/useProfilePageData";
 
 export default function ProfilePage() {
-    const navigate = useNavigate();
-    const [user, setUser] = useState<User | null>(null);
-    const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, stats, loading } = useProfilePageData();
     const [_avatarError, setAvatarError] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
@@ -59,7 +24,7 @@ export default function ProfilePage() {
             const response = await getExpenses();
             const expenses = response.data;
 
-            const csvData = expenses.map((expense: Expense) => ({
+            const csvData = expenses.map((expense: ProfileExpense) => ({
                 Date: new Date(expense.date).toLocaleDateString(),
                 Description: expense.description,
                 Amount: expense.amount,
@@ -74,7 +39,7 @@ export default function ProfilePage() {
             link.setAttribute("href", url);
             link.setAttribute(
                 "download",
-                `expenses_${new Date().toISOString().split("T")[0]}.csv`
+                `expenses_${new Date().toISOString().split("T")[0]}.csv`,
             );
             link.style.visibility = "hidden";
             document.body.appendChild(link);
@@ -102,12 +67,12 @@ export default function ProfilePage() {
             doc.text(
                 `Generated on: ${new Date().toLocaleDateString()}`,
                 20,
-                35
+                35,
             );
             doc.text(
                 `Total Expenses: ${stats?.totalExpenses || "N/A"}`,
                 20,
-                45
+                45,
             );
 
             let yPosition = 65;
@@ -121,7 +86,7 @@ export default function ProfilePage() {
             doc.line(20, yPosition, 190, yPosition);
             yPosition += 5;
 
-            expenses.slice(0, 20).forEach((expense: Expense) => {
+            expenses.slice(0, 20).forEach((expense: ProfileExpense) => {
                 if (yPosition > 270) {
                     doc.addPage();
                     yPosition = 20;
@@ -130,7 +95,7 @@ export default function ProfilePage() {
                 doc.text(
                     new Date(expense.date).toLocaleDateString(),
                     20,
-                    yPosition
+                    yPosition,
                 );
                 doc.text(expense.description.substring(0, 25), 60, yPosition);
                 doc.text(`$${expense.amount.toFixed(2)}`, 140, yPosition);
@@ -150,39 +115,8 @@ export default function ProfilePage() {
     const handleGoogleDriveSync = () => {
         setShowGoogleDriveModal(true);
     };
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            console.log("No token found, redirecting to login");
-            navigate("/");
-            setLoading(false);
-            return;
-        }
-
-        // Set auth header for API calls
-        authAPI.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        const fetchData = async () => {
-            try {
-                const [userRes, statsRes] = await Promise.all([
-                    authAPI.get("/auth/me"),
-                    API.get("/expenses/stats"),
-                ]);
-                setUser(userRes.data);
-                setStats(statsRes.data);
-            } catch (err) {
-                console.error("Failed to load profile data", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [navigate]);
-
     if (loading) {
-        return <Loading />;
+        return <PageSkeleton title="Loading profile" />;
     }
 
     if (!user || !stats) {
@@ -195,6 +129,87 @@ export default function ProfilePage() {
 
     return (
         <PageContainer title="Profile" className="space-y-6">
+            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex-1 space-y-2">
+                    <div
+                        className="text-xs uppercase tracking-[0.2em]"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Account overview
+                    </div>
+                    <h2 className="section-title text-2xl font-semibold">
+                        Welcome back, {user.name}
+                    </h2>
+                    <p
+                        className="text-sm"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Member since{" "}
+                        {new Date(user.createdAt).toLocaleDateString()}.
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-6">
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Total expenses
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {stats.totalExpenses}
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Active types
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {stats.totalTypes}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="kpi-strip">
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Most expensive
+                    </div>
+                    <div className="text-xl font-semibold">
+                        Birr {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
+                    </div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Cheapest
+                    </div>
+                    <div className="text-xl font-semibold">
+                        Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
+                    </div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Monthly reports
+                    </div>
+                    <div className="text-xl font-semibold">
+                        {stats.monthlyAssessment.length}
+                    </div>
+                </div>
+            </div>
+
             <GlassCard className="mb-6">
                 <ProfileHeader
                     name={user.name}
@@ -204,7 +219,7 @@ export default function ProfilePage() {
                 />
                 <p
                     className="text-sm"
-                    style={{ color: "var(--theme-textSecondary)" }}
+                    style={{ color: "var(--theme-text-secondary)" }}
                 >
                     Account created:{" "}
                     {new Date(user.createdAt).toLocaleDateString()}
@@ -234,7 +249,7 @@ export default function ProfilePage() {
                         </p>
                         <p
                             className="text-sm"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            style={{ color: "var(--theme-text-secondary)" }}
                         >
                             {stats.mostExpensive?.description || ""}
                         </p>
@@ -248,7 +263,7 @@ export default function ProfilePage() {
                         </p>
                         <p
                             className="text-sm"
-                            style={{ color: "var(--theme-textSecondary)" }}
+                            style={{ color: "var(--theme-text-secondary)" }}
                         >
                             {stats.cheapest?.description || ""}
                         </p>
@@ -277,7 +292,7 @@ export default function ProfilePage() {
                                     <p
                                         className="text-sm"
                                         style={{
-                                            color: "var(--theme-textSecondary)",
+                                            color: "var(--theme-text-secondary)",
                                         }}
                                     >
                                         Total Spent
@@ -293,7 +308,7 @@ export default function ProfilePage() {
                                     <p
                                         className="text-sm"
                                         style={{
-                                            color: "var(--theme-textSecondary)",
+                                            color: "var(--theme-text-secondary)",
                                         }}
                                     >
                                         Expenses Count
@@ -311,7 +326,7 @@ export default function ProfilePage() {
                                     <p
                                         className="text-sm"
                                         style={{
-                                            color: "var(--theme-textSecondary)",
+                                            color: "var(--theme-text-secondary)",
                                         }}
                                     >
                                         Highest Expense
@@ -329,7 +344,7 @@ export default function ProfilePage() {
                                     <p
                                         className="text-sm"
                                         style={{
-                                            color: "var(--theme-textSecondary)",
+                                            color: "var(--theme-text-secondary)",
                                         }}
                                     >
                                         Lowest Expense
@@ -363,7 +378,7 @@ export default function ProfilePage() {
                 {exporting && (
                     <p
                         className="text-sm mt-2"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        style={{ color: "var(--theme-text-secondary)" }}
                     >
                         Exporting data...
                     </p>
@@ -395,7 +410,7 @@ export default function ProfilePage() {
                     </p>
                     <ul
                         className="list-disc list-inside space-y-2"
-                        style={{ color: "var(--theme-textSecondary)" }}
+                        style={{ color: "var(--theme-text-secondary)" }}
                     >
                         <li>
                             Automatically backup your expense data to Google

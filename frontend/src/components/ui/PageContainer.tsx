@@ -17,15 +17,10 @@ export default function PageContainer({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={`max-w-6xl mx-auto space-y-2 ${className}`.trim()}
+            className={`w-full max-w-7xl space-y-4 ${className}`.trim()}
         >
             {title && (
-                <h1
-                    className="text-base font-bold"
-                    style={{ color: "var(--theme-text)" }}
-                >
-                    {title}
-                </h1>
+                <h1 className="section-title text-lg font-semibold">{title}</h1>
             )}
             {children}
         </motion.div>

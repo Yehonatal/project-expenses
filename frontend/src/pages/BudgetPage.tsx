@@ -1,251 +1,124 @@
-import { useState, useEffect } from "react";
-// motion removed; PageContainer handles page-level animation
-import { getBudgets, setBudget, deleteBudget } from "../api/api";
-import Loading from "../components/Loading";
+import PageSkeleton from "../components/ui/PageSkeleton";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import Toast from "../components/Toast";
-import type { Budget } from "../types/expense";
-
-type BudgetType = "weekly" | "monthly" | "multi-month" | "yearly";
-
-// Edit form and payload types for stricter typing
-type EditForm = Partial<Budget> & { type: BudgetType; totalBudget?: number };
-type BudgetPayload = Partial<Budget> & {
-    type: BudgetType;
-    totalBudget: number;
-};
+import { useBudgetPageData } from "../hooks/useBudgetPageData";
 
 export default function BudgetPage() {
-    const [budgets, setBudgets] = useState<Budget[]>([]);
-    const [activeTab, setActiveTab] = useState<BudgetType>("monthly");
-    const [loading, setLoading] = useState(true);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [toast, setToast] = useState<
-        { message: string; type: "success" | "error" | "info" } | undefined
-    >(undefined);
+    const {
+        budgets,
+        activeTab,
+        loading,
+        editingId,
+        toast,
+        weeklyForm,
+        monthlyForm,
+        multiMonthForm,
+        yearlyForm,
+        editForm,
+        totalBudget,
+        totalSpent,
+        tabs,
+        setActiveTab,
+        setWeeklyForm,
+        setMonthlyForm,
+        setMultiMonthForm,
+        setYearlyForm,
+        setEditForm,
+        handleSetBudget,
+        handleDelete,
+        handleEdit,
+        handleSaveEdit,
+        handleCancelEdit,
+        formatBudgetPeriod,
+    } = useBudgetPageData();
 
-    // Form states for different budget types
-    const [weeklyForm, setWeeklyForm] = useState({
-        startDate: "",
-        endDate: "",
-        totalBudget: 0,
-    });
-
-    const [monthlyForm, setMonthlyForm] = useState({
-        month: "",
-        year: new Date().getFullYear(),
-        totalBudget: 0,
-    });
-
-    const [multiMonthForm, setMultiMonthForm] = useState({
-        startDate: "",
-        endDate: "",
-        totalBudget: 0,
-    });
-
-    const [yearlyForm, setYearlyForm] = useState({
-        year: new Date().getFullYear(),
-        totalBudget: 0,
-    });
-
-    // Edit form states
-    const [editForm, setEditForm] = useState<EditForm>({
-        type: "monthly" as BudgetType,
-        startDate: "",
-        endDate: "",
-        startMonth: 0,
-        startYear: 0,
-        endMonth: 0,
-        endYear: 0,
-        year: 0,
-        totalBudget: 0,
-    });
-
-    useEffect(() => {
-        fetchBudgets();
-    }, []);
-
-    const fetchBudgets = async () => {
-        try {
-            const res = await getBudgets();
-            setBudgets(res.data);
-        } catch (err) {
-            console.error("Failed to load budgets", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSetBudget = async () => {
-        let budgetData: BudgetPayload = { type: activeTab, totalBudget: 0 };
-
-        try {
-            switch (activeTab) {
-                case "weekly":
-                    budgetData = {
-                        type: "weekly",
-                        startDate: weeklyForm.startDate,
-                        endDate: weeklyForm.endDate,
-                        totalBudget: weeklyForm.totalBudget,
-                    };
-                    break;
-                case "monthly": {
-                    const [year, month] = monthlyForm.month.split("-");
-                    budgetData = {
-                        type: "monthly",
-                        startMonth: parseInt(month || "0"),
-                        startYear: parseInt(year || "0"),
-                        totalBudget: monthlyForm.totalBudget,
-                    };
-                    break;
-                }
-                case "multi-month": {
-                    const [startYear, startMonth] = multiMonthForm.startDate
-                        ? multiMonthForm.startDate.split("-")
-                        : ["0", "0"];
-                    const [endYear, endMonth] = multiMonthForm.endDate
-                        ? multiMonthForm.endDate.split("-")
-                        : ["0", "0"];
-                    budgetData = {
-                        type: "multi-month",
-                        startMonth: parseInt(startMonth || "0"),
-                        startYear: parseInt(startYear || "0"),
-                        endMonth: parseInt(endMonth || "0"),
-                        endYear: parseInt(endYear || "0"),
-                        totalBudget: multiMonthForm.totalBudget,
-                    };
-                    break;
-                }
-                case "yearly":
-                    budgetData = {
-                        type: "yearly",
-                        year: yearlyForm.year,
-                        totalBudget: yearlyForm.totalBudget,
-                    };
-                    break;
-            }
-
-            const res = await setBudget(budgetData);
-            setBudgets((prev) => [...prev, res.data]);
-
-            // Reset form
-            setWeeklyForm({ startDate: "", endDate: "", totalBudget: 0 });
-            setMonthlyForm({
-                month: "",
-                year: new Date().getFullYear(),
-                totalBudget: 0,
-            });
-            setMultiMonthForm({ startDate: "", endDate: "", totalBudget: 0 });
-            setYearlyForm({ year: new Date().getFullYear(), totalBudget: 0 });
-
-            setToast({
-                message: `${
-                    activeTab.charAt(0).toUpperCase() +
-                    activeTab.slice(1).replace("-", " ")
-                } budget created successfully!`,
-                type: "success",
-            });
-        } catch (err) {
-            console.error("Failed to set budget", err);
-            setToast({
-                message: "Failed to create budget. Please try again.",
-                type: "error",
-            });
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        try {
-            await deleteBudget(id);
-            setBudgets((prev) => prev.filter((b) => b._id !== id));
-            setToast({
-                message: "Budget deleted successfully!",
-                type: "success",
-            });
-        } catch (err) {
-            console.error("Failed to delete budget", err);
-            setToast({
-                message: "Failed to delete budget. Please try again.",
-                type: "error",
-            });
-        }
-    };
-
-    const handleEdit = (budget: Budget) => {
-        setEditingId(budget._id);
-        setEditForm({ ...budget });
-    };
-
-    const handleSaveEdit = async () => {
-        if (!editingId) return;
-        try {
-            const payload: BudgetPayload = {
-                type: editForm.type,
-                totalBudget: editForm.totalBudget ?? 0,
-                startDate: editForm.startDate,
-                endDate: editForm.endDate,
-                startMonth: editForm.startMonth,
-                startYear: editForm.startYear,
-                endMonth: editForm.endMonth,
-                endYear: editForm.endYear,
-                year: editForm.year,
-            };
-            const res = await setBudget(payload);
-            setBudgets((prev) =>
-                prev.map((b) => (b._id === editingId ? res.data : b))
-            );
-            setEditingId(null);
-            setToast({
-                message: "Budget updated successfully!",
-                type: "success",
-            });
-        } catch (err) {
-            console.error("Failed to update budget", err);
-            setToast({
-                message: "Failed to update budget. Please try again.",
-                type: "error",
-            });
-        }
-    };
-
-    const handleCancelEdit = () => setEditingId(null);
-
-    const formatBudgetPeriod = (budget: Budget) => {
-        switch (budget.type) {
-            case "weekly":
-                if (budget.startDate && budget.endDate) {
-                    const start = new Date(budget.startDate).toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric" }
-                    );
-                    const end = new Date(budget.endDate).toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric", year: "numeric" }
-                    );
-                    return `${start} - ${end}`;
-                }
-                return "Invalid dates";
-            case "monthly":
-                return `${budget.startMonth}/${budget.startYear}`;
-            case "multi-month":
-                return `${budget.startMonth}/${budget.startYear} - ${budget.endMonth}/${budget.endYear}`;
-            case "yearly":
-                return `${budget.year}`;
-            default:
-                return "Unknown";
-        }
-    };
-
-    // Segmented control helpers
-    const tabs: BudgetType[] = ["weekly", "monthly", "multi-month", "yearly"];
-
-    if (loading) return <Loading />;
+    if (loading) return <PageSkeleton title="Loading budgets" />;
 
     return (
         <>
-            <PageContainer title="Budget Goals" className="space-y-8">
+            <PageContainer title="Financial Goals" className="space-y-8">
+                <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+                    <div className="flex-1 space-y-2">
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Budget planning
+                        </div>
+                        <h2 className="section-title text-2xl font-semibold">
+                            Track your goals by period
+                        </h2>
+                        <p
+                            className="text-sm"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Keep monthly, weekly, and yearly budgets aligned
+                            with your spending patterns.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-6">
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Active goals
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {budgets.length}
+                            </div>
+                        </div>
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Total budget
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                Birr {totalBudget.toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="kpi-strip">
+                    <div className="kpi-card">
+                        <div
+                            className="text-xs font-semibold uppercase"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Total spent
+                        </div>
+                        <div className="text-xl font-semibold">
+                            Birr {totalSpent.toLocaleString()}
+                        </div>
+                    </div>
+                    <div className="kpi-card">
+                        <div
+                            className="text-xs font-semibold uppercase"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Remaining
+                        </div>
+                        <div className="text-xl font-semibold">
+                            Birr {(totalBudget - totalSpent).toLocaleString()}
+                        </div>
+                    </div>
+                    <div className="kpi-card">
+                        <div
+                            className="text-xs font-semibold uppercase"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Active period
+                        </div>
+                        <div className="text-xl font-semibold capitalize">
+                            {activeTab.replace("-", " ")}
+                        </div>
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div className="space-y-6 lg:col-span-2">
                         <GlassCard>
@@ -316,7 +189,7 @@ export default function BudgetPage() {
                                                     setWeeklyForm({
                                                         ...weeklyForm,
                                                         totalBudget: Number(
-                                                            e.target.value
+                                                            e.target.value,
                                                         ),
                                                     })
                                                 }
@@ -365,7 +238,7 @@ export default function BudgetPage() {
                                                     setMonthlyForm({
                                                         ...monthlyForm,
                                                         totalBudget: Number(
-                                                            e.target.value
+                                                            e.target.value,
                                                         ),
                                                     })
                                                 }
@@ -441,7 +314,7 @@ export default function BudgetPage() {
                                                     setMultiMonthForm({
                                                         ...multiMonthForm,
                                                         totalBudget: Number(
-                                                            e.target.value
+                                                            e.target.value,
                                                         ),
                                                     })
                                                 }
@@ -467,7 +340,7 @@ export default function BudgetPage() {
                                                     setYearlyForm({
                                                         ...yearlyForm,
                                                         year: Number(
-                                                            e.target.value
+                                                            e.target.value,
                                                         ),
                                                     })
                                                 }
@@ -491,7 +364,7 @@ export default function BudgetPage() {
                                                     setYearlyForm({
                                                         ...yearlyForm,
                                                         totalBudget: Number(
-                                                            e.target.value
+                                                            e.target.value,
                                                         ),
                                                     })
                                                 }
@@ -589,7 +462,7 @@ export default function BudgetPage() {
                                                                                 e
                                                                                     .target
                                                                                     .value,
-                                                                        }
+                                                                        },
                                                                     )
                                                                 }
                                                                 className="w-full glass-button rounded-xl"
@@ -616,7 +489,7 @@ export default function BudgetPage() {
                                                                                 e
                                                                                     .target
                                                                                     .value,
-                                                                        }
+                                                                        },
                                                                     )
                                                                 }
                                                                 className="w-full glass-button rounded-xl"
@@ -642,33 +515,33 @@ export default function BudgetPage() {
                                                                     new Date().getFullYear()
                                                                 }-${String(
                                                                     editForm.startMonth ||
-                                                                        1
+                                                                        1,
                                                                 ).padStart(
                                                                     2,
-                                                                    "0"
+                                                                    "0",
                                                                 )}`}
                                                                 onChange={(
-                                                                    e
+                                                                    e,
                                                                 ) => {
                                                                     const [
                                                                         year,
                                                                         month,
                                                                     ] =
                                                                         e.target.value.split(
-                                                                            "-"
+                                                                            "-",
                                                                         );
                                                                     setEditForm(
                                                                         {
                                                                             ...editForm,
                                                                             startMonth:
                                                                                 parseInt(
-                                                                                    month
+                                                                                    month,
                                                                                 ),
                                                                             startYear:
                                                                                 parseInt(
-                                                                                    year
+                                                                                    year,
                                                                                 ),
-                                                                        }
+                                                                        },
                                                                     );
                                                                 }}
                                                                 className="w-full glass-button rounded-xl"
@@ -695,33 +568,33 @@ export default function BudgetPage() {
                                                                     new Date().getFullYear()
                                                                 }-${String(
                                                                     editForm.startMonth ||
-                                                                        1
+                                                                        1,
                                                                 ).padStart(
                                                                     2,
-                                                                    "0"
+                                                                    "0",
                                                                 )}`}
                                                                 onChange={(
-                                                                    e
+                                                                    e,
                                                                 ) => {
                                                                     const [
                                                                         year,
                                                                         month,
                                                                     ] =
                                                                         e.target.value.split(
-                                                                            "-"
+                                                                            "-",
                                                                         );
                                                                     setEditForm(
                                                                         {
                                                                             ...editForm,
                                                                             startMonth:
                                                                                 parseInt(
-                                                                                    month
+                                                                                    month,
                                                                                 ),
                                                                             startYear:
                                                                                 parseInt(
-                                                                                    year
+                                                                                    year,
                                                                                 ),
-                                                                        }
+                                                                        },
                                                                     );
                                                                 }}
                                                                 className="w-full glass-button rounded-xl"
@@ -741,33 +614,33 @@ export default function BudgetPage() {
                                                                     new Date().getFullYear()
                                                                 }-${String(
                                                                     editForm.endMonth ||
-                                                                        1
+                                                                        1,
                                                                 ).padStart(
                                                                     2,
-                                                                    "0"
+                                                                    "0",
                                                                 )}`}
                                                                 onChange={(
-                                                                    e
+                                                                    e,
                                                                 ) => {
                                                                     const [
                                                                         year,
                                                                         month,
                                                                     ] =
                                                                         e.target.value.split(
-                                                                            "-"
+                                                                            "-",
                                                                         );
                                                                     setEditForm(
                                                                         {
                                                                             ...editForm,
                                                                             endMonth:
                                                                                 parseInt(
-                                                                                    month
+                                                                                    month,
                                                                                 ),
                                                                             endYear:
                                                                                 parseInt(
-                                                                                    year
+                                                                                    year,
                                                                                 ),
-                                                                        }
+                                                                        },
                                                                     );
                                                                 }}
                                                                 className="w-full glass-button rounded-xl"
@@ -798,9 +671,9 @@ export default function BudgetPage() {
                                                                             year: Number(
                                                                                 e
                                                                                     .target
-                                                                                    .value
+                                                                                    .value,
                                                                             ),
-                                                                        }
+                                                                        },
                                                                     )
                                                                 }
                                                                 className="w-full glass-button rounded-xl"
@@ -824,7 +697,7 @@ export default function BudgetPage() {
                                                         setEditForm({
                                                             ...editForm,
                                                             totalBudget: Number(
-                                                                e.target.value
+                                                                e.target.value,
                                                             ),
                                                         })
                                                     }
@@ -882,11 +755,11 @@ export default function BudgetPage() {
                                                                     .slice(1)
                                                                     .replace(
                                                                         "-",
-                                                                        " "
+                                                                        " ",
                                                                     )}
                                                         </h3>
                                                         <span
-                                                            className="text-xs px-2 py-0.5 rounded-full text-center min-w-[80px]"
+                                                            className="text-xs px-2 py-0.5 rounded-full text-center min-w-20"
                                                             style={{
                                                                 backgroundColor:
                                                                     "var(--theme-surface)",
@@ -894,7 +767,7 @@ export default function BudgetPage() {
                                                             }}
                                                         >
                                                             {formatBudgetPeriod(
-                                                                budget
+                                                                budget,
                                                             )}
                                                         </span>
                                                     </div>
@@ -902,7 +775,7 @@ export default function BudgetPage() {
                                                         <button
                                                             onClick={() =>
                                                                 handleEdit(
-                                                                    budget
+                                                                    budget,
                                                                 )
                                                             }
                                                             className="glass-button text-xs px-2 py-1 rounded-md transition-all hover:bg-theme-surface/50"
@@ -915,7 +788,7 @@ export default function BudgetPage() {
                                                         <button
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    budget._id
+                                                                    budget._id,
                                                                 )
                                                             }
                                                             className="glass-button text-xs px-2 py-1 rounded-md transition-all hover:bg-red-500/20"
@@ -949,7 +822,7 @@ export default function BudgetPage() {
                                                                 {
                                                                     minimumFractionDigits: 0,
                                                                     maximumFractionDigits: 0,
-                                                                }
+                                                                },
                                                             )}
                                                         </p>
                                                     </div>
@@ -973,7 +846,7 @@ export default function BudgetPage() {
                                                                 {
                                                                     minimumFractionDigits: 0,
                                                                     maximumFractionDigits: 0,
-                                                                }
+                                                                },
                                                             )}
                                                         </p>
                                                     </div>
@@ -999,13 +872,13 @@ export default function BudgetPage() {
                                                         >
                                                             {Math.abs(
                                                                 budget.totalBudget -
-                                                                    budget.spent
+                                                                    budget.spent,
                                                             ).toLocaleString(
                                                                 "en-US",
                                                                 {
                                                                     minimumFractionDigits: 0,
                                                                     maximumFractionDigits: 0,
-                                                                }
+                                                                },
                                                             )}
                                                         </p>
                                                     </div>
@@ -1026,13 +899,13 @@ export default function BudgetPage() {
                                                                 isOverBudget
                                                                     ? "text-red-500"
                                                                     : progress >
-                                                                      80
-                                                                    ? "text-yellow-500"
-                                                                    : "text-green-500"
+                                                                        80
+                                                                      ? "text-yellow-500"
+                                                                      : "text-green-500"
                                                             }`}
                                                         >
                                                             {progress.toFixed(
-                                                                0
+                                                                0,
                                                             )}
                                                             %
                                                         </span>
@@ -1049,15 +922,15 @@ export default function BudgetPage() {
                                                             style={{
                                                                 width: `${Math.min(
                                                                     progress,
-                                                                    100
+                                                                    100,
                                                                 )}%`,
                                                                 backgroundColor:
                                                                     isOverBudget
                                                                         ? "#ef4444"
                                                                         : progress >
-                                                                          80
-                                                                        ? "#f59e0b"
-                                                                        : "#22c55e",
+                                                                            80
+                                                                          ? "#f59e0b"
+                                                                          : "#22c55e",
                                                             }}
                                                         />
                                                     </div>

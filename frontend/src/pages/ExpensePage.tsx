@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
-import { getBudgets } from "../api/api";
-import type { Expense, Budget } from "../types/expense";
+import { useState } from "react";
+import type { Expense } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
 import Modal from "../components/Modal";
@@ -9,15 +7,24 @@ import { RotateCcw, Plus } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import { formatBudgetPeriod } from "../utils/dateFormatter";
+import PageSkeleton from "../components/ui/PageSkeleton";
+import { useExpensePageData } from "../hooks/useExpensePageData";
 
 export default function ExpensePage({
     expenseUpdateTrigger,
 }: {
     expenseUpdateTrigger?: number;
 }) {
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [total, setTotal] = useState<number>(0);
-    const [budgets, setBudgets] = useState<Budget[]>([]);
+    const {
+        expenses,
+        total,
+        budgets,
+        loading,
+        recurringCount,
+        addExpense,
+        deleteExpense,
+        mergeUpdatedExpense,
+    } = useExpensePageData(expenseUpdateTrigger);
     const [showRecurringModal, setShowRecurringModal] = useState(false);
     const [recurringModalContent, setRecurringModalContent] = useState<{
         title: string;
@@ -28,41 +35,8 @@ export default function ExpensePage({
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(
-        null
+        null,
     );
-
-    useEffect(() => {
-        fetchExpenses();
-        fetchBudgets();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [expenseUpdateTrigger]);
-
-    const fetchExpenses = async () => {
-        try {
-            const res = await API.get<Expense[]>("/expenses");
-            setExpenses(res.data || []);
-            const includedTotal = (res.data || [])
-                .filter((e) => e.included)
-                .reduce((sum, e) => sum + e.amount, 0);
-            setTotal(includedTotal);
-        } catch (error) {
-            console.error("Failed to fetch expenses:", error);
-        }
-    };
-
-    const fetchBudgets = async () => {
-        try {
-            const res = await getBudgets();
-            setBudgets(res.data || []);
-        } catch (error) {
-            console.error("Failed to fetch budgets:", error);
-        }
-    };
-
-    const handleAdd = (expense: Expense) => {
-        setExpenses((prev) => [expense, ...prev]);
-        if (expense.included) setTotal((prev) => prev + expense.amount);
-    };
 
     const handleEdit = (expense: Expense) => {
         setEditingExpense(expense);
@@ -77,15 +51,7 @@ export default function ExpensePage({
     const confirmDelete = async () => {
         if (!deletingExpenseId) return;
         try {
-            await API.delete(`/expenses/${deletingExpenseId}`);
-            // remove from state
-            // remove from state and recompute total based on new list
-            setExpenses((prev) => {
-                const next = prev.filter((e) => e._id !== deletingExpenseId);
-                const included = next.filter((e) => e.included);
-                setTotal(included.reduce((s, e) => s + e.amount, 0));
-                return next;
-            });
+            await deleteExpense(deletingExpenseId);
             setShowDeleteModal(false);
             setDeletingExpenseId(null);
         } catch (error) {
@@ -103,11 +69,93 @@ export default function ExpensePage({
         setShowRecurringModal(true);
     };
 
+    if (loading) {
+        return <PageSkeleton title="Loading expenses" />;
+    }
+
     return (
         <PageContainer title="Expense Tracker" className="space-y-8">
+            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex-1 space-y-2">
+                    <div
+                        className="text-xs uppercase tracking-[0.2em]"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Daily tracking
+                    </div>
+                    <h2 className="section-title text-2xl font-semibold">
+                        Keep every expense in one place
+                    </h2>
+                    <p
+                        className="text-sm"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Track spending, monitor budgets, and generate recurring
+                        entries when needed.
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-6">
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Total entries
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {expenses.length}
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Recurring
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {recurringCount}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="kpi-strip">
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Total included
+                    </div>
+                    <div className="text-xl font-semibold">
+                        Birr {total.toFixed(2)}
+                    </div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Budget entries
+                    </div>
+                    <div className="text-xl font-semibold">
+                        {budgets.length}
+                    </div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Next action
+                    </div>
+                    <div className="text-xl font-semibold">Add expense</div>
+                </div>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <ExpenseForm onAdd={handleAdd} />
+                    <ExpenseForm onAdd={addExpense} />
 
                     <GlassCard>
                         <div className="flex items-center justify-between mb-4">
@@ -197,7 +245,7 @@ export default function ExpensePage({
                                                             {
                                                                 minimumFractionDigits: 0,
                                                                 maximumFractionDigits: 0,
-                                                            }
+                                                            },
                                                         )}
                                                     </p>
                                                 </div>
@@ -221,7 +269,7 @@ export default function ExpensePage({
                                                             {
                                                                 minimumFractionDigits: 0,
                                                                 maximumFractionDigits: 0,
-                                                            }
+                                                            },
                                                         )}
                                                     </p>
                                                 </div>
@@ -247,13 +295,13 @@ export default function ExpensePage({
                                                     >
                                                         {Math.abs(
                                                             budget.totalBudget -
-                                                                budget.spent
+                                                                budget.spent,
                                                         ).toLocaleString(
                                                             "en-US",
                                                             {
                                                                 minimumFractionDigits: 0,
                                                                 maximumFractionDigits: 0,
-                                                            }
+                                                            },
                                                         )}
                                                     </p>
                                                 </div>
@@ -274,8 +322,8 @@ export default function ExpensePage({
                                                             isOverBudget
                                                                 ? "text-red-500"
                                                                 : progress > 80
-                                                                ? "text-yellow-500"
-                                                                : "text-green-500"
+                                                                  ? "text-yellow-500"
+                                                                  : "text-green-500"
                                                         }`}
                                                     >
                                                         {progress.toFixed(0)}%
@@ -296,15 +344,15 @@ export default function ExpensePage({
                                                         style={{
                                                             width: `${Math.min(
                                                                 progress,
-                                                                100
+                                                                100,
                                                             )}%`,
                                                             backgroundColor:
                                                                 isOverBudget
                                                                     ? "#ef4444"
                                                                     : progress >
-                                                                      80
-                                                                    ? "#f59e0b"
-                                                                    : "#22c55e",
+                                                                        80
+                                                                      ? "#f59e0b"
+                                                                      : "#22c55e",
                                                         }}
                                                     />
                                                 </div>
@@ -334,7 +382,7 @@ export default function ExpensePage({
                                 setShowRecurringModal(false);
                                 (
                                     document.querySelector(
-                                        'input[name="description"]'
+                                        'input[name="description"]',
                                     ) as HTMLInputElement
                                 )?.focus();
                             }}
@@ -371,39 +419,9 @@ export default function ExpensePage({
                 {editingExpense && (
                     <ExpenseForm
                         onAdd={(updatedExpense) => {
-                            setExpenses((prev) =>
-                                prev.map((exp) =>
-                                    exp._id === updatedExpense._id
-                                        ? updatedExpense
-                                        : exp
-                                )
-                            );
+                            mergeUpdatedExpense(updatedExpense);
                             setShowEditModal(false);
                             setEditingExpense(null);
-                            const oldExpense = expenses.find(
-                                (e) => e._id === updatedExpense._id
-                            );
-                            if (oldExpense) {
-                                const oldIncluded = oldExpense.included;
-                                const newIncluded = updatedExpense.included;
-                                if (oldIncluded !== newIncluded) {
-                                    setTotal((prev) =>
-                                        newIncluded
-                                            ? prev + updatedExpense.amount
-                                            : prev - updatedExpense.amount
-                                    );
-                                } else if (
-                                    oldIncluded &&
-                                    oldExpense.amount !== updatedExpense.amount
-                                ) {
-                                    setTotal(
-                                        (prev) =>
-                                            prev -
-                                            oldExpense.amount +
-                                            updatedExpense.amount
-                                    );
-                                }
-                            }
                         }}
                         editExpense={editingExpense}
                     />

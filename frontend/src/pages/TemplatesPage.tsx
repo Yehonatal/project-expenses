@@ -1,111 +1,107 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import CompactCard from "../components/ui/CompactCard";
 import { Trash2, Plus } from "lucide-react";
-import API from "../api/api";
 import Toast from "../components/Toast";
-
-type Template = {
-    id?: string;
-    _id?: string;
-    description: string;
-    type: string;
-    price: number | string;
-};
+import PageSkeleton from "../components/ui/PageSkeleton";
+import { useTemplatesPageData } from "../hooks/useTemplatesPageData";
 
 export default function TemplatesPage() {
-    const [templates, setTemplates] = useState<Template[]>([]);
-    const [types, setTypes] = useState<string[]>([]);
-    const [toast, setToast] = useState<
-        { message: string; type: "success" | "error" | "info" } | undefined
-    >(undefined);
-    const [form, setForm] = useState({ description: "", type: "", price: "" });
+    const {
+        templates,
+        types,
+        loading,
+        toast,
+        form,
+        templateCount,
+        typeCount,
+        handleChange,
+        handleAdd,
+        handleDelete,
+    } = useTemplatesPageData();
 
-    const load = async () => {
-        try {
-            const res = await API.get<Template[]>("/templates");
-            setTemplates(res.data);
-        } catch (err) {
-            console.error("Failed to load templates", err);
-        }
-    };
-
-    useEffect(() => {
-        void load();
-        let mounted = true;
-        (async () => {
-            try {
-                const r = await API.get<string[]>("/types");
-                if (!mounted) return;
-                setTypes(r.data || []);
-            } catch {
-                if (!mounted) return;
-                setTypes(["transport", "food", "drink", "internet", "other"]);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, []);
-
-    const handleChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-    ) => {
-        const { name, value } = e.target as HTMLInputElement;
-        setForm((s) => ({ ...s, [name]: value }));
-    };
-
-    const handleAdd = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!form.description || !form.price) return;
-        try {
-            const usedType = form.type || "other";
-            // ensure the type is persisted server-side (non-fatal)
-            try {
-                const norm = (usedType || "other").trim().toLowerCase();
-                await API.post("/types", { name: norm });
-                setToast({ message: `Saved type "${norm}"`, type: "info" });
-            } catch {
-                // ignore errors creating the type here; server will still accept template
-            }
-
-            const res = await API.post<Template>("/templates", {
-                description: form.description,
-                type: usedType,
-                price: Number(form.price),
-            });
-            // prepend
-            setTemplates((ts) => [res.data, ...ts]);
-            setForm({ description: "", type: "", price: "" });
-            setToast({
-                message: "Template added successfully!",
-                type: "success",
-            });
-        } catch (err) {
-            console.error("Failed to add template", err);
-            setToast({ message: "Failed to add template", type: "error" });
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        try {
-            await API.delete(`/templates/${id}`);
-            setTemplates((ts) =>
-                ts.filter((t) => String(t._id ?? t.id) !== String(id))
-            );
-            setToast({
-                message: "Template deleted successfully!",
-                type: "success",
-            });
-        } catch (err) {
-            console.error("Failed to delete template", err);
-            setToast({ message: "Failed to delete template", type: "error" });
-        }
-    };
+    if (loading) {
+        return <PageSkeleton title="Loading templates" />;
+    }
 
     return (
         <PageContainer title="Templates" className="space-y-8">
+            <div className="dashboard-hero flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex-1 space-y-2">
+                    <div
+                        className="text-xs uppercase tracking-[0.2em]"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Recurring presets
+                    </div>
+                    <h2 className="section-title text-2xl font-semibold">
+                        Save recurring expenses as templates
+                    </h2>
+                    <p
+                        className="text-sm"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Reuse templates for subscriptions, utilities, or
+                        recurring payments.
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-6">
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Templates
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {templateCount}
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            className="text-xs uppercase tracking-[0.2em]"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Types covered
+                        </div>
+                        <div className="text-2xl font-semibold">
+                            {typeCount}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="kpi-strip">
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Last update
+                    </div>
+                    <div className="text-xl font-semibold">
+                        {templates.length > 0 ? "Active" : "Add template"}
+                    </div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Suggested types
+                    </div>
+                    <div className="text-xl font-semibold">{types.length}</div>
+                </div>
+                <div className="kpi-card">
+                    <div
+                        className="text-xs font-semibold uppercase"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                    >
+                        Next action
+                    </div>
+                    <div className="text-xl font-semibold">Create template</div>
+                </div>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <form onSubmit={handleAdd} className="space-y-4">
