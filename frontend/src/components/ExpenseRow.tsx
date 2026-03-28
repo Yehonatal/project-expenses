@@ -41,7 +41,7 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                         {exp.description}
                     </span>
                     {exp.isRecurring && (
-                        <span className="inline-flex items-center gap-1 border border-[var(--theme-border)]/50 bg-[var(--theme-surface)] px-1 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
+                        <span className="inline-flex items-center gap-1 bg-[var(--theme-surface)] px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
                             <RotateCcw
                                 className="h-2.5 w-2.5"
                                 style={{ color: "var(--theme-accent)" }}
@@ -52,7 +52,7 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                     {(exp.tags || []).slice(0, 2).map((tag) => (
                         <span
                             key={tag}
-                            className="inline-flex items-center border border-[var(--theme-border)]/50 bg-[var(--theme-background)] px-1 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]"
+                            className="inline-flex items-center bg-[var(--theme-background)] px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]"
                         >
                             #{tag}
                         </span>
@@ -63,7 +63,7 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                 className="px-2 py-1.5 align-middle capitalize text-xs"
                 style={{ color: "var(--theme-text-secondary)" }}
             >
-                <span className="inline-flex border border-[var(--theme-border)]/50 bg-[var(--theme-surface)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+                <span className="inline-flex bg-[var(--theme-surface)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
                     {exp.type}
                 </span>
             </td>

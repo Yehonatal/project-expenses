@@ -90,7 +90,7 @@ export default function GoalsPage() {
                             >
                                 Goal planning
                             </div>
-                            <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                            <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                                 Set spending goals by period
                             </h2>
                             <p
@@ -187,7 +187,7 @@ export default function GoalsPage() {
                         <GlassCard className="space-y-4 p-4 sm:p-5">
                             <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div className="space-y-1">
-                                    <h3 className="font-['Playfair_Display'] text-lg font-semibold tracking-[-0.01em] sm:text-xl">
+                                    <h3 className="app-heading text-lg font-semibold tracking-[-0.01em] sm:text-xl">
                                         Goals Trendboard
                                     </h3>
                                     <p
@@ -338,7 +338,7 @@ export default function GoalsPage() {
                         <GlassCard className="p-4 h-full">
                             <div className="flex items-center gap-2 mb-3">
                                 <BarChart3 size={16} />
-                                <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-base font-semibold">
+                                <h3 className="app-heading tracking-[-0.01em] text-base font-semibold">
                                     Current Focus
                                 </h3>
                             </div>

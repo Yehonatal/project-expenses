@@ -447,25 +447,27 @@ export default function ExpenseForm({
                         </datalist>
                     </div>
 
-                    <div className="space-y-2 md:col-span-2 lg:col-span-2">
-                        <label className={uiControl.label}>Workspace</label>
-                        <select
-                            name="workspaceId"
-                            value={form.workspaceId || ""}
-                            onChange={handleChange}
-                            className={uiControl.select}
-                        >
-                            <option value="">Personal</option>
-                            {workspaces.map((workspace) => (
-                                <option
-                                    key={workspace._id}
-                                    value={workspace._id}
-                                >
-                                    {workspace.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {workspaces.length > 0 && (
+                        <div className="space-y-2 md:col-span-2 lg:col-span-2">
+                            <label className={uiControl.label}>Workspace</label>
+                            <select
+                                name="workspaceId"
+                                value={form.workspaceId || ""}
+                                onChange={handleChange}
+                                className={uiControl.select}
+                            >
+                                <option value="">Personal</option>
+                                {workspaces.map((workspace) => (
+                                    <option
+                                        key={workspace._id}
+                                        value={workspace._id}
+                                    >
+                                        {workspace.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="space-y-2 md:col-span-2 lg:col-span-2">
                         <label className={uiControl.label}>

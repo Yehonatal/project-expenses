@@ -23,7 +23,7 @@ export default function PageContainer({
         >
             {title && (
                 <div className="space-y-1">
-                    <h1 className="font-['Playfair_Display'] text-base font-semibold tracking-[-0.01em] sm:text-lg">
+                    <h1 className="app-heading text-base font-semibold tracking-[-0.01em] sm:text-lg">
                         {title}
                     </h1>
                     {subtitle && (

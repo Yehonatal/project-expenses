@@ -72,7 +72,7 @@ export default function ChartsPage() {
             <GlassCard className="space-y-4 p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-1">
-                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                        <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                             All Providers Messages
                         </h2>
                         <p
@@ -188,7 +188,7 @@ export default function ChartsPage() {
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
                 <GlassCard className="p-4">
-                    <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold mb-3">
+                    <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
                         Top Categories
                     </h3>
                     <ResponsiveContainer width="100%" height={260}>
@@ -216,7 +216,7 @@ export default function ChartsPage() {
                 </GlassCard>
 
                 <GlassCard className="p-4">
-                    <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold mb-3">
+                    <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
                         Current vs Previous Month
                     </h3>
                     <ResponsiveContainer width="100%" height={260}>
@@ -255,7 +255,7 @@ export default function ChartsPage() {
                         <GlassCard key={card.id} className="space-y-3 p-4">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
-                                    <h4 className="font-['Playfair_Display'] text-lg font-semibold tracking-[-0.01em]">
+                                    <h4 className="app-heading text-lg font-semibold tracking-[-0.01em]">
                                         {card.title}
                                     </h4>
                                     <p className="text-xs text-[var(--theme-text-secondary)]">
@@ -298,7 +298,7 @@ export default function ChartsPage() {
             )}
 
             <GlassCard className="p-4">
-                <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold mb-3">
+                <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold mb-3">
                     Recent 6-Month Totals
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

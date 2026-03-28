@@ -90,10 +90,10 @@ export default function MonthSection({
                         </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                        <span className="border border-[var(--theme-border)] bg-[var(--theme-surface)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
+                        <span className="bg-[var(--theme-surface)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
                             {monthCount} entries
                         </span>
-                        <span className="border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-700">
+                        <span className="bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-700">
                             Included Birr {monthTotal.toFixed(2)}
                         </span>
                     </div>
@@ -208,7 +208,7 @@ export default function MonthSection({
                                                             dateKey,
                                                         ).getDate()}
                                                     </span>
-                                                    <span className="border border-[var(--theme-border)]/40 bg-[var(--theme-background)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--theme-text-secondary)]">
+                                                    <span className="bg-[var(--theme-background)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--theme-text-secondary)]">
                                                         {exps.length}
                                                     </span>
                                                 </div>

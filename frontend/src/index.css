@@ -5,6 +5,99 @@
     --theme-aura-two: rgba(16, 185, 129, 0.1);
     --theme-aura-three: rgba(249, 115, 22, 0.1);
     --theme-grid: rgba(59, 130, 246, 0.08);
+    --app-font-size: 14px;
+    --app-radius: 0rem;
+    --app-border-width: 0.25px;
+    --app-shadow-intensity: 1;
+    --app-heading-font: "Playfair Display", "Times New Roman", serif;
+    --app-body-font:
+        "Geist Sans", "Segoe UI", "Helvetica Neue", Arial, "Noto Sans",
+        sans-serif;
+    --app-shadow-rgb: 22, 34, 28;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    font-size: var(--app-font-size);
+    font-family: var(--app-body-font);
+}
+
+* {
+    font-family: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: var(--app-body-font);
+    font-size: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.app-heading {
+    font-family: var(--app-heading-font);
+}
+
+.border,
+[class*="border-"] {
+    border-width: var(--app-border-width) !important;
+}
+
+.border-t {
+    border-top-width: var(--app-border-width) !important;
+}
+
+.border-r {
+    border-right-width: var(--app-border-width) !important;
+}
+
+.border-b {
+    border-bottom-width: var(--app-border-width) !important;
+}
+
+.border-l {
+    border-left-width: var(--app-border-width) !important;
+}
+
+:where(
+    button,
+    input,
+    select,
+    textarea,
+    [class*="rounded"],
+    [class*="border"],
+    [role="button"]
+) {
+    border-radius: var(--app-radius);
+}
+
+:where([class*="shadow-"]) {
+    box-shadow: 0 14px 36px
+        rgba(var(--app-shadow-rgb), calc(0.14 * var(--app-shadow-intensity))) !important;
+}
+
+table,
+thead,
+tbody,
+tr,
+th,
+td {
+    border-radius: 0 !important;
+}
+
+.recharts-wrapper text {
+    font-family: var(--app-body-font);
 }
 
 ::selection {

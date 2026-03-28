@@ -49,7 +49,7 @@ export default function RecurringPage() {
                 <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
-                            <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                            <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                                 Recurring Transactions
                             </h2>
                             <p

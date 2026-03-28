@@ -41,7 +41,7 @@ export default function SegmentedControl<T extends string>({
         <div
             role="tablist"
             aria-label="Segmented control"
-            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] rounded-none shadow-none flex gap-2 p-1.5 rounded-xl"
+            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] shadow-none flex gap-2 p-1.5 rounded-xl"
         >
             {options.map((opt, idx) => {
                 const isActive = value === opt;
@@ -72,10 +72,10 @@ export default function SegmentedControl<T extends string>({
                                 ? "var(--theme-text)"
                                 : "var(--theme-text-secondary)",
                             border: isActive
-                                ? `1px solid var(--theme-accent)`
-                                : "1px solid transparent",
+                                ? `var(--app-border-width) solid var(--theme-accent)`
+                                : "var(--app-border-width) solid transparent",
                             boxShadow: isActive
-                                ? "0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1)"
+                                ? "0 8px 20px rgba(var(--app-shadow-rgb), calc(0.2 * var(--app-shadow-intensity))), 0 2px 8px rgba(var(--app-shadow-rgb), calc(0.12 * var(--app-shadow-intensity)))"
                                 : "none",
                             transform: isActive
                                 ? "translateY(-1px)"
@@ -115,7 +115,8 @@ export default function SegmentedControl<T extends string>({
                                 className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
                                 style={{
                                     backgroundColor: "var(--theme-accent)",
-                                    boxShadow: "0 0 6px var(--theme-accent)",
+                                    boxShadow:
+                                        "0 0 10px rgba(var(--app-shadow-rgb), calc(0.32 * var(--app-shadow-intensity)))",
                                 }}
                             />
                         )}

@@ -40,7 +40,7 @@ export default function TemplatesPage() {
                         >
                             Recurring presets
                         </div>
-                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                        <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                             Save recurring expenses as templates
                         </h2>
                         <p

@@ -70,7 +70,7 @@ export default function SummaryPage() {
             <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1">
-                        <h1 className="font-['Playfair_Display'] text-3xl font-semibold tracking-[-0.01em] sm:text-5xl">
+                        <h1 className="app-heading text-3xl font-semibold tracking-[-0.01em] sm:text-5xl">
                             {greeting}
                         </h1>
                         <p
@@ -87,7 +87,7 @@ export default function SummaryPage() {
                                 className="text-[10px] uppercase"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
-                                Net worth
+                                Total Spent
                             </p>
                             <p className="text-3xl font-semibold sm:text-5xl">
                                 {formatMoneyBirr(totalSpent)}
@@ -98,7 +98,7 @@ export default function SummaryPage() {
                                 className="text-[10px] uppercase"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
-                                Messages
+                                Total Expenses
                             </p>
                             <p className="text-3xl font-semibold sm:text-5xl">
                                 {totalCount.toLocaleString()}
@@ -146,7 +146,7 @@ export default function SummaryPage() {
                                 <p className="text-4xl leading-none">
                                     {item.total.toLocaleString()}
                                 </p>
-                                <div className="border-t border-[var(--theme-border)] pt-2 text-xs text-[var(--theme-text-secondary)]">
+                                <div className=" pt-2 text-xs text-[var(--theme-text-secondary)]">
                                     {item.count} transactions
                                 </div>
                             </div>
@@ -281,7 +281,7 @@ export default function SummaryPage() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
                 <GlassCard className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold">
+                        <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold">
                             Recent Activity
                         </h3>
                         <Link
@@ -332,7 +332,7 @@ export default function SummaryPage() {
 
                 <GlassCard className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold">
+                        <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold">
                             Recent Months
                         </h3>
                         <Link

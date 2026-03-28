@@ -1,21 +1,21 @@
 import { useState } from "react";
+import Papa from "papaparse";
+import jsPDF from "jspdf";
 import { getExpenses } from "../api/api";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import Modal from "../components/Modal";
 import { modalCopy } from "../content/modalCopy";
 import ExportControls from "../components/ui/ExportControls";
-import StatCard from "../components/ui/StatCard";
 import ProfileHeader from "../components/ui/ProfileHeader";
-import Papa from "papaparse";
-import jsPDF from "jspdf";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import type { Expense } from "../types/expense";
 import { useProfilePageData } from "../hooks/useProfilePageData";
+import { uiControl } from "../utils/uiClasses";
 
 export default function ProfilePage() {
     const { user, stats, loading } = useProfilePageData();
-    const [_avatarError, setAvatarError] = useState(false);
+    const [, setAvatarError] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
 
@@ -65,16 +65,8 @@ export default function ProfilePage() {
             doc.text("Expense Report", 20, 20);
 
             doc.setFontSize(12);
-            doc.text(
-                `Generated on: ${new Date().toLocaleDateString()}`,
-                20,
-                35,
-            );
-            doc.text(
-                `Total Expenses: ${stats?.totalExpenses || "N/A"}`,
-                20,
-                45,
-            );
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
+            doc.text(`Total Expenses: ${stats?.totalExpenses || "N/A"}`, 20, 45);
 
             let yPosition = 65;
             doc.setFontSize(10);
@@ -93,13 +85,9 @@ export default function ProfilePage() {
                     yPosition = 20;
                 }
 
-                doc.text(
-                    new Date(expense.date).toLocaleDateString(),
-                    20,
-                    yPosition,
-                );
+                doc.text(new Date(expense.date).toLocaleDateString(), 20, yPosition);
                 doc.text(expense.description.substring(0, 25), 60, yPosition);
-                doc.text(`$${expense.amount.toFixed(2)}`, 140, yPosition);
+                doc.text(`Birr ${expense.amount.toFixed(2)}`, 140, yPosition);
                 doc.text(expense.type, 170, yPosition);
                 yPosition += 8;
             });
@@ -116,6 +104,7 @@ export default function ProfilePage() {
     const handleGoogleDriveSync = () => {
         setShowGoogleDriveModal(true);
     };
+
     if (loading) {
         return <PageSkeleton title="Loading profile" />;
     }
@@ -128,265 +117,209 @@ export default function ProfilePage() {
         );
     }
 
+    const monthlySeries = stats.monthlyAssessment || [];
+    const monthlyTotal = monthlySeries.reduce((sum, month) => sum + month.total, 0);
+    const monthlyCount = monthlySeries.length;
+    const monthlyTransactionCount = monthlySeries.reduce(
+        (sum, month) => sum + month.count,
+        0,
+    );
+    const avgMonthlySpend = monthlyCount ? monthlyTotal / monthlyCount : 0;
+    const avgTransactionSize = monthlyTransactionCount
+        ? monthlyTotal / monthlyTransactionCount
+        : 0;
+
+    const mostActiveMonth = monthlySeries.reduce(
+        (current, month) => (month.count > current.count ? month : current),
+        monthlySeries[0] || {
+            _id: "-",
+            total: 0,
+            count: 0,
+            maxExpense: 0,
+            minExpense: 0,
+        },
+    );
+
+    const latestMonth = monthlySeries[monthlySeries.length - 1];
+
     return (
         <PageContainer
             title="Profile"
             subtitle="Review account insights, monthly summaries, and export your financial data."
             className="space-y-6"
         >
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex-1 space-y-2">
-                        <div
-                            className="text-xs uppercase tracking-[0.2em]"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
+            <GlassCard className="p-5">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+                    <div>
+                        <div className="text-xs uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
                             Account overview
                         </div>
-                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                        <h2 className="app-heading mt-2 text-2xl font-semibold tracking-[-0.01em] sm:text-3xl">
                             Welcome back, {user.name}
                         </h2>
-                        <p
-                            className="text-sm"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            Member since{" "}
-                            {new Date(user.createdAt).toLocaleDateString()}.
+                        <p className="mt-2 text-sm text-[var(--theme-text-secondary)]">
+                            Member since {new Date(user.createdAt).toLocaleDateString()}
                         </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6">
-                        <div>
-                            <div
-                                className="text-xs uppercase tracking-[0.2em]"
-                                style={{ color: "var(--theme-text-secondary)" }}
-                            >
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
                                 Total expenses
-                            </div>
-                            <div className="text-2xl font-semibold">
-                                {stats.totalExpenses}
-                            </div>
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold">{stats.totalExpenses}</p>
                         </div>
-                        <div>
-                            <div
-                                className="text-xs uppercase tracking-[0.2em]"
-                                style={{ color: "var(--theme-text-secondary)" }}
-                            >
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
                                 Active types
-                            </div>
-                            <div className="text-2xl font-semibold">
-                                {stats.totalTypes}
-                            </div>
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold">{stats.totalTypes}</p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Avg monthly spend
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">Birr {avgMonthlySpend.toFixed(0)}</p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Avg expense size
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">Birr {avgTransactionSize.toFixed(0)}</p>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
-                    <div
-                        className="text-xs font-semibold uppercase"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Most expensive
-                    </div>
-                    <div className="text-lg font-semibold sm:text-xl">
-                        Birr {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
-                    </div>
-                </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
-                    <div
-                        className="text-xs font-semibold uppercase"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Cheapest
-                    </div>
-                    <div className="text-lg font-semibold sm:text-xl">
-                        Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
-                    </div>
-                </div>
-                <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
-                    <div
-                        className="text-xs font-semibold uppercase"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Monthly reports
-                    </div>
-                    <div className="text-lg font-semibold sm:text-xl">
-                        {stats.monthlyAssessment.length}
-                    </div>
-                </div>
-            </div>
-
-            <GlassCard className="mb-6">
-                <ProfileHeader
-                    name={user.name}
-                    email={user.email}
-                    picture={user.picture}
-                    onImageError={() => setAvatarError(true)}
-                />
-                <p
-                    className="text-sm"
-                    style={{ color: "var(--theme-text-secondary)" }}
-                >
-                    Account created:{" "}
-                    {new Date(user.createdAt).toLocaleDateString()}
-                </p>
             </GlassCard>
 
-            <GlassCard>
-                <h2
-                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
-                    style={{ color: "var(--theme-primary)" }}
-                >
-                    Expense Statistics
-                </h2>
-                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-                    <StatCard
-                        title="Total Expenses"
-                        value={stats.totalExpenses}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <GlassCard className="p-4">
+                    <ProfileHeader
+                        name={user.name}
+                        email={user.email}
+                        picture={user.picture}
+                        onImageError={() => setAvatarError(true)}
                     />
-                    <StatCard title="Total Types" value={stats.totalTypes} />
-                    <StatCard title="Most Expensive">
-                        <p
-                            className="text-lg sm:text-xl lg:text-xl font-bold"
-                            style={{ color: "var(--theme-secondary)" }}
-                        >
-                            Birr{" "}
-                            {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3 text-sm text-[var(--theme-text-secondary)]">
+                        Account created {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                </GlassCard>
+
+                <GlassCard className="p-4 lg:col-span-2">
+                    <h3 className="app-heading text-lg font-semibold">Spending highlights</h3>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Highest expense
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">
+                                Birr {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
+                            </p>
+                            <p className="text-xs text-[var(--theme-text-secondary)] truncate">
+                                {stats.mostExpensive?.description || "No data"}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Lowest expense
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">
+                                Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
+                            </p>
+                            <p className="text-xs text-[var(--theme-text-secondary)] truncate">
+                                {stats.cheapest?.description || "No data"}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Most active month
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">{mostActiveMonth?._id || "-"}</p>
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                {mostActiveMonth?.count || 0} expenses logged
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Latest month total
+                            </p>
+                            <p className="mt-1 text-lg font-semibold">
+                                Birr {latestMonth ? latestMonth.total.toFixed(2) : "0.00"}
+                            </p>
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                {latestMonth ? latestMonth.count : 0} expenses
+                            </p>
+                        </div>
+                    </div>
+                </GlassCard>
+            </div>
+
+            <GlassCard className="p-4">
+                <h3 className="app-heading text-lg font-semibold">Recent monthly assessment</h3>
+                <div className="mt-3 space-y-2">
+                    {monthlySeries.length === 0 ? (
+                        <p className="text-sm text-[var(--theme-text-secondary)]">
+                            No monthly data yet.
                         </p>
-                        <p
-                            className="text-sm"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            {stats.mostExpensive?.description || ""}
-                        </p>
-                    </StatCard>
-                    <StatCard title="Cheapest">
-                        <p
-                            className="text-lg sm:text-xl lg:text-xl font-bold"
-                            style={{ color: "var(--theme-accent)" }}
-                        >
-                            Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
-                        </p>
-                        <p
-                            className="text-sm"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            {stats.cheapest?.description || ""}
-                        </p>
-                    </StatCard>
+                    ) : (
+                        monthlySeries
+                            .slice()
+                            .reverse()
+                            .slice(0, 6)
+                            .map((month) => (
+                                <div
+                                    key={month._id}
+                                    className="grid grid-cols-2 gap-2 border border-[var(--theme-border)] bg-[var(--theme-background)] p-3 text-sm md:grid-cols-5"
+                                >
+                                    <div>
+                                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                            Month
+                                        </p>
+                                        <p className="font-semibold">{month._id}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                            Total
+                                        </p>
+                                        <p className="font-semibold">Birr {month.total.toFixed(2)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                            Count
+                                        </p>
+                                        <p className="font-semibold">{month.count}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                            Max
+                                        </p>
+                                        <p className="font-semibold">Birr {month.maxExpense.toFixed(2)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                            Min
+                                        </p>
+                                        <p className="font-semibold">Birr {month.minExpense.toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            ))
+                    )}
                 </div>
             </GlassCard>
 
-            <GlassCard>
-                <h3
-                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
-                    style={{ color: "var(--theme-primary)" }}
-                >
-                    Monthly Assessment
-                </h3>
-                <div className="space-y-4">
-                    {stats.monthlyAssessment.map((month) => (
-                        <GlassCard key={month._id} className="p-4">
-                            <h4
-                                className="text-xs sm:text-sm lg:text-sm font-semibold"
-                                style={{ color: "var(--theme-primary)" }}
-                            >
-                                {month._id}
-                            </h4>
-                            <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-                                <div>
-                                    <p
-                                        className="text-sm"
-                                        style={{
-                                            color: "var(--theme-text-secondary)",
-                                        }}
-                                    >
-                                        Total Spent
-                                    </p>
-                                    <p
-                                        className="text-lg font-bold"
-                                        style={{ color: "var(--theme-accent)" }}
-                                    >
-                                        Birr {month.total.toFixed(2)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p
-                                        className="text-sm"
-                                        style={{
-                                            color: "var(--theme-text-secondary)",
-                                        }}
-                                    >
-                                        Expenses Count
-                                    </p>
-                                    <p
-                                        className="font-bold"
-                                        style={{
-                                            color: "var(--theme-primary)",
-                                        }}
-                                    >
-                                        {month.count}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p
-                                        className="text-sm"
-                                        style={{
-                                            color: "var(--theme-text-secondary)",
-                                        }}
-                                    >
-                                        Highest Expense
-                                    </p>
-                                    <p
-                                        className="font-bold"
-                                        style={{
-                                            color: "var(--theme-secondary)",
-                                        }}
-                                    >
-                                        Birr {month.maxExpense.toFixed(2)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p
-                                        className="text-sm"
-                                        style={{
-                                            color: "var(--theme-text-secondary)",
-                                        }}
-                                    >
-                                        Lowest Expense
-                                    </p>
-                                    <p
-                                        className="font-bold"
-                                        style={{ color: "var(--theme-accent)" }}
-                                    >
-                                        Birr {month.minExpense.toFixed(2)}
-                                    </p>
-                                </div>
-                            </div>
-                        </GlassCard>
-                    ))}
+            <GlassCard className="p-4">
+                <h3 className="app-heading text-lg font-semibold">Export & Sync</h3>
+                <p className="mt-1 text-sm text-[var(--theme-text-secondary)]">
+                    Download your spending data or prepare cloud sync backup.
+                </p>
+                <div className="mt-4">
+                    <ExportControls
+                        onCSV={handleCSVExport}
+                        onPDF={handlePDFExport}
+                        onDrive={handleGoogleDriveSync}
+                        exporting={exporting}
+                    />
                 </div>
-            </GlassCard>
-
-            <GlassCard>
-                <h3
-                    className="text-xs sm:text-sm lg:text-sm font-semibold mb-4"
-                    style={{ color: "var(--theme-primary)" }}
-                >
-                    Export & Sync
-                </h3>
-                <ExportControls
-                    onCSV={handleCSVExport}
-                    onPDF={handlePDFExport}
-                    onDrive={handleGoogleDriveSync}
-                    exporting={exporting}
-                />
                 {exporting && (
-                    <p
-                        className="text-sm mt-2"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
+                    <p className="mt-2 text-sm text-[var(--theme-text-secondary)]">
                         Exporting data...
                     </p>
                 )}
@@ -400,36 +333,22 @@ export default function ProfilePage() {
                 actions={
                     <button
                         onClick={() => setShowGoogleDriveModal(false)}
-                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm rounded-lg transition-all hover:opacity-90"
-                        style={{
-                            backgroundColor: "var(--theme-primary)",
-                            color: "white",
-                        }}
+                        className={uiControl.buttonPrimary}
                     >
                         {modalCopy.profile.syncConfirm}
                     </button>
                 }
             >
                 <div className="space-y-4">
-                    <p style={{ color: "var(--theme-text)" }}>
-                        {modalCopy.profile.syncBody}
-                    </p>
-                    <ul
-                        className="list-disc list-inside space-y-2"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        <li>
-                            Automatically backup your expense data to Google
-                            Drive
-                        </li>
+                    <p className="text-[var(--theme-text)]">{modalCopy.profile.syncBody}</p>
+                    <ul className="list-disc list-inside space-y-2 text-[var(--theme-text-secondary)]">
+                        <li>Automatically backup your expense data to Google Drive</li>
                         <li>Sync data across multiple devices</li>
                         <li>Restore your data if needed</li>
                         <li>Share expense reports with others</li>
                     </ul>
-                    <p style={{ color: "var(--theme-text)" }}>
-                        This feature is currently in development and will be
-                        available in a future update. Stay tuned for more
-                        information!
+                    <p className="text-[var(--theme-text)]">
+                        This feature is currently in development and will be available in a future update.
                     </p>
                 </div>
             </Modal>

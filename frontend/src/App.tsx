@@ -71,7 +71,7 @@ export default function App() {
                 {!user ? (
                     <LoginPage />
                 ) : (
-                    <div className="relative min-h-screen bg-[var(--theme-background)] text-[var(--theme-text)] font-['Lexend'] transition-colors duration-300">
+                    <div className="relative min-h-screen bg-[var(--theme-background)] text-[var(--theme-text)] transition-colors duration-300">
                         <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_100%_0%,var(--theme-aura-one)_0%,transparent_32%),radial-gradient(circle_at_0%_100%,var(--theme-aura-two)_0%,transparent_34%)]" />
                         <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(to_right,var(--theme-grid)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-grid)_1px,transparent_1px)] bg-[size:44px_44px] opacity-55" />
                         {isMobileSidebarOpen && (

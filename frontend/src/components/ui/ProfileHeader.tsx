@@ -12,10 +12,10 @@ export default function ProfileHeader({
     onImageError,
 }: Props) {
     return (
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="mb-4 flex items-center gap-4">
             {!picture ? (
                 <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-white text-sm sm:text-base lg:text-base"
+                    className="flex h-16 w-16 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] text-sm"
                     style={{ backgroundColor: "var(--theme-primary)" }}
                 >
                     💰
@@ -24,18 +24,17 @@ export default function ProfileHeader({
                 <img
                     src={picture}
                     alt={name}
-                    className="w-16 h-16 rounded-full"
+                    className="h-16 w-16 border border-[var(--theme-border)] object-cover"
                     onError={onImageError}
                 />
             )}
             <div>
-                <h3
-                    className="text-xs sm:text-sm lg:text-sm font-semibold"
-                    style={{ color: "var(--theme-primary)" }}
-                >
+                <h3 className="app-heading text-base font-semibold text-[var(--theme-text)]">
                     {name}
                 </h3>
-                <p style={{ color: "var(--theme-textSecondary)" }}>{email}</p>
+                <p className="text-sm text-[var(--theme-text-secondary)]">
+                    {email}
+                </p>
             </div>
         </div>
     );

@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Expense, ExpenseFilterPreset } from "../types/expense";
-import type { Workspace, WorkspaceMember } from "../types/workspace";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
 import Modal from "../components/Modal";
-import { RotateCcw, Plus, Save, Star, Trash2 } from "lucide-react";
+import {
+    RotateCcw,
+    Plus,
+    Save,
+    Star,
+    Trash2,
+    Loader2,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import { formatBudgetPeriod } from "../utils/dateFormatter";
@@ -14,12 +22,8 @@ import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
 import {
     createExpenseFilterPreset,
-    createWorkspace,
     deleteExpenseFilterPreset,
     getExpenseFilterPresets,
-    getWorkspaceMembers,
-    getWorkspaces,
-    joinWorkspace,
     setDefaultExpenseFilterPreset,
 } from "../api/api";
 
@@ -31,9 +35,6 @@ const DEFAULT_FILTERS = {
     maxAmount: "",
     includeMode: "all" as "all" | "included" | "excluded",
     recurringMode: "all" as "all" | "recurring" | "non-recurring",
-    scope: "all" as "all" | "personal" | "shared",
-    workspaceId: "",
-    memberId: "",
     category: "all",
     tag: "",
 };
@@ -59,21 +60,13 @@ export default function ExpensePage({
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
     const [debouncedFilters, setDebouncedFilters] = useState(filters);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(50);
     const [filterPresets, setFilterPresets] = useState<ExpenseFilterPreset[]>(
         [],
     );
     const [presetName, setPresetName] = useState("");
     const [presetStatus, setPresetStatus] = useState("");
     const [presetBusy, setPresetBusy] = useState(false);
-    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-    const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>(
-        [],
-    );
-    const [workspaceName, setWorkspaceName] = useState("");
-    const [joinCode, setJoinCode] = useState("");
-    const [workspaceStatus, setWorkspaceStatus] = useState("");
-    const [workspaceBusy, setWorkspaceBusy] = useState(false);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -105,21 +98,9 @@ export default function ExpensePage({
                         ? undefined
                         : current.recurringMode === "recurring",
                 keyword: current.keyword.trim() || undefined,
-                scope: current.scope === "all" ? undefined : current.scope,
-                workspaceId: current.workspaceId || undefined,
-                memberId: current.memberId || undefined,
             }),
         [filters],
     );
-
-    const loadWorkspaces = async () => {
-        try {
-            const res = await getWorkspaces();
-            setWorkspaces(res.data || []);
-        } catch (error) {
-            console.error("Failed to load workspaces:", error);
-        }
-    };
 
     const loadPresets = async () => {
         try {
@@ -138,27 +119,7 @@ export default function ExpensePage({
 
     useEffect(() => {
         void loadPresets();
-        void loadWorkspaces();
     }, []);
-
-    useEffect(() => {
-        if (!filters.workspaceId) {
-            setWorkspaceMembers([]);
-            return;
-        }
-
-        const loadMembers = async () => {
-            try {
-                const res = await getWorkspaceMembers(filters.workspaceId);
-                setWorkspaceMembers(res.data?.members || []);
-            } catch (error) {
-                console.error("Failed to load workspace members:", error);
-                setWorkspaceMembers([]);
-            }
-        };
-
-        void loadMembers();
-    }, [filters.workspaceId]);
 
     const applyPreset = (preset: ExpenseFilterPreset) => {
         const saved = preset.filters || {};
@@ -180,9 +141,6 @@ export default function ExpensePage({
                     : saved.isRecurring
                       ? "recurring"
                       : "non-recurring",
-            scope: saved.scope || "all",
-            workspaceId: saved.workspaceId || "",
-            memberId: saved.memberId || "",
             category: saved.type || "all",
             tag: saved.tags || "",
         });
@@ -255,48 +213,6 @@ export default function ExpensePage({
         }
     };
 
-    const handleCreateWorkspace = async () => {
-        const name = workspaceName.trim();
-        if (!name) {
-            setWorkspaceStatus("Enter a workspace name.");
-            return;
-        }
-
-        setWorkspaceBusy(true);
-        try {
-            await createWorkspace({ name });
-            setWorkspaceName("");
-            await loadWorkspaces();
-            setWorkspaceStatus("Workspace created.");
-        } catch (error) {
-            console.error("Failed to create workspace:", error);
-            setWorkspaceStatus("Could not create workspace right now.");
-        } finally {
-            setWorkspaceBusy(false);
-        }
-    };
-
-    const handleJoinWorkspace = async () => {
-        const inviteCode = joinCode.trim().toUpperCase();
-        if (!inviteCode) {
-            setWorkspaceStatus("Enter an invite code.");
-            return;
-        }
-
-        setWorkspaceBusy(true);
-        try {
-            await joinWorkspace({ inviteCode });
-            setJoinCode("");
-            await loadWorkspaces();
-            setWorkspaceStatus("Joined workspace.");
-        } catch (error) {
-            console.error("Failed to join workspace:", error);
-            setWorkspaceStatus("Invite code invalid or unavailable.");
-        } finally {
-            setWorkspaceBusy(false);
-        }
-    };
-
     const expenseQuery = useMemo(
         () => ({
             from: debouncedFilters.fromDate || undefined,
@@ -317,12 +233,6 @@ export default function ExpensePage({
                     ? undefined
                     : debouncedFilters.recurringMode === "recurring",
             keyword: debouncedFilters.keyword.trim() || undefined,
-            scope:
-                debouncedFilters.scope === "all"
-                    ? undefined
-                    : debouncedFilters.scope,
-            workspaceId: debouncedFilters.workspaceId || undefined,
-            memberId: debouncedFilters.memberId || undefined,
             page,
             limit: pageSize,
         }),
@@ -333,7 +243,8 @@ export default function ExpensePage({
         expenses,
         total,
         budgets,
-        loading,
+        initialLoading,
+        isFetching,
         recurringCount,
         pagination,
         addExpense,
@@ -360,6 +271,28 @@ export default function ExpensePage({
 
     const hasNextPage = page < pagination.totalPages;
     const hasPrevPage = page > 1;
+
+    const visiblePageNumbers = useMemo(() => {
+        const totalPages = pagination.totalPages || 1;
+        const windowSize = 5;
+
+        if (totalPages <= windowSize) {
+            return Array.from({ length: totalPages }, (_, idx) => idx + 1);
+        }
+
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, start + windowSize - 1);
+        const adjustedStart = Math.max(1, end - windowSize + 1);
+
+        return Array.from(
+            { length: end - adjustedStart + 1 },
+            (_, idx) => adjustedStart + idx,
+        );
+    }, [page, pagination.totalPages]);
+
+    const pageStartItem =
+        pagination.total === 0 ? 0 : (page - 1) * pageSize + 1;
+    const pageEndItem = Math.min(page * pageSize, pagination.total);
 
     const handleEdit = (expense: Expense) => {
         setEditingExpense(expense);
@@ -391,7 +324,7 @@ export default function ExpensePage({
         setShowRecurringModal(true);
     };
 
-    if (loading) {
+    if (initialLoading) {
         return <PageSkeleton title="Loading expenses" />;
     }
 
@@ -410,7 +343,7 @@ export default function ExpensePage({
                         >
                             Daily tracking
                         </div>
-                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                        <h2 className="app-heading text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                             Keep every expense in one place
                         </h2>
                         <p
@@ -544,103 +477,12 @@ export default function ExpensePage({
 
                         <div className="space-y-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
-                                Shared household/workspaces
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                <div className="flex gap-2">
-                                    <input
-                                        className={uiControl.input}
-                                        value={workspaceName}
-                                        onChange={(e) =>
-                                            setWorkspaceName(e.target.value)
-                                        }
-                                        placeholder="Create workspace name"
-                                    />
-                                    <button
-                                        type="button"
-                                        className={uiControl.buttonPrimary}
-                                        onClick={() =>
-                                            void handleCreateWorkspace()
-                                        }
-                                        disabled={workspaceBusy}
-                                    >
-                                        Create
-                                    </button>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <input
-                                        className={uiControl.input}
-                                        value={joinCode}
-                                        onChange={(e) =>
-                                            setJoinCode(e.target.value)
-                                        }
-                                        placeholder="Invite code"
-                                    />
-                                    <button
-                                        type="button"
-                                        className={uiControl.button}
-                                        onClick={() =>
-                                            void handleJoinWorkspace()
-                                        }
-                                        disabled={workspaceBusy}
-                                    >
-                                        Join
-                                    </button>
-                                </div>
-                            </div>
-
-                            {workspaces.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                    {workspaces.map((workspace) => (
-                                        <button
-                                            key={workspace._id}
-                                            type="button"
-                                            className={`border px-2 py-1 text-xs transition-colors ${filters.workspaceId === workspace._id ? "bg-[var(--theme-active)]" : "bg-[var(--theme-background)]"}`}
-                                            style={{
-                                                borderColor:
-                                                    "var(--theme-border)",
-                                            }}
-                                            onClick={() =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    workspaceId:
-                                                        prev.workspaceId ===
-                                                        workspace._id
-                                                            ? ""
-                                                            : workspace._id,
-                                                    scope:
-                                                        prev.workspaceId ===
-                                                        workspace._id
-                                                            ? prev.scope
-                                                            : "shared",
-                                                    memberId: "",
-                                                }))
-                                            }
-                                        >
-                                            {workspace.name} (
-                                            {workspace.members.length})
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            {workspaceStatus && (
-                                <p className="text-xs text-[var(--theme-text-secondary)]">
-                                    {workspaceStatus}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
                                 Saved presets
                             </p>
 
-                            <div className="flex flex-col gap-2 sm:flex-row">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                 <input
-                                    className={uiControl.input}
+                                    className={`${uiControl.input} mt-0 sm:flex-1`}
                                     value={presetName}
                                     onChange={(e) =>
                                         setPresetName(e.target.value)
@@ -649,7 +491,7 @@ export default function ExpensePage({
                                 />
                                 <button
                                     type="button"
-                                    className={uiControl.buttonPrimary}
+                                    className={`${uiControl.buttonPrimary} h-10 px-4 whitespace-nowrap sm:min-w-[140px]`}
                                     onClick={() => void handleSavePreset()}
                                     disabled={presetBusy}
                                 >
@@ -724,95 +566,6 @@ export default function ExpensePage({
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            <div>
-                                <label className={uiControl.label}>Scope</label>
-                                <select
-                                    className={uiControl.select}
-                                    value={filters.scope}
-                                    onChange={(e) =>
-                                        setFilters((prev) => ({
-                                            ...prev,
-                                            scope: e.target.value as
-                                                | "all"
-                                                | "personal"
-                                                | "shared",
-                                        }))
-                                    }
-                                >
-                                    <option value="all">All spending</option>
-                                    <option value="personal">
-                                        Personal only
-                                    </option>
-                                    <option value="shared">Shared only</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className={uiControl.label}>
-                                    Workspace
-                                </label>
-                                <select
-                                    className={uiControl.select}
-                                    value={filters.workspaceId}
-                                    onChange={(e) =>
-                                        setFilters((prev) => ({
-                                            ...prev,
-                                            workspaceId: e.target.value,
-                                            scope: e.target.value
-                                                ? "shared"
-                                                : prev.scope,
-                                            memberId: "",
-                                        }))
-                                    }
-                                >
-                                    <option value="">All workspaces</option>
-                                    {workspaces.map((workspace) => (
-                                        <option
-                                            key={workspace._id}
-                                            value={workspace._id}
-                                        >
-                                            {workspace.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {filters.workspaceId && (
-                                    <p className="mt-1 text-[11px] text-[var(--theme-text-secondary)]">
-                                        Invite:{" "}
-                                        {workspaces.find(
-                                            (w) =>
-                                                w._id === filters.workspaceId,
-                                        )?.inviteCode || "-"}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className={uiControl.label}>
-                                    Member
-                                </label>
-                                <select
-                                    className={uiControl.select}
-                                    value={filters.memberId}
-                                    onChange={(e) =>
-                                        setFilters((prev) => ({
-                                            ...prev,
-                                            memberId: e.target.value,
-                                        }))
-                                    }
-                                    disabled={!filters.workspaceId}
-                                >
-                                    <option value="">All members</option>
-                                    {workspaceMembers.map((member) => (
-                                        <option
-                                            key={member.userId._id}
-                                            value={member.userId._id}
-                                        >
-                                            {member.userId.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
                             <div>
                                 <label className={uiControl.label}>
                                     Keyword
@@ -1001,64 +754,114 @@ export default function ExpensePage({
 
                         <p className="text-xs text-[var(--theme-text-secondary)]">
                             Live filtering by date range, amount,
-                            include/exclude, recurring-only,
-                            scope/workspace/member, category, keyword, and tags.
+                            include/exclude, recurring-only, category, keyword,
+                            and tags.
                         </p>
                     </GlassCard>
 
-                    <ExpenseTable
-                        expenses={expenses}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                    />
+                    <div className="relative">
+                        {isFetching && (
+                            <div className="pointer-events-none absolute right-2 top-2 z-10 inline-flex items-center gap-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] px-2 py-1 text-[11px] text-[var(--theme-text-secondary)]">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Updating results...
+                            </div>
+                        )}
+                        <ExpenseTable
+                            expenses={expenses}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    </div>
 
-                    <div className="flex flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-xs text-[var(--theme-text-secondary)]">
-                            Showing page {page} of {pagination.totalPages} •{" "}
-                            {expenses.length} items this page •{" "}
-                            {pagination.total} total matches
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <select
-                                className={uiControl.select}
-                                value={pageSize}
-                                onChange={(e) => {
-                                    const nextSize = Number(e.target.value);
-                                    setPageSize(nextSize);
-                                    setPage(1);
-                                }}
-                            >
-                                <option value={20}>20 / page</option>
-                                <option value={50}>50 / page</option>
-                                <option value={100}>100 / page</option>
-                            </select>
-                            <button
-                                type="button"
-                                className={uiControl.button}
-                                disabled={!hasPrevPage}
-                                onClick={() =>
-                                    setPage((current) =>
-                                        Math.max(1, current - 1),
-                                    )
-                                }
-                            >
-                                Previous
-                            </button>
-                            <button
-                                type="button"
-                                className={uiControl.button}
-                                disabled={!hasNextPage}
-                                onClick={() =>
-                                    setPage((current) =>
-                                        Math.min(
-                                            pagination.totalPages,
-                                            current + 1,
-                                        ),
-                                    )
-                                }
-                            >
-                                Next
-                            </button>
+                    <div className="flex flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="space-y-0.5 text-xs text-[var(--theme-text-secondary)]">
+                            <p>
+                                Showing {pageStartItem}-{pageEndItem} of{" "}
+                                {pagination.total} results
+                            </p>
+                            <p>
+                                Page {page} of {pagination.totalPages}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-[var(--theme-text-secondary)]">
+                                    Rows
+                                </span>
+                                <select
+                                    className={`${uiControl.select} h-9 min-w-[110px]`}
+                                    value={pageSize}
+                                    onChange={(e) => {
+                                        const nextSize = Number(e.target.value);
+                                        setPageSize(nextSize);
+                                        setPage(1);
+                                    }}
+                                >
+                                    <option value={25}>25 / page</option>
+                                    <option value={50}>50 / page</option>
+                                    <option value={100}>100 / page</option>
+                                    <option value={200}>200 / page</option>
+                                </select>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    className={`${uiControl.button} h-9 px-2`}
+                                    disabled={!hasPrevPage}
+                                    onClick={() =>
+                                        setPage((current) =>
+                                            Math.max(1, current - 1),
+                                        )
+                                    }
+                                    title="Previous page"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+
+                                {visiblePageNumbers[0] > 1 && (
+                                    <span className="px-1 text-[var(--theme-text-secondary)]">
+                                        ...
+                                    </span>
+                                )}
+
+                                {visiblePageNumbers.map((pageNumber) => (
+                                    <button
+                                        key={pageNumber}
+                                        type="button"
+                                        onClick={() => setPage(pageNumber)}
+                                        className={`h-9 min-w-9 border px-2 text-xs font-medium transition-colors ${pageNumber === page ? "border-[var(--theme-accent)] bg-[var(--theme-accent)] text-[var(--theme-background)]" : "border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)]"}`}
+                                    >
+                                        {pageNumber}
+                                    </button>
+                                ))}
+
+                                {visiblePageNumbers[
+                                    visiblePageNumbers.length - 1
+                                ] < pagination.totalPages && (
+                                    <span className="px-1 text-[var(--theme-text-secondary)]">
+                                        ...
+                                    </span>
+                                )}
+
+                                <button
+                                    type="button"
+                                    className={`${uiControl.button} h-9 px-2`}
+                                    disabled={!hasNextPage}
+                                    onClick={() =>
+                                        setPage((current) =>
+                                            Math.min(
+                                                pagination.totalPages,
+                                                current + 1,
+                                            ),
+                                        )
+                                    }
+                                    title="Next page"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1086,7 +889,8 @@ export default function ExpensePage({
                                                             "var(--theme-surface)",
                                                         borderColor:
                                                             "var(--theme-border)",
-                                                        borderWidth: "1px",
+                                                        borderWidth:
+                                                            "var(--app-border-width)",
                                                     }}
                                                 >
                                                     {formatBudgetPeriod(budget)}
@@ -1205,7 +1009,8 @@ export default function ExpensePage({
                                                             "var(--theme-surface)",
                                                         borderColor:
                                                             "var(--theme-text-secondary)",
-                                                        borderWidth: "1px",
+                                                        borderWidth:
+                                                            "var(--app-border-width)",
                                                     }}
                                                 >
                                                     <div
@@ -1306,8 +1111,6 @@ export default function ExpensePage({
                     onAdd={(createdExpense) => {
                         addExpense(createdExpense);
                     }}
-                    workspaces={workspaces}
-                    defaultWorkspaceId={filters.workspaceId || undefined}
                 />
             </Modal>
 
@@ -1325,7 +1128,6 @@ export default function ExpensePage({
                             setEditingExpense(null);
                         }}
                         editExpense={editingExpense}
-                        workspaces={workspaces}
                     />
                 )}
             </Modal>
