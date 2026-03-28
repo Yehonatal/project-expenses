@@ -115,14 +115,14 @@ export default function ThemeSelector() {
             </button>
 
             {open && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 py-8 ">
-                    <div className="w-full max-w-[960px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-0 shadow-xl">
-                        <div className="flex items-start justify-between border-b border-[var(--theme-border)] px-5 py-4">
+                <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-black/20 px-2 py-2 sm:items-center sm:px-4 sm:py-8">
+                    <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-[960px] flex-col border border-[var(--theme-border)] bg-[var(--theme-surface)] p-0 shadow-xl sm:max-h-[calc(100dvh-4rem)]">
+                        <div className="flex items-start justify-between border-b border-[var(--theme-border)] px-4 py-3 sm:px-5 sm:py-4">
                             <div>
-                                <h2 className="app-heading text-[30px] leading-none">
+                                <h2 className="app-heading text-2xl leading-none sm:text-[30px]">
                                     Appearance
                                 </h2>
-                                <p className="mt-2 text-sm text-[var(--theme-text-secondary)]">
+                                <p className="mt-1 text-xs text-[var(--theme-text-secondary)] sm:mt-2 sm:text-sm">
                                     Customize your experience with different
                                     themes and styles.
                                 </p>
@@ -137,7 +137,7 @@ export default function ThemeSelector() {
                             </button>
                         </div>
 
-                        <div className="space-y-6 px-5 py-4">
+                        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-3 [-webkit-overflow-scrolling:touch] sm:space-y-6 sm:px-5 sm:py-4">
                             <section className="space-y-3">
                                 <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
                                     Theme Presets
@@ -359,7 +359,7 @@ export default function ThemeSelector() {
                             </section>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-[var(--theme-border)] px-5 py-4">
+                        <div className="flex items-center justify-between border-t border-[var(--theme-border)] px-4 py-3 sm:px-5 sm:py-4">
                             <button
                                 type="button"
                                 className={uiControl.button}
