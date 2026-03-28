@@ -5,6 +5,11 @@ import type { Workspace } from "../types/workspace";
 import { Plus, Pencil, Trash2, Send, ListChecks, X } from "lucide-react";
 import Toast from "./Toast";
 import { uiControl } from "../utils/uiClasses";
+import {
+    createExpenseOfflineAware,
+    updateExpenseOfflineAware,
+    type ExpenseWritePayload,
+} from "../services/offlineExpenseQueue";
 
 type ExpenseFormData = {
     date: string;
@@ -18,20 +23,14 @@ type ExpenseFormData = {
     frequency: "weekly" | "monthly";
 };
 
-type QueuedExpense = {
-    date: string;
-    description: string;
-    amount: number;
-    included: boolean;
-    type: string;
+type QueuedExpense = ExpenseWritePayload & {
     tags: string[];
-    workspaceId?: string;
     isRecurring: boolean;
     frequency: "weekly" | "monthly";
 };
 
 type ExpenseFormProps = {
-    onAdd: (expense: Expense) => void;
+    onAdd: (expense?: Expense, options?: { queued?: boolean }) => void;
     editExpense?: Expense | null;
     workspaces?: Workspace[];
     defaultWorkspaceId?: string;
@@ -292,6 +291,7 @@ export default function ExpenseForm({
 
         setIsSubmittingQueue(true);
         let successCount = 0;
+        let queuedCount = 0;
         let failureCount = 0;
 
         const queueSnapshot = [...queuedExpenses];
@@ -307,9 +307,14 @@ export default function ExpenseForm({
 
         for (const item of queueSnapshot) {
             try {
-                const res = await API.post<Expense>("/expenses", item);
-                onAdd(res.data);
-                successCount += 1;
+                const result = await createExpenseOfflineAware(item);
+                if (result.queued) {
+                    queuedCount += 1;
+                    onAdd(undefined, { queued: true });
+                } else {
+                    onAdd(result.expense);
+                    successCount += 1;
+                }
             } catch (error) {
                 console.error("Failed to submit queued expense:", error);
                 failureCount += 1;
@@ -323,12 +328,15 @@ export default function ExpenseForm({
 
         if (failureCount > 0) {
             setToast({
-                message: `${successCount} submitted, ${failureCount} failed.`,
+                message: `${successCount} submitted, ${queuedCount} queued offline, ${failureCount} failed.`,
                 type: "error",
             });
         } else {
             setToast({
-                message: `Submitted ${successCount} expense${successCount === 1 ? "" : "s"} successfully!`,
+                message:
+                    queuedCount > 0
+                        ? `Submitted ${successCount}, queued ${queuedCount} for sync.`
+                        : `Submitted ${successCount} expense${successCount === 1 ? "" : "s"} successfully!`,
                 type: "success",
             });
         }
@@ -344,29 +352,25 @@ export default function ExpenseForm({
                 await ensureTypeExists(enteredType);
             }
 
-            const res = await API.put<Expense>(
-                `/expenses/${editExpense?._id}`,
-                {
-                    ...form,
-                    amount: parseFloat(form.amount),
-                    type: form.type.trim().toLowerCase(),
-                    tags: Array.from(
-                        new Set(
-                            form.tagsInput
-                                .split(",")
-                                .map((tag) => tag.trim().toLowerCase())
-                                .filter(Boolean),
-                        ),
-                    ),
-                    workspaceId: form.workspaceId || undefined,
-                },
-            );
+            const payload = buildPayloadFromForm();
+            if (!payload || !editExpense?._id) {
+                return;
+            }
 
-            onAdd(res.data);
-            setToast({
-                message: "Expense updated successfully!",
-                type: "success",
-            });
+            const result = await updateExpenseOfflineAware(editExpense._id, payload);
+            if (result.queued) {
+                onAdd(undefined, { queued: true });
+                setToast({
+                    message: "Update queued offline. It will sync automatically.",
+                    type: "info",
+                });
+            } else {
+                onAdd(result.expense);
+                setToast({
+                    message: "Expense updated successfully!",
+                    type: "success",
+                });
+            }
         } catch (err) {
             console.error(err);
             setToast({ message: "Failed to update expense", type: "error" });

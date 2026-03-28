@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import type { Expense, ExpenseFilterPreset } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
@@ -20,12 +21,18 @@ import PageSkeleton from "../components/ui/PageSkeleton";
 import { useExpensePageData } from "../hooks/useExpensePageData";
 import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
+import Toast from "../components/Toast";
 import {
     createExpenseFilterPreset,
     deleteExpenseFilterPreset,
     getExpenseFilterPresets,
     setDefaultExpenseFilterPreset,
 } from "../api/api";
+import {
+    getOfflineExpenseQueueCount,
+    processOfflineExpenseQueue,
+    subscribeToOfflineExpenseQueue,
+} from "../services/offlineExpenseQueue";
 
 const DEFAULT_FILTERS = {
     keyword: "",
@@ -67,6 +74,11 @@ export default function ExpensePage({
     const [presetName, setPresetName] = useState("");
     const [presetStatus, setPresetStatus] = useState("");
     const [presetBusy, setPresetBusy] = useState(false);
+    const [offlineQueueCount, setOfflineQueueCount] = useState(0);
+    const [syncingOfflineQueue, setSyncingOfflineQueue] = useState(false);
+    const [toast, setToast] = useState<
+        { message: string; type: "success" | "error" | "info" } | undefined
+    >();
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -250,7 +262,70 @@ export default function ExpensePage({
         addExpense,
         deleteExpense,
         mergeUpdatedExpense,
+        refresh,
     } = useExpensePageData(expenseUpdateTrigger, expenseQuery);
+
+    useEffect(() => {
+        setOfflineQueueCount(getOfflineExpenseQueueCount());
+        return subscribeToOfflineExpenseQueue((count) => {
+            setOfflineQueueCount(count);
+        });
+    }, []);
+
+    const syncOfflineQueue = useCallback(async () => {
+        if (syncingOfflineQueue) return;
+
+        setSyncingOfflineQueue(true);
+        try {
+            const result = await processOfflineExpenseQueue();
+            if (result.synced > 0 || result.discarded > 0) {
+                await refresh();
+            }
+
+            if (result.synced > 0) {
+                setToast({
+                    message: `Synced ${result.synced} offline change${result.synced === 1 ? "" : "s"}.`,
+                    type: "success",
+                });
+            } else if (result.failed > 0) {
+                setToast({
+                    message: "Still offline. Pending changes remain queued.",
+                    type: "info",
+                });
+            }
+
+            if (result.discarded > 0) {
+                setToast({
+                    message: `${result.discarded} queued change${result.discarded === 1 ? " was" : "s were"} discarded due to validation/auth errors.`,
+                    type: "error",
+                });
+            }
+        } catch (error) {
+            console.error("Failed to sync offline queue:", error);
+            setToast({
+                message: "Could not sync offline changes yet.",
+                type: "error",
+            });
+        } finally {
+            setSyncingOfflineQueue(false);
+        }
+    }, [refresh, syncingOfflineQueue]);
+
+    useEffect(() => {
+        if (!offlineQueueCount || !navigator.onLine) return;
+        void syncOfflineQueue();
+    }, [offlineQueueCount, syncOfflineQueue]);
+
+    useEffect(() => {
+        const onOnline = () => {
+            if (getOfflineExpenseQueueCount() > 0) {
+                void syncOfflineQueue();
+            }
+        };
+
+        window.addEventListener("online", onOnline);
+        return () => window.removeEventListener("online", onOnline);
+    }, [syncOfflineQueue]);
 
     const uniqueCategories = useMemo(
         () => Array.from(new Set(expenses.map((exp) => exp.type))).sort(),
@@ -307,9 +382,15 @@ export default function ExpensePage({
     const confirmDelete = async () => {
         if (!deletingExpenseId) return;
         try {
-            await deleteExpense(deletingExpenseId);
+            const result = await deleteExpense(deletingExpenseId);
             setShowDeleteModal(false);
             setDeletingExpenseId(null);
+            if (result.queued) {
+                setToast({
+                    message: "Delete queued offline. It will sync automatically.",
+                    type: "info",
+                });
+            }
         } catch (error) {
             console.error("Failed to delete expense:", error);
         }
@@ -334,6 +415,7 @@ export default function ExpensePage({
             subtitle="Track daily entries, review grouped history, and manage recurring generation from one place."
             className="space-y-6 sm:space-y-8"
         >
+            <Toast message={toast?.message} type={toast?.type} />
             <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1 space-y-2">
@@ -392,6 +474,29 @@ export default function ExpensePage({
                     </div>
                 </div>
             </div>
+
+            {(offlineQueueCount > 0 || syncingOfflineQueue) && (
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-[var(--theme-text)]">
+                            {syncingOfflineQueue
+                                ? "Syncing offline changes..."
+                                : `${offlineQueueCount} change${offlineQueueCount === 1 ? " is" : "s are"} queued offline.`}
+                        </p>
+                        <button
+                            type="button"
+                            className={uiControl.button}
+                            onClick={() => void syncOfflineQueue()}
+                            disabled={syncingOfflineQueue || offlineQueueCount === 0}
+                        >
+                            {syncingOfflineQueue ? "Syncing..." : "Sync now"}
+                        </button>
+                        <Link to="/queued-expenses" className={uiControl.button}>
+                            View queue
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
@@ -1108,8 +1213,14 @@ export default function ExpensePage({
                 description="Capture a new expense with type, amount, and optional recurring metadata."
             >
                 <ExpenseForm
-                    onAdd={(createdExpense) => {
-                        addExpense(createdExpense);
+                    onAdd={(createdExpense, options) => {
+                        if (options?.queued) {
+                            setToast({
+                                message: "Expense queued offline. It will sync automatically.",
+                                type: "info",
+                            });
+                        }
+                        void addExpense(createdExpense);
                     }}
                 />
             </Modal>
@@ -1122,8 +1233,20 @@ export default function ExpensePage({
             >
                 {editingExpense && (
                     <ExpenseForm
-                        onAdd={(updatedExpense) => {
-                            mergeUpdatedExpense(updatedExpense);
+                        onAdd={(updatedExpense, options) => {
+                            if (options?.queued) {
+                                setToast({
+                                    message: "Update queued offline. It will sync automatically.",
+                                    type: "info",
+                                });
+                                setShowEditModal(false);
+                                setEditingExpense(null);
+                                return;
+                            }
+
+                            if (updatedExpense) {
+                                void mergeUpdatedExpense(updatedExpense);
+                            }
                             setShowEditModal(false);
                             setEditingExpense(null);
                         }}

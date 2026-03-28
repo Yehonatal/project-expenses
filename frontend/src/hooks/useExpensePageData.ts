@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import API, { getBudgets, getExpensesPaged } from "../api/api";
+import { getBudgets, getExpensesPaged } from "../api/api";
 import type { Budget, Expense, ExpenseFilterParams } from "../types/expense";
+import { deleteExpenseOfflineAware } from "../services/offlineExpenseQueue";
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -90,15 +91,28 @@ export function useExpensePageData(
         };
     }, [fetchBudgets]);
 
-    const addExpense = async (_expense: Expense) => {
+    const addExpense = async (_expense?: Expense) => {
         await fetchExpenses();
         await fetchBudgets();
     };
 
     const deleteExpense = async (expenseId: string) => {
-        await API.delete(`/expenses/${expenseId}`);
+        const result = await deleteExpenseOfflineAware(expenseId);
+
+        if (result.queued) {
+            setExpenses((prev) =>
+                prev.filter((exp) => (exp._id || exp.id?.toString()) !== expenseId),
+            );
+            setPagination((prev) => ({
+                ...prev,
+                total: Math.max(0, prev.total - 1),
+            }));
+            return { queued: true };
+        }
+
         await fetchExpenses();
         await fetchBudgets();
+        return { queued: false };
     };
 
     const mergeUpdatedExpense = async (updatedExpense: Expense) => {
@@ -108,6 +122,10 @@ export function useExpensePageData(
             ),
         );
         await fetchExpenses();
+    };
+
+    const refresh = async () => {
+        await Promise.all([fetchExpenses(), fetchBudgets()]);
     };
 
     return {
@@ -122,5 +140,6 @@ export function useExpensePageData(
         addExpense,
         deleteExpense,
         mergeUpdatedExpense,
+        refresh,
     };
 }

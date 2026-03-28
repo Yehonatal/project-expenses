@@ -24,6 +24,7 @@ const GoalsPage = lazy(() => import("./pages/GoalsPage.tsx"));
 const RecurringPage = lazy(() => import("./pages/RecurringPage.tsx"));
 const ChartsPage = lazy(() => import("./pages/ChartsPage.tsx"));
 const WorkspacesPage = lazy(() => import("./pages/WorkspacesPage.tsx"));
+const QueuedExpensesPage = lazy(() => import("./pages/QueuedExpensesPage.tsx"));
 
 export default function App() {
     const { user, loading, logout } = useAuthSession();
@@ -145,6 +146,10 @@ export default function App() {
                                         <Route
                                             path="/workspaces"
                                             element={<WorkspacesPage />}
+                                        />
+                                        <Route
+                                            path="/queued-expenses"
+                                            element={<QueuedExpensesPage />}
                                         />
                                         <Route
                                             path="/expenses"
