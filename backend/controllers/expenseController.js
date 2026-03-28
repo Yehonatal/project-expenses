@@ -1472,6 +1472,22 @@ exports.getForecast = async (req, res) => {
             ? monthlySeries[monthlySeries.length - 1].total
             : 0;
 
+        const daysInCurrentMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0,
+        ).getDate();
+        const currentDay = Math.max(1, now.getDate());
+        const runRateProjection =
+            currentMonthSpend > 0
+                ? (currentMonthSpend / currentDay) * daysInCurrentMonth
+                : 0;
+        const blendedCurrentMonthEndProjection =
+            runRateProjection * 0.75 + (baselineSpend + projectedRecurringSpend) * 0.25;
+        const projectedCurrentMonthEndSpend = Number(
+            Math.max(currentMonthSpend, blendedCurrentMonthEndProjection).toFixed(2),
+        );
+
         const monthOverMonthDelta = percentDelta(projectedSpend, currentMonthSpend);
         const confidence = clamp(
             Math.round(42 + Math.min(historicalTotals.length, 12) * 4.2),
@@ -1520,7 +1536,7 @@ exports.getForecast = async (req, res) => {
             .sort((a, b) => b.expected - a.expected)
             .slice(0, 8);
 
-        const next3Months = Array.from({ length: 3 }).map((_, idx) => {
+        const next12Months = Array.from({ length: 12 }).map((_, idx) => {
             const monthStart = new Date(
                 now.getFullYear(),
                 now.getMonth() + 1 + idx,
@@ -1563,6 +1579,19 @@ exports.getForecast = async (req, res) => {
             };
         });
 
+        const next6MonthsSpend = Number(
+            next12Months
+                .slice(0, 6)
+                .reduce((sum, month) => sum + month.projectedSpend, 0)
+                .toFixed(2),
+        );
+
+        const next12MonthsSpend = Number(
+            next12Months
+                .reduce((sum, month) => sum + month.projectedSpend, 0)
+                .toFixed(2),
+        );
+
         res.json({
             generatedAt: new Date().toISOString(),
             request: {
@@ -1578,10 +1607,13 @@ exports.getForecast = async (req, res) => {
                 confidence,
                 projectedMin: Number(projectedMin.toFixed(2)),
                 projectedMax: Number(projectedMax.toFixed(2)),
+                projectedCurrentMonthEndSpend,
+                next6MonthsSpend,
+                next12MonthsSpend,
                 ...summaryBand,
             },
             historical: monthlySeries,
-            forecast: next3Months,
+            forecast: next12Months,
             categories,
             assumptions: {
                 model: "Weighted moving average + recurring commitments",
@@ -1590,6 +1622,8 @@ exports.getForecast = async (req, res) => {
                 scenarioMultiplier,
                 windowMonths,
                 monthlyTrendDrift: 0.03,
+                currentMonthProjection:
+                    "Blended run-rate (75%) and weighted baseline (25%), floored at actual spend-to-date",
                 recurringTreatment:
                     "Weekly recurring scaled by weeks per month; monthly once per month; yearly if due in projected month",
             },

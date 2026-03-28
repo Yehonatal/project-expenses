@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { BarChart3, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+    AlertTriangle,
+    BarChart3,
+    CheckCircle2,
+    Pencil,
+    Plus,
+    Sparkles,
+    Trash2,
+} from "lucide-react";
 import {
     Area,
     Bar,
@@ -374,12 +382,50 @@ export default function GoalsPage() {
                             budget.totalBudget - budget.spent,
                             0,
                         );
+                        const tone =
+                            progress >= 100
+                                ? {
+                                      label: "Over limit",
+                                      fg: "#b91c1c",
+                                      bg: "rgba(185,28,28,0.12)",
+                                      track: "#b91c1c",
+                                      Icon: AlertTriangle,
+                                  }
+                                : progress >= 80
+                                  ? {
+                                        label: "Watch closely",
+                                        fg: "#a16207",
+                                        bg: "rgba(161,98,7,0.12)",
+                                        track: "#d97706",
+                                        Icon: AlertTriangle,
+                                    }
+                                  : {
+                                        label: "Healthy pace",
+                                        fg: "#166534",
+                                        bg: "rgba(22,101,52,0.12)",
+                                        track: "#15803d",
+                                        Icon: CheckCircle2,
+                                    };
 
                         return (
-                            <GlassCard key={budget._id} className="p-4">
-                                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <GlassCard
+                                key={budget._id}
+                                className="group relative overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 transition-transform duration-300 hover:-translate-y-0.5"
+                            >
+                                <div
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-14"
+                                    style={{
+                                        background:
+                                            "linear-gradient(90deg, rgba(56,189,248,0.14), rgba(234,179,8,0.08), transparent)",
+                                    }}
+                                />
+
+                                <div className="relative mb-3 flex flex-wrap items-center justify-between gap-2">
                                     <div>
-                                        <div className="text-sm font-semibold capitalize">
+                                        <div className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.16em] text-[var(--theme-text-secondary)]">
+                                            <Sparkles size={12} /> Goal card
+                                        </div>
+                                        <div className="text-sm font-semibold capitalize mt-0.5">
                                             {budget.type.replace("-", " ")}
                                         </div>
                                         <div
@@ -391,6 +437,19 @@ export default function GoalsPage() {
                                             {formatBudgetPeriod(budget)}
                                         </div>
                                     </div>
+
+                                    <div
+                                        className="inline-flex items-center gap-1 border px-2 py-1 text-[11px] font-semibold"
+                                        style={{
+                                            color: tone.fg,
+                                            borderColor: tone.fg,
+                                            backgroundColor: tone.bg,
+                                        }}
+                                    >
+                                        <tone.Icon size={12} />
+                                        {tone.label}
+                                    </div>
+
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
@@ -415,8 +474,8 @@ export default function GoalsPage() {
                                     </div>
                                 </div>
 
-                                <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                    <div>
+                                <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-2">
                                         <div
                                             className="text-xs"
                                             style={{
@@ -429,7 +488,7 @@ export default function GoalsPage() {
                                             {budget.totalBudget.toLocaleString()}
                                         </div>
                                     </div>
-                                    <div>
+                                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-2">
                                         <div
                                             className="text-xs"
                                             style={{
@@ -442,7 +501,7 @@ export default function GoalsPage() {
                                             {budget.spent.toLocaleString()}
                                         </div>
                                     </div>
-                                    <div>
+                                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-2">
                                         <div
                                             className="text-xs"
                                             style={{
@@ -455,25 +514,35 @@ export default function GoalsPage() {
                                             {remaining.toLocaleString()}
                                         </div>
                                     </div>
+                                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-2">
+                                        <div
+                                            className="text-xs"
+                                            style={{
+                                                color: "var(--theme-text-secondary)",
+                                            }}
+                                        >
+                                            Burn rate
+                                        </div>
+                                        <div className="text-sm font-semibold">
+                                            {progress.toFixed(1)}%
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div
-                                    className="h-2 border"
+                                    className="relative h-3 overflow-hidden border"
                                     style={{
                                         borderColor: "var(--theme-border)",
                                         backgroundColor: "var(--theme-surface)",
                                     }}
                                 >
                                     <div
-                                        className="h-full"
+                                        className="h-full transition-all duration-500"
                                         style={{
                                             width: `${Math.min(progress, 100)}%`,
-                                            backgroundColor:
-                                                progress >= 100
-                                                    ? "#dc2626"
-                                                    : progress >= 80
-                                                      ? "#d97706"
-                                                      : "#15803d",
+                                            background:
+                                                "repeating-linear-gradient(45deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22) 8px, rgba(255,255,255,0) 8px, rgba(255,255,255,0) 16px)",
+                                            backgroundColor: tone.track,
                                         }}
                                     />
                                 </div>
@@ -483,7 +552,7 @@ export default function GoalsPage() {
                                         color: "var(--theme-text-secondary)",
                                     }}
                                 >
-                                    {progress.toFixed(1)}% used
+                                    {progress.toFixed(1)}% used. {remaining.toLocaleString()} ETB still available in this goal window.
                                 </p>
                             </GlassCard>
                         );

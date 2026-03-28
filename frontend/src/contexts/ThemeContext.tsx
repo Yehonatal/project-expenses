@@ -23,6 +23,7 @@ export interface AppearanceSettings {
     shadowIntensity: number;
     headingFont: string;
     bodyFont: string;
+    quickAddPosition: "left" | "right";
 }
 
 interface ThemeColors {
@@ -253,6 +254,7 @@ const defaultAppearance: AppearanceSettings = {
     shadowIntensity: 1,
     headingFont: "playfair",
     bodyFont: "geistsans",
+    quickAddPosition: "right",
 };
 
 interface ThemeContextType {
@@ -311,6 +313,11 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
                     typeof parsed.bodyFont === "string"
                         ? parsed.bodyFont
                         : defaultAppearance.bodyFont,
+                quickAddPosition:
+                    parsed.quickAddPosition === "left" ||
+                    parsed.quickAddPosition === "right"
+                        ? parsed.quickAddPosition
+                        : defaultAppearance.quickAddPosition,
             };
         } catch {
             return defaultAppearance;
@@ -381,6 +388,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         root.style.setProperty("--app-heading-font", headingOption.cssFamily);
         root.style.setProperty("--app-body-font", bodyOption.cssFamily);
         root.style.setProperty("--app-shadow-rgb", colors.shadowRgb);
+        root.dataset.quickAddPosition = appearance.quickAddPosition;
     }, [theme, appearance]);
 
     return (

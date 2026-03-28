@@ -96,6 +96,9 @@ export type ForecastData = {
         confidence: number;
         projectedMin: number;
         projectedMax: number;
+        projectedCurrentMonthEndSpend: number;
+        next6MonthsSpend: number;
+        next12MonthsSpend: number;
         p10: number;
         p50: number;
         p90: number;
@@ -133,6 +136,7 @@ export type ForecastData = {
         scenarioMultiplier: number;
         windowMonths: number;
         monthlyTrendDrift: number;
+        currentMonthProjection: string;
         recurringTreatment: string;
     };
 };

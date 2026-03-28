@@ -32,6 +32,7 @@ type ForecastState = {
 
 export default function ForecastPage() {
     const [windowMonths, setWindowMonths] = useState<1 | 3 | 6 | 12>(6);
+    const [projectionHorizon, setProjectionHorizon] = useState<6 | 12>(6);
     const [chartViewMode, setChartViewMode] = useState<"range" | "probabilistic">(
         "probabilistic",
     );
@@ -107,6 +108,11 @@ export default function ForecastPage() {
                 p90: point.p90,
             })),
         [state.data],
+    );
+
+    const projectionSeries = useMemo(
+        () => forecastSeries.slice(0, projectionHorizon),
+        [forecastSeries, projectionHorizon],
     );
 
     const historicalSeries = useMemo(
@@ -291,6 +297,30 @@ export default function ForecastPage() {
                 </div>
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                        Current month end
+                    </p>
+                    <p className="text-lg font-semibold sm:text-xl">
+                        {formatMoneyBirr(summary.projectedCurrentMonthEndSpend)}
+                    </p>
+                </div>
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                        Next 6 months
+                    </p>
+                    <p className="text-lg font-semibold sm:text-xl">
+                        {formatMoneyBirr(summary.next6MonthsSpend)}
+                    </p>
+                </div>
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                        Next 12 months
+                    </p>
+                    <p className="text-lg font-semibold sm:text-xl">
+                        {formatMoneyBirr(summary.next12MonthsSpend)}
+                    </p>
+                </div>
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
                         P10
                     </p>
                     <p className="text-lg font-semibold sm:text-xl">
@@ -313,7 +343,7 @@ export default function ForecastPage() {
                         {formatMoneyBirr(summary.p90)}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2 md:col-span-1 xl:col-span-2 flex items-center justify-between gap-2">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2 md:col-span-2 xl:col-span-2 flex items-center justify-between gap-2">
                     <div>
                         <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
                             Take action
@@ -366,9 +396,23 @@ export default function ForecastPage() {
                 <GlassCard className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-2">
                         <h3 className="app-heading tracking-[-0.01em] text-lg font-semibold">
-                            3-Month Projection with Confidence Bands
+                            Projection with Confidence Bands
                         </h3>
-                        <div className="inline-flex items-center gap-1">
+                        <div className="inline-flex flex-wrap items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setProjectionHorizon(6)}
+                                className={`px-2 py-1 text-[11px] border ${projectionHorizon === 6 ? "border-[var(--theme-accent)] bg-[var(--theme-accent)] text-[var(--theme-background)]" : "border-[var(--theme-border)] bg-[var(--theme-surface)]"}`}
+                            >
+                                6M
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setProjectionHorizon(12)}
+                                className={`px-2 py-1 text-[11px] border ${projectionHorizon === 12 ? "border-[var(--theme-accent)] bg-[var(--theme-accent)] text-[var(--theme-background)]" : "border-[var(--theme-border)] bg-[var(--theme-surface)]"}`}
+                            >
+                                12M
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => setChartViewMode("range")}
@@ -386,7 +430,7 @@ export default function ForecastPage() {
                         </div>
                     </div>
                     <ResponsiveContainer width="100%" height={260}>
-                        <LineChart data={forecastSeries}>
+                        <LineChart data={projectionSeries}>
                             <CartesianGrid
                                 strokeDasharray="2 2"
                                 vertical={false}
@@ -558,6 +602,13 @@ export default function ForecastPage() {
                                 </p>
                                 <p className="mt-1">{assumptions.windowMonths} month(s) used for baseline fitting.</p>
                                 <p className="mt-2">Monthly drift assumption: {(assumptions.monthlyTrendDrift * 100).toFixed(1)}%</p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                                <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">
+                                    Current month estimate
+                                    <InfoTooltip label="Why this matters: end-of-month projection blends spend run-rate and baseline to avoid overreacting to early-month noise." />
+                                </p>
+                                <p className="mt-1">{assumptions.currentMonthProjection}</p>
                             </div>
                             <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text-secondary)]">
                                 <p className="font-semibold text-[var(--theme-text)] inline-flex items-center gap-1">

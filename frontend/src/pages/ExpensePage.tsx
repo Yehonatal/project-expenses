@@ -985,9 +985,39 @@ export default function ExpensePage({
                                         (budget.spent / budget.totalBudget) *
                                         100;
                                     const isOverBudget = progress > 100;
+                                    const statusTone = isOverBudget
+                                        ? {
+                                              label: "Over limit",
+                                              fg: "#ef4444",
+                                              bg: "rgba(239,68,68,0.14)",
+                                              track: "#ef4444",
+                                          }
+                                        : progress > 80
+                                          ? {
+                                                label: "Watch closely",
+                                                fg: "#f59e0b",
+                                                bg: "rgba(245,158,11,0.14)",
+                                                track: "#f59e0b",
+                                            }
+                                          : {
+                                                label: "Healthy pace",
+                                                fg: "#22c55e",
+                                                bg: "rgba(34,197,94,0.14)",
+                                                track: "#22c55e",
+                                            };
                                     return (
-                                        <div key={budget._id} className="p-4">
-                                            <div className="mb-3 flex items-center justify-between">
+                                        <div
+                                            key={budget._id}
+                                            className="group relative border-t border-[var(--theme-border)] p-4 first:border-t-0"
+                                        >
+                                            <div
+                                                className="pointer-events-none absolute inset-x-0 top-0 h-10"
+                                                style={{
+                                                    background:
+                                                        "linear-gradient(90deg, rgba(59,130,246,0.1), rgba(16,185,129,0.08), transparent)",
+                                                }}
+                                            />
+                                            <div className="relative mb-3 flex items-center justify-between">
                                                 <span
                                                     className="border px-2 py-1 text-xs font-medium"
                                                     style={{
@@ -1002,10 +1032,22 @@ export default function ExpensePage({
                                                 >
                                                     {formatBudgetPeriod(budget)}
                                                 </span>
+                                                <span
+                                                    className="border px-2 py-1 text-[11px] font-semibold"
+                                                    style={{
+                                                        color: statusTone.fg,
+                                                        backgroundColor:
+                                                            statusTone.bg,
+                                                        borderColor:
+                                                            statusTone.fg,
+                                                    }}
+                                                >
+                                                    {statusTone.label}
+                                                </span>
                                             </div>
 
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="text-center">
+                                            <div className="mb-3 grid grid-cols-3 gap-2">
+                                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2 text-center">
                                                     <p
                                                         className="text-xs font-medium"
                                                         style={{
@@ -1029,7 +1071,7 @@ export default function ExpensePage({
                                                         )}
                                                     </p>
                                                 </div>
-                                                <div className="text-center">
+                                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2 text-center">
                                                     <p
                                                         className="text-xs font-medium"
                                                         style={{
@@ -1053,7 +1095,7 @@ export default function ExpensePage({
                                                         )}
                                                     </p>
                                                 </div>
-                                                <div className="text-center">
+                                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2 text-center">
                                                     <p
                                                         className="text-xs font-medium"
                                                         style={{
@@ -1098,19 +1140,16 @@ export default function ExpensePage({
                                                         Progress
                                                     </span>
                                                     <span
-                                                        className={`text-xs font-semibold ${
-                                                            isOverBudget
-                                                                ? "text-red-500"
-                                                                : progress > 80
-                                                                  ? "text-yellow-500"
-                                                                  : "text-green-500"
-                                                        }`}
+                                                        className="text-xs font-semibold"
+                                                        style={{
+                                                            color: statusTone.fg,
+                                                        }}
                                                     >
                                                         {progress.toFixed(0)}%
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className="h-2 w-full overflow-hidden border"
+                                                    className="h-2.5 w-full overflow-hidden border"
                                                     style={{
                                                         backgroundColor:
                                                             "var(--theme-surface)",
@@ -1121,19 +1160,16 @@ export default function ExpensePage({
                                                     }}
                                                 >
                                                     <div
-                                                        className="h-full transition-all duration-300 ease-out"
+                                                        className="h-full transition-all duration-500 ease-out"
                                                         style={{
                                                             width: `${Math.min(
                                                                 progress,
                                                                 100,
                                                             )}%`,
+                                                            background:
+                                                                "repeating-linear-gradient(45deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22) 7px, rgba(255,255,255,0) 7px, rgba(255,255,255,0) 14px)",
                                                             backgroundColor:
-                                                                isOverBudget
-                                                                    ? "#ef4444"
-                                                                    : progress >
-                                                                        80
-                                                                      ? "#f59e0b"
-                                                                      : "#22c55e",
+                                                                statusTone.track,
                                                         }}
                                                     />
                                                 </div>

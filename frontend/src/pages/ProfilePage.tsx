@@ -19,18 +19,55 @@ export default function ProfilePage() {
     const [exporting, setExporting] = useState(false);
     const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
 
+    const resolveWorkspaceName = (expense: Expense) => {
+        if (!expense.workspaceId) {
+            return "Personal";
+        }
+        if (typeof expense.workspaceId === "string") {
+            return "Shared";
+        }
+        return expense.workspaceId.name || "Shared";
+    };
+
+    const normalizeExpenseList = (payload: unknown): Expense[] => {
+        if (Array.isArray(payload)) {
+            return payload as Expense[];
+        }
+        if (
+            payload &&
+            typeof payload === "object" &&
+            "items" in payload &&
+            Array.isArray((payload as { items?: unknown[] }).items)
+        ) {
+            return (payload as { items: Expense[] }).items;
+        }
+        return [];
+    };
+
     const handleCSVExport = async () => {
         setExporting(true);
         try {
             const response = await getExpenses();
-            const expenses = response.data;
+            const expenses = normalizeExpenseList(response.data);
+
+            if (!expenses.length) {
+                alert("No expenses found to export.");
+                return;
+            }
 
             const csvData = expenses.map((expense: Expense) => ({
                 Date: new Date(expense.date).toLocaleDateString(),
                 Description: expense.description,
                 Amount: expense.amount,
                 Type: expense.type,
+                Included: expense.included ? "Yes" : "No",
                 Recurring: expense.isRecurring ? "Yes" : "No",
+                Frequency: expense.frequency || "-",
+                Tags: expense.tags?.join(" | ") || "-",
+                Scope: expense.workspaceId ? "Shared" : "Personal",
+                Workspace: resolveWorkspaceName(expense),
+                CreatedBy: expense.createdBy?.name || user?.name || "Unknown",
+                CreatedAt: new Date(expense.createdAt).toLocaleString(),
             }));
 
             const csv = Papa.unparse(csvData);
@@ -58,37 +95,63 @@ export default function ProfilePage() {
         setExporting(true);
         try {
             const response = await getExpenses();
-            const expenses = response.data;
+            const expenses = normalizeExpenseList(response.data);
 
-            const doc = new jsPDF();
+            if (!expenses.length) {
+                alert("No expenses found to export.");
+                return;
+            }
+
+            const doc = new jsPDF({ orientation: "landscape" });
             doc.setFontSize(20);
             doc.text("Expense Report", 20, 20);
 
             doc.setFontSize(12);
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
-            doc.text(`Total Expenses: ${stats?.totalExpenses || "N/A"}`, 20, 45);
+            doc.text(`Total Expenses: ${expenses.length}`, 20, 45);
 
             let yPosition = 65;
             doc.setFontSize(10);
             doc.text("Date", 20, yPosition);
             doc.text("Description", 60, yPosition);
-            doc.text("Amount", 140, yPosition);
-            doc.text("Type", 170, yPosition);
+            doc.text("Amount", 128, yPosition);
+            doc.text("Type", 152, yPosition);
+            doc.text("Scope", 176, yPosition);
+            doc.text("Workspace", 200, yPosition);
+            doc.text("By", 248, yPosition);
 
             yPosition += 10;
-            doc.line(20, yPosition, 190, yPosition);
+            doc.line(20, yPosition, 275, yPosition);
             yPosition += 5;
 
-            expenses.slice(0, 20).forEach((expense: Expense) => {
-                if (yPosition > 270) {
+            const truncate = (value: string, max = 20) =>
+                value.length > max ? `${value.slice(0, max - 1)}...` : value;
+
+            expenses.forEach((expense: Expense) => {
+                if (yPosition > 190) {
                     doc.addPage();
                     yPosition = 20;
+
+                    doc.setFontSize(10);
+                    doc.text("Date", 20, yPosition);
+                    doc.text("Description", 48, yPosition);
+                    doc.text("Amount", 128, yPosition);
+                    doc.text("Type", 152, yPosition);
+                    doc.text("Scope", 176, yPosition);
+                    doc.text("Workspace", 200, yPosition);
+                    doc.text("By", 248, yPosition);
+                    yPosition += 10;
+                    doc.line(20, yPosition, 275, yPosition);
+                    yPosition += 5;
                 }
 
                 doc.text(new Date(expense.date).toLocaleDateString(), 20, yPosition);
-                doc.text(expense.description.substring(0, 25), 60, yPosition);
-                doc.text(`Birr ${expense.amount.toFixed(2)}`, 140, yPosition);
-                doc.text(expense.type, 170, yPosition);
+                doc.text(truncate(expense.description, 28), 48, yPosition);
+                doc.text(`Birr ${expense.amount.toFixed(2)}`, 128, yPosition);
+                doc.text(truncate(expense.type, 14), 152, yPosition);
+                doc.text(expense.workspaceId ? "Shared" : "Personal", 176, yPosition);
+                doc.text(truncate(resolveWorkspaceName(expense), 17), 200, yPosition);
+                doc.text(truncate(expense.createdBy?.name || user?.name || "-", 14), 248, yPosition);
                 yPosition += 8;
             });
 
@@ -308,7 +371,7 @@ export default function ProfilePage() {
             <GlassCard className="p-4">
                 <h3 className="app-heading text-lg font-semibold">Export & Sync</h3>
                 <p className="mt-1 text-sm text-[var(--theme-text-secondary)]">
-                    Download your spending data or prepare cloud sync backup.
+                    Download your full expense history with metadata, or prepare cloud sync backup.
                 </p>
                 <div className="mt-4">
                     <ExportControls

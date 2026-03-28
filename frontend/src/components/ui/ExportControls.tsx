@@ -23,7 +23,7 @@ export default function ExportControls({
                 style={{ color: "var(--theme-text)" }}
             >
                 <Download size={20} />
-                <span className="text-sm font-medium">Export CSV</span>
+                <span className="text-sm font-medium">Export Full CSV</span>
             </button>
 
             <button
@@ -33,7 +33,7 @@ export default function ExportControls({
                 style={{ color: "var(--theme-text)" }}
             >
                 <FileText size={20} />
-                <span className="text-sm font-medium">Export PDF</span>
+                <span className="text-sm font-medium">Export Full PDF</span>
             </button>
 
             <button

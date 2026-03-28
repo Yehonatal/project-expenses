@@ -5,7 +5,7 @@ import {
     Navigate,
 } from "react-router-dom";
 import { Suspense, lazy, useState } from "react";
-import { PanelLeft } from "lucide-react";
+import { Keyboard, PanelLeft, ToolCase } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import LoginPage from "./pages/LoginPage";
 import AppShellLoading from "./components/ui/AppShellLoading";
@@ -60,6 +60,14 @@ export default function App() {
         setExpenseUpdateTrigger((prev) => prev + 1);
     };
 
+    const handleToggleQuickAdd = () => {
+        window.dispatchEvent(
+            new CustomEvent("quick-add:toggle", {
+                detail: { source: "top-shortcut" },
+            }),
+        );
+    };
+
     const shellColumnsClass = isSidebarCollapsed
         ? "lg:[grid-template-columns:92px_minmax(0,1fr)]"
         : "lg:[grid-template-columns:292px_minmax(0,1fr)]";
@@ -103,7 +111,9 @@ export default function App() {
                                     setIsMobileSidebarOpen(false)
                                 }
                             />
-                            <main className="flex min-w-0 flex-col gap-3 px-1 pb-4 pt-1 sm:px-2 sm:pb-6">
+                            <main className="relative z-0 flex min-w-0 flex-col gap-3 overflow-hidden px-1 pb-4 pt-1 sm:px-2 sm:pb-6">
+                                <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--theme-grid)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-grid)_1px,transparent_1px)] bg-[size:36px_36px] opacity-35" />
+                                <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_15%,var(--theme-aura-one),transparent_28%),radial-gradient(circle_at_80%_80%,var(--theme-aura-two),transparent_30%)] opacity-45" />
                                 <div className="sticky top-2 z-20 flex items-center justify-between border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 py-2 lg:hidden">
                                     <button
                                         type="button"
@@ -115,15 +125,42 @@ export default function App() {
                                     >
                                         <PanelLeft size={16} />
                                     </button>
-                                    <div className="flex items-center gap-2">
-                                        <ThemeSelector />
+                                    <div className="quick-shortcut-mobile-row flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleToggleQuickAdd}
+                                            className="quick-shortcut-chip quick-shortcut-mobile-trigger inline-flex items-center gap-1.5 border px-2 py-1 text-[11px]"
+                                            title="Quick add: Ctrl/Cmd+Shift+A"
+                                            aria-label="Open quick add using keyboard shortcut"
+                                        >
+                                            <ToolCase size={12} className="quick-shortcut-icon" />
+                                            <span className="font-semibold">Quick add</span>
+                                            <span className="quick-shortcut-kbd">Ctrl/Cmd+Shift+A</span>
+                                        </button>
+                                        <div className="theme-selector-slot">
+                                            <ThemeSelector />
+                                        </div>
                                         <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--theme-text-secondary)]">
                                             Cashn't
                                         </span>
                                     </div>
                                 </div>
-                                <div className="hidden lg:flex lg:justify-end lg:pb-1">
-                                    <ThemeSelector />
+                                <div className="quick-shortcut-slot hidden lg:flex lg:items-center lg:justify-end lg:gap-2 lg:pb-1">
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleQuickAdd}
+                                        className="quick-shortcut-chip inline-flex items-center gap-2 border px-3 py-1.5 text-xs"
+                                        title="Quick add: Ctrl/Cmd+Shift+A"
+                                    >
+                                        <Keyboard size={14} className="quick-shortcut-icon" />
+                                        <span className="uppercase tracking-[0.12em] font-semibold">
+                                            Quick add
+                                        </span>
+                                        <span className="quick-shortcut-kbd">Ctrl/Cmd+Shift+A</span>
+                                    </button>
+                                    <div className="theme-selector-slot">
+                                        <ThemeSelector />
+                                    </div>
                                 </div>
                                 <Suspense fallback={<AppShellLoading />}>
                                     <Routes>

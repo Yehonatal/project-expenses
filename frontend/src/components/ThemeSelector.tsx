@@ -315,6 +315,46 @@ export default function ThemeSelector() {
                                             ))}
                                         </select>
                                     </label>
+
+                                    <div className="block text-xs text-[var(--theme-text-secondary)]">
+                                        Quick Add Chip Position
+                                        <div className="mt-2 inline-flex w-full border border-[var(--theme-border)] bg-[var(--theme-background)] p-1">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    updateAppearance({
+                                                        quickAddPosition:
+                                                            "left",
+                                                    })
+                                                }
+                                                className={`flex-1 px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                                    appearance.quickAddPosition ===
+                                                    "left"
+                                                        ? "bg-[var(--theme-accent)] text-[var(--theme-background)]"
+                                                        : "text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover)]"
+                                                }`}
+                                            >
+                                                Left
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    updateAppearance({
+                                                        quickAddPosition:
+                                                            "right",
+                                                    })
+                                                }
+                                                className={`flex-1 px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                                    appearance.quickAddPosition ===
+                                                    "right"
+                                                        ? "bg-[var(--theme-accent)] text-[var(--theme-background)]"
+                                                        : "text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover)]"
+                                                }`}
+                                            >
+                                                Right
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
                         </div>

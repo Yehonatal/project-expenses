@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Plus, Sparkles, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import type { Template } from "../types/template";
 import { getTemplates } from "../api/api";
 import { createExpenseOfflineAware } from "../services/offlineExpenseQueue";
@@ -81,6 +81,23 @@ export default function QuickAddWidget({
         return () => window.removeEventListener("keydown", handleShortcut);
     }, []);
 
+    useEffect(() => {
+        const handleToggleEvent = () => {
+            setOpen((prev) => !prev);
+        };
+
+        window.addEventListener(
+            "quick-add:toggle",
+            handleToggleEvent as EventListener,
+        );
+
+        return () =>
+            window.removeEventListener(
+                "quick-add:toggle",
+                handleToggleEvent as EventListener,
+            );
+    }, []);
+
     const topTemplates = useMemo(() => templates.slice(0, 6), [templates]);
 
     const applyTemplate = (templateId: string) => {
@@ -151,9 +168,9 @@ export default function QuickAddWidget({
     };
 
     return (
-        <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+        <div className="quick-add-panel-anchor fixed bottom-4 z-40 flex flex-col gap-2 pointer-events-none">
             {open && (
-                <div className="w-[min(92vw,380px)] border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 shadow-lg backdrop-blur-[24px]">
+                <div className="pointer-events-auto w-[min(92vw,380px)] border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 shadow-lg backdrop-blur-[24px]">
                     <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
                             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
@@ -195,7 +212,9 @@ export default function QuickAddWidget({
 
                     <form onSubmit={submitQuickAdd} className="space-y-2.5">
                         <div>
-                            <label className={uiControl.label}>Description</label>
+                            <label className={uiControl.label}>
+                                Description
+                            </label>
                             <input
                                 value={form.description}
                                 onChange={(e) =>
@@ -211,7 +230,9 @@ export default function QuickAddWidget({
 
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className={uiControl.label}>Amount</label>
+                                <label className={uiControl.label}>
+                                    Amount
+                                </label>
                                 <input
                                     type="number"
                                     step="1"
@@ -275,7 +296,8 @@ export default function QuickAddWidget({
 
                         <div className="flex items-center justify-between gap-2 pt-1">
                             <p className="text-[11px] text-[var(--theme-text-secondary)] inline-flex items-center gap-1">
-                                Shortcut: Ctrl/Cmd+Shift+A toggle, Enter save, Esc close
+                                Shortcut: Ctrl/Cmd+Shift+A toggle, Enter save,
+                                Esc close
                                 <InfoTooltip label="Why this matters: keyboard flow helps you log expenses quickly before you forget small transactions." />
                             </p>
                             <button
@@ -290,17 +312,6 @@ export default function QuickAddWidget({
                     </form>
                 </div>
             )}
-
-            <button
-                type="button"
-                className="inline-flex items-center gap-2 border border-[var(--theme-accent)] bg-[var(--theme-accent)] px-4 py-2 text-sm font-semibold text-[var(--theme-background)] shadow-lg transition-transform hover:-translate-y-0.5"
-                onClick={() => setOpen((prev) => !prev)}
-                aria-label="Open quick add widget"
-                title="Quick add (Ctrl/Cmd+Shift+A)"
-            >
-                <Sparkles className="h-4 w-4" />
-                Quick add
-            </button>
         </div>
     );
 }

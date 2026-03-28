@@ -1,40 +1,62 @@
+import { useEffect, useState } from "react";
+import {
+    Banknote,
+    CreditCard,
+    PiggyBank,
+    Receipt,
+    Wallet,
+} from "lucide-react";
+
+const loadingIcons = [Wallet, Receipt, CreditCard, PiggyBank, Banknote];
+
 export default function AppShellLoading() {
+    const [iconIndex, setIconIndex] = useState(0);
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            setIconIndex((prev) => (prev + 1) % loadingIcons.length);
+        }, 1100);
+
+        return () => window.clearInterval(timer);
+    }, []);
+
+    const ActiveIcon = loadingIcons[iconIndex];
+
     return (
-        <div className="relative grid min-h-screen grid-cols-1 gap-2 p-2 lg:grid-cols-[174px_1fr]">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_100%_0%,var(--theme-aura-one)_0%,transparent_36%),radial-gradient(circle_at_0%_100%,var(--theme-aura-two)_0%,transparent_40%)]" />
+            <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(to_right,var(--theme-grid)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-grid)_1px,transparent_1px)] bg-[size:44px_44px] opacity-45" />
 
-            <aside className="flex flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-2">
-                <div className="h-3 w-28 skeleton-shimmer" />
-                <div className="h-36 skeleton-shimmer" />
-                <div className="h-36 skeleton-shimmer" />
-            </aside>
-            <main className="flex flex-col gap-4 px-2 pb-6 pt-1">
-                <div className="relative overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-4 sm:p-5">
-                    <div className="pointer-events-none absolute -left-14 -top-14 h-36 w-36 rounded-full bg-[var(--theme-aura-one)] blur-3xl skeleton-float" />
-                    <div className="pointer-events-none absolute -right-12 bottom-0 h-32 w-32 rounded-full bg-[var(--theme-aura-two)] blur-3xl skeleton-float" />
+            <div className="pointer-events-none absolute top-8 left-1/2 flex -translate-x-1/2 items-center gap-3 text-[var(--theme-text-secondary)]">
+                {loadingIcons.map((Icon, idx) => (
+                    <span
+                        key={idx}
+                        className={`inline-flex h-8 w-8 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] transition-all duration-300 ${
+                            idx === iconIndex
+                                ? "scale-110 text-[var(--theme-accent)]"
+                                : "opacity-50"
+                        }`}
+                    >
+                        <Icon size={15} />
+                    </span>
+                ))}
+            </div>
 
-                    <div className="relative flex flex-col gap-5">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="space-y-2">
-                                <div className="h-3 w-36 skeleton-shimmer" />
-                                <div className="h-5 w-64 skeleton-shimmer" />
-                            </div>
-                            <div className="h-8 w-24 skeleton-shimmer" />
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                            <div className="h-22 skeleton-shimmer" />
-                            <div className="h-22 skeleton-shimmer" />
-                            <div className="h-22 skeleton-shimmer" />
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            <div className="h-52 skeleton-shimmer" />
-                            <div className="h-52 skeleton-shimmer" />
-                        </div>
-                    </div>
+            <div className="w-full max-w-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-6 py-8 text-center backdrop-blur-[22px]">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-accent)] loading-logo-pulse">
+                    <ActiveIcon size={26} />
                 </div>
-            </main>
+                <h1 className="app-heading text-3xl font-semibold tracking-[-0.01em]">
+                    Cashn't
+                </h1>
+                <p className="mt-1 text-sm text-[var(--theme-text-secondary)]">
+                    Preparing your expenses dashboard
+                </p>
+
+                <div className="mx-auto mt-6 h-2 w-full max-w-md overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-surface)]">
+                    <div className="h-full w-[42%] loading-progress-bar" />
+                </div>
+            </div>
         </div>
     );
 }

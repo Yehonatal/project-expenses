@@ -43,7 +43,6 @@ const navItems = [
     { to: "/queued-expenses", label: "Queued", icon: CloudUpload },
     { to: "/forecast", label: "Forecast", icon: TrendingUp },
     { to: "/charts", label: "Charts", icon: PieChart },
-    { to: "/profile", label: "Profile", icon: User },
 ];
 
 export default function Sidebar({
@@ -102,6 +101,31 @@ export default function Sidebar({
             </div>
 
             <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                <div className="mb-2">
+                    <button
+                        onClick={onOpenGemini}
+                        className={`flex w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-xs transition-colors hover:bg-white/5 ${
+                            collapsed
+                                ? "items-center justify-center"
+                                : "items-center justify-start gap-2"
+                        }`}
+                        type="button"
+                        title="Open Smart Expense Assistant"
+                    >
+                        <Sparkles size={16} />
+                        {!collapsed && (
+                            <div className="min-w-0 text-left">
+                                <p className="truncate text-xs font-medium">
+                                    Smart expense assistant
+                                </p>
+                                <p className="truncate text-[10px] text-[var(--theme-text-secondary)]">
+                                    Draft entries using AI
+                                </p>
+                            </div>
+                        )}
+                    </button>
+                </div>
+
                 <nav className="flex flex-col gap-1.5">
                     {navItems.map((item) => {
                         const Icon = item.icon;
@@ -131,63 +155,56 @@ export default function Sidebar({
                 </nav>
             </div>
 
-            <div className="flex flex-col gap-2">
-                <button
-                    onClick={onOpenGemini}
-                    className={`flex border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-xs transition-colors hover:bg-white/5 ${
-                        collapsed
-                            ? "items-center justify-center"
-                            : "items-center justify-start gap-2"
-                    }`}
-                    type="button"
-                >
-                    <Sparkles size={16} />
-                    {!collapsed && "AI expense"}
-                </button>
-            </div>
-
-            <div className="mt-auto flex flex-col gap-3 border-t border-[var(--theme-border)] pt-3">
+            <div className="mt-auto flex flex-col gap-3 pt-3">
                 <div
-                    className={`flex ${
-                        collapsed ? "justify-center" : "items-center gap-3"
+                    className={`flex items-center ${
+                        collapsed ? "justify-center gap-2" : "gap-2"
                     }`}
                 >
-                    <div
-                        className="flex h-10 w-10 items-center justify-center overflow-hidden border border-[var(--theme-border)]"
-                        style={{
-                            backgroundColor:
-                                avatarError || !user.picture
-                                    ? "var(--theme-primary)"
-                                    : "transparent",
-                        }}
+                    <NavLink
+                        to="/profile"
+                        onClick={onCloseMobile}
+                        className={({ isActive }) =>
+                            `flex items-center border border-[var(--theme-border)] bg-[var(--theme-surface)] transition-colors hover:bg-[var(--theme-hover)] ${
+                                collapsed
+                                    ? "h-10 w-10 justify-center"
+                                    : "min-w-0 flex-1 gap-3 px-2 py-1.5"
+                            } ${isActive ? "bg-[var(--theme-active)]" : ""}`
+                        }
+                        title="Open profile"
                     >
-                        {avatarError || !user.picture ? (
-                            <User size={16} className="text-white" />
-                        ) : (
-                            <img
-                                src={user.picture}
-                                alt={user.name}
-                                className="h-full w-full object-cover"
-                                onError={() => setAvatarError(true)}
-                            />
-                        )}
-                    </div>
-                    {!collapsed && (
-                        <div className="min-w-0">
-                            <p className="truncate text-xs font-semibold">
-                                {user.name}
-                            </p>
-                            <p className="truncate text-[11px] text-[var(--theme-text-secondary)]">
-                                {user.email}
-                            </p>
+                        <div
+                            className="flex h-8 w-8 items-center justify-center overflow-hidden border border-[var(--theme-border)]"
+                            style={{
+                                backgroundColor:
+                                    avatarError || !user.picture
+                                        ? "var(--theme-primary)"
+                                        : "transparent",
+                            }}
+                        >
+                            {avatarError || !user.picture ? (
+                                <User size={14} className="text-white" />
+                            ) : (
+                                <img
+                                    src={user.picture}
+                                    alt={user.name}
+                                    className="h-full w-full object-cover"
+                                    onError={() => setAvatarError(true)}
+                                />
+                            )}
                         </div>
-                    )}
-                </div>
-                <div
-                    className={`flex ${
-                        collapsed ? "justify-center" : "items-center gap-3"
-                    }`}
-                >
+                        {!collapsed && (
+                            <div className="min-w-0">
+                                <p className="truncate text-xs font-semibold">
+                                    {user.name}
+                                </p>
+                                <p className="truncate text-[11px] text-[var(--theme-text-secondary)]">
+                                    {user.email}
+                                </p>
+                            </div>
+                        )}
+                    </NavLink>
+
                     <button
                         onClick={onLogout}
                         className="inline-flex h-10 w-10 items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] transition-colors hover:bg-white/5"
