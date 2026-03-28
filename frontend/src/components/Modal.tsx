@@ -21,20 +21,20 @@ export default function Modal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
             <div
-                className="absolute inset-0"
+                className="absolute inset-0 bg-black/50 sm:bg-black/32"
                 style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
+                    backdropFilter: "blur(1px)",
                 }}
                 onClick={onClose}
             />
 
             <div
-                className={`relative mx-4 w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] shadow-none backdrop-blur-[24px] ${maxWidthClass}`}
+                className={`relative mx-2 mb-2 w-[calc(100%-1rem)] max-h-[92vh] overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-surface)] shadow-xl sm:mx-4 sm:mb-0 sm:w-full sm:max-h-[86vh] sm:bg-[var(--theme-glass)] sm:shadow-none sm:backdrop-blur-[24px] ${maxWidthClass}`}
             >
                 <div
-                    className="flex items-center justify-between p-4 border-b"
+                    className="flex items-center justify-between border-b p-3 sm:p-4"
                     style={{ borderColor: "var(--theme-border)" }}
                 >
                     <h3
@@ -55,11 +55,13 @@ export default function Modal({
                     </button>
                 </div>
 
-                <div className="p-4">{children}</div>
+                <div className="max-h-[calc(92vh-128px)] overflow-y-auto p-3 sm:max-h-[calc(86vh-132px)] sm:p-4">
+                    {children}
+                </div>
 
                 {actions && (
                     <div
-                        className="flex justify-end gap-3 p-4 border-t"
+                        className="flex justify-end gap-2 border-t p-3 sm:gap-3 sm:p-4"
                         style={{ borderColor: "var(--theme-border)" }}
                     >
                         {actions}

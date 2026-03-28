@@ -34,47 +34,49 @@ export default function SummaryPage() {
     const { totals, monthlyBreakdown, recentExpenses, templates } = summary;
 
     return (
-        <PageContainer title="Home" className="space-y-6">
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                <div className="flex-1">
-                    <h1 className="font-['Playfair_Display'] tracking-[-0.01em] text-4xl font-semibold">
-                        Good morning
-                    </h1>
-                    <p
-                        className="text-sm mt-2"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        It is {nowLabel} and your financial overview was updated{" "}
-                        {updatedLabel}.
-                    </p>
-                </div>
-                <div className="grid grid-cols-2 gap-6">
-                    <div>
+        <PageContainer title="Home" className="space-y-5 sm:space-y-6">
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1">
+                        <h1 className="font-['Playfair_Display'] text-2xl font-semibold tracking-[-0.01em] sm:text-4xl">
+                            Good morning
+                        </h1>
                         <p
-                            className="text-xs"
+                            className="mt-2 text-xs sm:text-sm"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Net worth
-                        </p>
-                        <p className="text-3xl font-semibold">
-                            {formatMoneyBirr(totalSpent)}
+                            It is {nowLabel} and your financial overview was
+                            updated {updatedLabel}.
                         </p>
                     </div>
-                    <div>
-                        <p
-                            className="text-xs"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            Messages
-                        </p>
-                        <p className="text-3xl font-semibold">
-                            {totalCount.toLocaleString()}
-                        </p>
+                    <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <p
+                                className="text-xs"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Net worth
+                            </p>
+                            <p className="text-2xl font-semibold sm:text-4xl">
+                                {formatMoneyBirr(totalSpent)}
+                            </p>
+                        </div>
+                        <div>
+                            <p
+                                className="text-xs"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Messages
+                            </p>
+                            <p className="text-2xl font-semibold sm:text-4xl">
+                                {totalCount.toLocaleString()}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-5">
                 {topTypes.length === 0 ? (
                     <GlassCard className="p-4 xl:col-span-5">
                         <p
@@ -89,7 +91,7 @@ export default function SummaryPage() {
                     topTypes.map((item, index) => (
                         <GlassCard
                             key={item.type}
-                            className="p-0 overflow-hidden"
+                            className="min-w-[248px] snap-start p-0 overflow-hidden sm:min-w-0"
                         >
                             <div
                                 className="h-2"
@@ -109,7 +111,7 @@ export default function SummaryPage() {
                                 >
                                     {item.type}
                                 </p>
-                                <p className="text-4xl mt-1 leading-none">
+                                <p className="mt-1 text-3xl leading-none sm:text-4xl">
                                     {item.total.toLocaleString()}
                                 </p>
                                 <p
@@ -126,7 +128,7 @@ export default function SummaryPage() {
                 )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
                 <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3">
                     <p
                         className="text-[10px] uppercase"
@@ -134,7 +136,7 @@ export default function SummaryPage() {
                     >
                         Incoming
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-lg font-semibold sm:text-xl">
                         {formatMoneyBirr(totals.totalIncluded)}
                     </p>
                 </div>
@@ -145,7 +147,7 @@ export default function SummaryPage() {
                     >
                         Outgoing
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-lg font-semibold sm:text-xl">
                         {formatMoneyBirr(totals.totalExcluded)}
                     </p>
                 </div>
@@ -156,7 +158,7 @@ export default function SummaryPage() {
                     >
                         Included Count
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-lg font-semibold sm:text-xl">
                         {totals.countIncluded}
                     </p>
                 </div>
@@ -167,7 +169,7 @@ export default function SummaryPage() {
                     >
                         Excluded Count
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-lg font-semibold sm:text-xl">
                         {totals.countExcluded}
                     </p>
                 </div>
@@ -183,19 +185,25 @@ export default function SummaryPage() {
                             {templates.length} recurring items tracked
                         </p>
                     </div>
-                    <Link to="/recurrings" className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs">
+                    <Link
+                        to="/recurrings"
+                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                    >
                         View all
                     </Link>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
                 <GlassCard className="p-4">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold">
                             Recent Activity
                         </h3>
-                        <Link to="/expenses" className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs">
+                        <Link
+                            to="/expenses"
+                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                        >
                             Open expenses
                         </Link>
                     </div>
@@ -211,13 +219,13 @@ export default function SummaryPage() {
                             recentExpenses.map((expense) => (
                                 <div
                                     key={expense._id}
-                                    className="flex items-center justify-between border p-2"
+                                    className="flex items-center justify-between gap-3 border p-2"
                                     style={{
                                         borderColor: "var(--theme-border)",
                                     }}
                                 >
                                     <div>
-                                        <p className="text-sm font-semibold">
+                                        <p className="text-sm font-semibold leading-tight">
                                             {expense.description}
                                         </p>
                                         <p
@@ -243,11 +251,14 @@ export default function SummaryPage() {
                         <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-lg font-semibold">
                             Recent Months
                         </h3>
-                        <Link to="/charts" className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs">
+                        <Link
+                            to="/charts"
+                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                        >
                             Open charts
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {monthlyBreakdown
                             .slice()
                             .reverse()

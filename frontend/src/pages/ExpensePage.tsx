@@ -75,65 +75,70 @@ export default function ExpensePage({
     }
 
     return (
-        <PageContainer title="Expense Tracker" className="space-y-8">
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                <div className="flex-1 space-y-2">
-                    <div
-                        className="text-xs uppercase tracking-[0.2em]"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Daily tracking
-                    </div>
-                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
-                        Keep every expense in one place
-                    </h2>
-                    <p
-                        className="text-sm"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Track spending, monitor budgets, and generate recurring
-                        entries when needed.
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => setShowCreateModal(true)}
-                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-2 flex items-center gap-2 text-sm font-medium"
-                        style={{
-                            backgroundColor: "var(--theme-active)",
-                            color: "var(--theme-text)",
-                        }}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add expense
-                    </button>
-                </div>
-                <div className="flex flex-wrap gap-6">
-                    <div>
+        <PageContainer
+            title="Expense Tracker"
+            className="space-y-6 sm:space-y-8"
+        >
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1 space-y-2">
                         <div
                             className="text-xs uppercase tracking-[0.2em]"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Total entries
+                            Daily tracking
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {expenses.length}
-                        </div>
-                    </div>
-                    <div>
-                        <div
-                            className="text-xs uppercase tracking-[0.2em]"
+                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                            Keep every expense in one place
+                        </h2>
+                        <p
+                            className="text-sm"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Recurring
+                            Track spending, monitor budgets, and generate
+                            recurring entries when needed.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setShowCreateModal(true)}
+                            className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
+                            style={{
+                                backgroundColor: "var(--theme-active)",
+                                color: "var(--theme-text)",
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add expense
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6">
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Total entries
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {expenses.length}
+                            </div>
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {recurringCount}
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Recurring
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {recurringCount}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="kpi-strip flex flex-row w-full items-center justify-start gap-6 ">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
@@ -141,7 +146,7 @@ export default function ExpensePage({
                     >
                         Total included
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         Birr {total.toFixed(2)}
                     </div>
                 </div>
@@ -152,7 +157,7 @@ export default function ExpensePage({
                     >
                         Budget entries
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         {budgets.length}
                     </div>
                 </div>
@@ -163,15 +168,17 @@ export default function ExpensePage({
                     >
                         Next action
                     </div>
-                    <div className="text-xl font-semibold">Add expense</div>
+                    <div className="text-lg font-semibold sm:text-xl">
+                        Add expense
+                    </div>
                 </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <GlassCard>
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h2 className="text-base font-semibold text-theme-text">
+                                <h2 className="text-base font-semibold text-[var(--theme-text)]">
                                     Total Expenses
                                 </h2>
                                 <p
@@ -193,7 +200,7 @@ export default function ExpensePage({
                                 </span>
                             </button>
                         </div>
-                        <p className="text-xs text-theme-text-secondary">
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
                             Auto-create due recurring expenses
                         </p>
                     </GlassCard>
@@ -208,7 +215,7 @@ export default function ExpensePage({
                 <div className="space-y-6">
                     {budgets.length > 0 && (
                         <GlassCard className="p-0">
-                            <h2 className="text-base font-semibold text-theme-text mb-4">
+                            <h2 className="mb-4 px-4 pt-4 text-base font-semibold text-[var(--theme-text)]">
                                 Budget Progress
                             </h2>
                             <div className="space-y-4">
@@ -219,9 +226,9 @@ export default function ExpensePage({
                                     const isOverBudget = progress > 100;
                                     return (
                                         <div key={budget._id} className="p-4">
-                                            <div className="flex items-center justify-between mb-3">
+                                            <div className="mb-3 flex items-center justify-between">
                                                 <span
-                                                    className="text-xs font-medium px-2 py-1 rounded-full border"
+                                                    className="border px-2 py-1 text-xs font-medium"
                                                     style={{
                                                         color: "var(--theme-text-secondary)",
                                                         backgroundColor:
@@ -341,7 +348,7 @@ export default function ExpensePage({
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className="w-full rounded-full h-2 overflow-hidden border"
+                                                    className="h-2 w-full overflow-hidden border"
                                                     style={{
                                                         backgroundColor:
                                                             "var(--theme-surface)",
@@ -351,7 +358,7 @@ export default function ExpensePage({
                                                     }}
                                                 >
                                                     <div
-                                                        className="h-full rounded-full transition-all duration-300 ease-out"
+                                                        className="h-full transition-all duration-300 ease-out"
                                                         style={{
                                                             width: `${Math.min(
                                                                 progress,
@@ -373,7 +380,7 @@ export default function ExpensePage({
                                 })}
                             </div>
                             {budgets.length > 3 && (
-                                <p className="text-sm text-theme-text-secondary mt-4">
+                                <p className="mt-4 px-4 pb-4 text-sm text-[var(--theme-text-secondary)]">
                                     And {budgets.length - 3} more budgets...
                                 </p>
                             )}

@@ -25,53 +25,55 @@ export default function TemplatesPage() {
     }
 
     return (
-        <PageContainer title="Templates" className="space-y-8">
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                <div className="flex-1 space-y-2">
-                    <div
-                        className="text-xs uppercase tracking-[0.2em]"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Recurring presets
-                    </div>
-                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
-                        Save recurring expenses as templates
-                    </h2>
-                    <p
-                        className="text-sm"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Reuse templates for subscriptions, utilities, or
-                        recurring payments.
-                    </p>
-                </div>
-                <div className="flex flex-wrap gap-6">
-                    <div>
+        <PageContainer title="Templates" className="space-y-6 sm:space-y-8">
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1 space-y-2">
                         <div
                             className="text-xs uppercase tracking-[0.2em]"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Templates
+                            Recurring presets
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {templateCount}
-                        </div>
-                    </div>
-                    <div>
-                        <div
-                            className="text-xs uppercase tracking-[0.2em]"
+                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                            Save recurring expenses as templates
+                        </h2>
+                        <p
+                            className="text-sm"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Types covered
+                            Reuse templates for subscriptions, utilities, or
+                            recurring payments.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6">
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Templates
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {templateCount}
+                            </div>
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {typeCount}
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Types covered
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {typeCount}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="kpi-strip">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
@@ -79,7 +81,7 @@ export default function TemplatesPage() {
                     >
                         Last update
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         {templates.length > 0 ? "Active" : "Add template"}
                     </div>
                 </div>
@@ -90,7 +92,9 @@ export default function TemplatesPage() {
                     >
                         Suggested types
                     </div>
-                    <div className="text-xl font-semibold">{types.length}</div>
+                    <div className="text-lg font-semibold sm:text-xl">
+                        {types.length}
+                    </div>
                 </div>
                 <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
@@ -99,10 +103,12 @@ export default function TemplatesPage() {
                     >
                         Next action
                     </div>
-                    <div className="text-xl font-semibold">Create template</div>
+                    <div className="text-lg font-semibold sm:text-xl">
+                        Create template
+                    </div>
                 </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <form onSubmit={handleAdd} className="space-y-4">
                         <GlassCard>
@@ -180,7 +186,7 @@ export default function TemplatesPage() {
                             <div className="flex justify-end pt-4">
                                 <button
                                     type="submit"
-                                    className="flex items-center gap-2 rounded-xl border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5"
+                                    className="inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
                                     style={{
                                         backgroundColor: "var(--theme-accent)",
                                         color: "var(--theme-background)",
@@ -246,7 +252,7 @@ export default function TemplatesPage() {
                                                 onClick={() =>
                                                     handleDelete(safeId)
                                                 }
-                                                className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] hover:bg-red-500/20 transition-all duration-200 cursor-pointer"
+                                                className="flex h-10 w-10 items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] transition-colors hover:bg-red-500/20"
                                                 style={{ color: "#ef4444" }}
                                             >
                                                 <Trash2 className="w-4 h-4" />

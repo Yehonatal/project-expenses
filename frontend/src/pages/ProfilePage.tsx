@@ -130,52 +130,54 @@ export default function ProfilePage() {
 
     return (
         <PageContainer title="Profile" className="space-y-6">
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                <div className="flex-1 space-y-2">
-                    <div
-                        className="text-xs uppercase tracking-[0.2em]"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Account overview
-                    </div>
-                    <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
-                        Welcome back, {user.name}
-                    </h2>
-                    <p
-                        className="text-sm"
-                        style={{ color: "var(--theme-text-secondary)" }}
-                    >
-                        Member since{" "}
-                        {new Date(user.createdAt).toLocaleDateString()}.
-                    </p>
-                </div>
-                <div className="flex flex-wrap gap-6">
-                    <div>
+            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1 space-y-2">
                         <div
                             className="text-xs uppercase tracking-[0.2em]"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Total expenses
+                            Account overview
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {stats.totalExpenses}
-                        </div>
-                    </div>
-                    <div>
-                        <div
-                            className="text-xs uppercase tracking-[0.2em]"
+                        <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                            Welcome back, {user.name}
+                        </h2>
+                        <p
+                            className="text-sm"
                             style={{ color: "var(--theme-text-secondary)" }}
                         >
-                            Active types
+                            Member since{" "}
+                            {new Date(user.createdAt).toLocaleDateString()}.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6">
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Total expenses
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {stats.totalExpenses}
+                            </div>
                         </div>
-                        <div className="text-2xl font-semibold">
-                            {stats.totalTypes}
+                        <div>
+                            <div
+                                className="text-xs uppercase tracking-[0.2em]"
+                                style={{ color: "var(--theme-text-secondary)" }}
+                            >
+                                Active types
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {stats.totalTypes}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="kpi-strip">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                     <div
                         className="text-xs font-semibold uppercase"
@@ -183,7 +185,7 @@ export default function ProfilePage() {
                     >
                         Most expensive
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         Birr {stats.mostExpensive?.amount.toFixed(2) || "N/A"}
                     </div>
                 </div>
@@ -194,7 +196,7 @@ export default function ProfilePage() {
                     >
                         Cheapest
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         Birr {stats.cheapest?.amount.toFixed(2) || "N/A"}
                     </div>
                 </div>
@@ -205,7 +207,7 @@ export default function ProfilePage() {
                     >
                         Monthly reports
                     </div>
-                    <div className="text-xl font-semibold">
+                    <div className="text-lg font-semibold sm:text-xl">
                         {stats.monthlyAssessment.length}
                     </div>
                 </div>
@@ -234,7 +236,7 @@ export default function ProfilePage() {
                 >
                     Expense Statistics
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                     <StatCard
                         title="Total Expenses"
                         value={stats.totalExpenses}
@@ -288,7 +290,7 @@ export default function ProfilePage() {
                             >
                                 {month._id}
                             </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                            <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                                 <div>
                                     <p
                                         className="text-sm"

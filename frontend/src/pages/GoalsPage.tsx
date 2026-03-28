@@ -64,66 +64,77 @@ export default function GoalsPage() {
 
     return (
         <>
-            <PageContainer title="Financial Goals" className="space-y-8">
-                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                    <div className="flex-1 space-y-2">
-                        <div
-                            className="text-xs uppercase tracking-[0.2em]"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            Goal planning
-                        </div>
-                        <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
-                            Set spending goals by period
-                        </h2>
-                        <p
-                            className="text-sm"
-                            style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                            Keep goals clean and manageable with modal-first
-                            actions and progress charts.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => setShowCreateModal(true)}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-2 inline-flex items-center gap-2 text-sm font-medium"
-                            style={{
-                                backgroundColor: "var(--theme-active)",
-                                color: "var(--theme-text)",
-                            }}
-                        >
-                            <Plus size={16} />
-                            Create Goal
-                        </button>
-                    </div>
-                    <div className="flex flex-wrap gap-6">
-                        <div>
+            <PageContainer
+                title="Financial Goals"
+                className="space-y-6 sm:space-y-8"
+            >
+                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex-1 space-y-2">
                             <div
                                 className="text-xs uppercase tracking-[0.2em]"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
-                                Active goals
+                                Goal planning
                             </div>
-                            <div className="text-2xl font-semibold">
-                                {budgets.length}
-                            </div>
-                        </div>
-                        <div>
-                            <div
-                                className="text-xs uppercase tracking-[0.2em]"
+                            <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+                                Set spending goals by period
+                            </h2>
+                            <p
+                                className="text-sm"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
-                                Remaining
+                                Keep goals clean and manageable with modal-first
+                                actions and progress charts.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setShowCreateModal(true)}
+                                className="mt-2 inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
+                                style={{
+                                    backgroundColor: "var(--theme-active)",
+                                    color: "var(--theme-text)",
+                                }}
+                            >
+                                <Plus size={16} />
+                                Create Goal
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6">
+                            <div>
+                                <div
+                                    className="text-xs uppercase tracking-[0.2em]"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
+                                >
+                                    Active goals
+                                </div>
+                                <div className="text-2xl font-semibold">
+                                    {budgets.length}
+                                </div>
                             </div>
-                            <div className="text-2xl font-semibold">
-                                Birr{" "}
-                                {(totalBudget - totalSpent).toLocaleString()}
+                            <div>
+                                <div
+                                    className="text-xs uppercase tracking-[0.2em]"
+                                    style={{
+                                        color: "var(--theme-text-secondary)",
+                                    }}
+                                >
+                                    Remaining
+                                </div>
+                                <div className="text-2xl font-semibold">
+                                    Birr{" "}
+                                    {(
+                                        totalBudget - totalSpent
+                                    ).toLocaleString()}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="kpi-strip">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <div className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] rounded-none p-3">
                         <div
                             className="text-xs font-semibold uppercase"
@@ -131,7 +142,7 @@ export default function GoalsPage() {
                         >
                             Total budget
                         </div>
-                        <div className="text-xl font-semibold">
+                        <div className="text-lg font-semibold sm:text-xl">
                             Birr {totalBudget.toLocaleString()}
                         </div>
                     </div>
@@ -142,7 +153,7 @@ export default function GoalsPage() {
                         >
                             Total spent
                         </div>
-                        <div className="text-xl font-semibold">
+                        <div className="text-lg font-semibold sm:text-xl">
                             Birr {totalSpent.toLocaleString()}
                         </div>
                     </div>
@@ -153,7 +164,7 @@ export default function GoalsPage() {
                         >
                             Average usage
                         </div>
-                        <div className="text-xl font-semibold">
+                        <div className="text-lg font-semibold sm:text-xl">
                             {totalBudget > 0
                                 ? `${((totalSpent / totalBudget) * 100).toFixed(1)}%`
                                 : "0.0%"}
@@ -161,7 +172,7 @@ export default function GoalsPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                     <div className="lg:col-span-2">
                         <GlassCard className="p-4">
                             <div className="flex items-center justify-between mb-3">
@@ -187,7 +198,7 @@ export default function GoalsPage() {
                                     No goals yet. Create your first goal.
                                 </p>
                             ) : (
-                                <ResponsiveContainer width="100%" height={260}>
+                                <ResponsiveContainer width="100%" height={240}>
                                     <BarChart
                                         data={chartData}
                                         margin={{
@@ -204,6 +215,7 @@ export default function GoalsPage() {
                                         <XAxis
                                             dataKey="name"
                                             tick={{ fontSize: 10 }}
+                                            minTickGap={16}
                                         />
                                         <YAxis tick={{ fontSize: 10 }} />
                                         <Tooltip
@@ -311,7 +323,7 @@ export default function GoalsPage() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-3 mb-3">
+                                <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                                     <div>
                                         <div
                                             className="text-xs"

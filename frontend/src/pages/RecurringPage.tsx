@@ -41,10 +41,10 @@ export default function RecurringPage() {
     return (
         <>
             <PageContainer title="Recurring Transactions" className="space-y-6">
-                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 rounded-none p-4">
+                <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
-                            <h2 className="font-['Playfair_Display'] tracking-[-0.01em] text-2xl font-semibold">
+                            <h2 className="font-['Playfair_Display'] text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
                                 Recurring Transactions
                             </h2>
                             <p
@@ -58,7 +58,7 @@ export default function RecurringPage() {
                         <button
                             type="button"
                             onClick={openCreateModal}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-2 text-sm font-medium"
+                            className="inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 text-sm font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
                             style={{
                                 backgroundColor: "var(--theme-active)",
                                 color: "var(--theme-text)",
@@ -69,7 +69,7 @@ export default function RecurringPage() {
                         </button>
                     </div>
 
-                    <div className="mt-5 flex items-center gap-2 flex-wrap">
+                    <div className="mt-5 flex flex-wrap items-center gap-2">
                         <button
                             type="button"
                             className={`border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${categoryFilter === "all" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
@@ -92,7 +92,7 @@ export default function RecurringPage() {
                             Income ({counts.income})
                         </button>
 
-                        <div className="ml-auto flex items-center gap-2">
+                        <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
                             <button
                                 type="button"
                                 className={`border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${statusFilter === "active" ? "bg-[var(--theme-active)] font-semibold" : ""}`}
@@ -149,17 +149,17 @@ export default function RecurringPage() {
                                 key={template._id || template.id}
                                 className="p-4"
                             >
-                                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-stretch">
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-stretch">
                                     <div
-                                        className="pr-2 border-r"
+                                        className="border-b pb-3 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-2"
                                         style={{
                                             borderColor: "var(--theme-border)",
                                         }}
                                     >
-                                        <div className="text-xl font-semibold">
+                                        <div className="text-lg font-semibold sm:text-xl">
                                             {template.description}
                                         </div>
-                                        <div className="mt-3 text-3xl font-semibold">
+                                        <div className="mt-2 text-2xl font-semibold sm:text-3xl">
                                             {Number(
                                                 template.price,
                                             ).toLocaleString()}{" "}
@@ -177,7 +177,7 @@ export default function RecurringPage() {
                                                 {template.provider || "any"}
                                             </span>
                                         </div>
-                                        <div className="mt-3 flex items-center gap-2">
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() =>
@@ -221,7 +221,7 @@ export default function RecurringPage() {
                                         </div>
                                     </div>
 
-                                    <div className="pl-2">
+                                    <div className="lg:pl-2">
                                         <div
                                             className="h-8 border"
                                             style={{
@@ -232,7 +232,7 @@ export default function RecurringPage() {
                                             }}
                                         />
                                         <div
-                                            className="mt-3 flex items-center justify-between text-xs"
+                                            className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs"
                                             style={{
                                                 color: "var(--theme-text-secondary)",
                                             }}
