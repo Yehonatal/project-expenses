@@ -129,7 +129,11 @@ export default function ProfilePage() {
     }
 
     return (
-        <PageContainer title="Profile" className="space-y-6">
+        <PageContainer
+            title="Profile"
+            subtitle="Review account insights, monthly summaries, and export your financial data."
+            className="space-y-6"
+        >
             <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1 space-y-2">
@@ -392,6 +396,7 @@ export default function ProfilePage() {
                 isOpen={showGoogleDriveModal}
                 onClose={() => setShowGoogleDriveModal(false)}
                 title={modalCopy.profile.syncTitle}
+                description="Cloud backup is being prepared to keep your records safe across devices."
                 actions={
                     <button
                         onClick={() => setShowGoogleDriveModal(false)}

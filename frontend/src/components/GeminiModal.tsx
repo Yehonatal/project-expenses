@@ -14,6 +14,7 @@ import { ExpenseService } from "../services/expenseService";
 import type { Expense } from "../types/expense";
 import type { AxiosError } from "axios";
 import { modalCopy } from "../content/modalCopy";
+import { uiControl } from "../utils/uiClasses";
 
 type AIParsingType = "expense" | "template" | "budget" | "recurring";
 
@@ -259,19 +260,14 @@ export default function GeminiModal({
                         <button
                             onClick={handleClose}
                             disabled={isLoading}
-                            className="rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 py-2 text-sm backdrop-blur-[20px] transition-colors hover:bg-white/5"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.button}
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={isLoading || !description.trim()}
-                            className="flex items-center gap-2 rounded-lg border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-4 py-2 text-sm backdrop-blur-[20px] transition-colors hover:bg-white/5 disabled:opacity-50"
-                            style={{
-                                backgroundColor: "var(--theme-accent)",
-                                color: "var(--theme-background)",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             {isLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -358,9 +354,8 @@ export default function GeminiModal({
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder={tabConfig.placeholder}
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl resize-none"
+                                className={uiControl.textarea}
                                 style={{
-                                    color: "var(--theme-text)",
                                     minHeight: "120px",
                                 }}
                                 disabled={isLoading}

@@ -8,7 +8,7 @@ type Props = {
 export default function GlassCard({ className = "", children }: Props) {
     return (
         <div
-            className={`border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-4 backdrop-blur-[24px] sm:p-5 ${className}`.trim()}
+            className={`border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5 ${className}`.trim()}
         >
             {children}
         </div>

@@ -3,12 +3,14 @@ import React from "react";
 
 type Props = {
     title?: string;
+    subtitle?: string;
     className?: string;
     children?: React.ReactNode;
 };
 
 export default function PageContainer({
     title,
+    subtitle,
     className = "",
     children,
 }: Props) {
@@ -20,9 +22,16 @@ export default function PageContainer({
             className={`w-full min-w-0 max-w-none space-y-4 ${className}`.trim()}
         >
             {title && (
-                <h1 className="font-['Playfair_Display'] text-base font-semibold tracking-[-0.01em] sm:text-lg">
-                    {title}
-                </h1>
+                <div className="space-y-1">
+                    <h1 className="font-['Playfair_Display'] text-base font-semibold tracking-[-0.01em] sm:text-lg">
+                        {title}
+                    </h1>
+                    {subtitle && (
+                        <p className="text-xs text-[var(--theme-text-secondary)] sm:text-sm">
+                            {subtitle}
+                        </p>
+                    )}
+                </div>
             )}
             {children}
         </motion.div>

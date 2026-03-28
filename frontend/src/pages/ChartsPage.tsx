@@ -66,6 +66,7 @@ export default function ChartsPage() {
     return (
         <PageContainer
             title="Charts & Overview"
+            subtitle="Visualize balance movement, category concentration, and monthly performance at a glance."
             className="space-y-5 sm:space-y-6"
         >
             <GlassCard className="space-y-4 p-4 sm:p-5">

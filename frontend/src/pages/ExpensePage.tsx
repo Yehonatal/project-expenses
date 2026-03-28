@@ -10,6 +10,7 @@ import { formatBudgetPeriod } from "../utils/dateFormatter";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import { useExpensePageData } from "../hooks/useExpensePageData";
 import { modalCopy } from "../content/modalCopy";
+import { uiControl } from "../utils/uiClasses";
 
 export default function ExpensePage({
     expenseUpdateTrigger,
@@ -77,6 +78,7 @@ export default function ExpensePage({
     return (
         <PageContainer
             title="Expense Tracker"
+            subtitle="Track daily entries, review grouped history, and manage recurring generation from one place."
             className="space-y-6 sm:space-y-8"
         >
             <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
@@ -393,6 +395,7 @@ export default function ExpensePage({
                 isOpen={showRecurringModal}
                 onClose={() => setShowRecurringModal(false)}
                 title={recurringModalContent?.title || ""}
+                description="Generate entries from active recurring rules and review before adding."
                 actions={
                     recurringModalContent?.showAddButton ? (
                         <button
@@ -400,11 +403,7 @@ export default function ExpensePage({
                                 setShowRecurringModal(false);
                                 setShowCreateModal(true);
                             }}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90 flex items-center gap-2"
-                            style={{
-                                backgroundColor: "var(--theme-primary)",
-                                color: "white",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             <Plus className="w-4 h-4" />
                             {modalCopy.expense.recurringConfirm}
@@ -412,8 +411,7 @@ export default function ExpensePage({
                     ) : (
                         <button
                             onClick={() => setShowRecurringModal(false)}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.button}
                         >
                             {modalCopy.common.close}
                         </button>
@@ -429,6 +427,7 @@ export default function ExpensePage({
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 title={modalCopy.expense.createTitle}
+                description="Capture a new expense with type, amount, and optional recurring metadata."
             >
                 <ExpenseForm
                     onAdd={(createdExpense) => {
@@ -442,6 +441,7 @@ export default function ExpensePage({
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 title={modalCopy.expense.editTitle}
+                description="Adjust an existing entry and keep grouped history up to date."
             >
                 {editingExpense && (
                     <ExpenseForm
@@ -462,6 +462,7 @@ export default function ExpensePage({
                     setDeletingExpenseId(null);
                 }}
                 title={modalCopy.expense.deleteTitle}
+                description="This action permanently removes the selected expense from your records."
                 actions={
                     <>
                         <button
@@ -469,19 +470,13 @@ export default function ExpensePage({
                                 setShowDeleteModal(false);
                                 setDeletingExpenseId(null);
                             }}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm transition-all hover:opacity-90"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.button}
                         >
                             {modalCopy.common.cancel}
                         </button>
                         <button
                             onClick={confirmDelete}
-                            className="text-sm transition-all hover:opacity-90 font-medium px-4 py-2"
-                            style={{
-                                backgroundColor: "#dc2626", // Red-600
-                                color: "white",
-                                border: "1px solid #dc2626",
-                            }}
+                            className={uiControl.buttonDanger}
                         >
                             {modalCopy.expense.deleteConfirm}
                         </button>

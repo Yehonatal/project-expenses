@@ -6,6 +6,7 @@ import PageSkeleton from "../components/ui/PageSkeleton";
 import Toast from "../components/Toast";
 import { useRecurringPageData } from "../hooks/useRecurringPageData";
 import { modalCopy } from "../content/modalCopy";
+import { uiControl } from "../utils/uiClasses";
 
 function getDueLabel(startDate?: string, frequency?: string) {
     if (!startDate) return "Schedule not set";
@@ -40,7 +41,11 @@ export default function RecurringPage() {
 
     return (
         <>
-            <PageContainer title="Recurring Transactions" className="space-y-6">
+            <PageContainer
+                title="Recurring Transactions"
+                subtitle="Manage repeating income and expenses with status, timing, and provider tracking."
+                className="space-y-6"
+            >
                 <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
@@ -265,13 +270,14 @@ export default function RecurringPage() {
                         ? modalCopy.recurring.editTitle
                         : modalCopy.recurring.createTitle
                 }
+                description="Define schedule, amount, and provider so entries can be generated reliably."
                 maxWidthClass="max-w-4xl"
             >
                 <div className="space-y-4">
                     <div>
                         <label className="text-xs font-medium">Name *</label>
                         <input
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                            className={uiControl.input}
                             value={form.description}
                             onChange={(e) =>
                                 setForm((prev) => ({
@@ -286,7 +292,7 @@ export default function RecurringPage() {
                     <div>
                         <label className="text-xs font-medium">Type *</label>
                         <input
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                            className={uiControl.input}
                             value={form.type}
                             onChange={(e) =>
                                 setForm((prev) => ({
@@ -304,7 +310,7 @@ export default function RecurringPage() {
                                 Category *
                             </label>
                             <select
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.select}
                                 value={form.category}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -325,7 +331,7 @@ export default function RecurringPage() {
                             </label>
                             <input
                                 type="number"
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.input}
                                 value={form.price}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -343,7 +349,7 @@ export default function RecurringPage() {
                                 Frequency *
                             </label>
                             <select
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.select}
                                 value={form.frequency}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -368,7 +374,7 @@ export default function RecurringPage() {
                                 type="number"
                                 min={1}
                                 max={31}
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.input}
                                 value={form.dayOfMonth}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -387,7 +393,7 @@ export default function RecurringPage() {
                             </label>
                             <input
                                 type="date"
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.input}
                                 value={form.startDate}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -403,7 +409,7 @@ export default function RecurringPage() {
                             </label>
                             <input
                                 type="date"
-                                className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] w-full mt-1"
+                                className={uiControl.input}
                                 value={form.endDate}
                                 onChange={(e) =>
                                     setForm((prev) => ({
@@ -428,7 +434,7 @@ export default function RecurringPage() {
                                             provider,
                                         }))
                                     }
-                                    className={`border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs ${form.provider === provider ? "bg-[var(--theme-active)] font-semibold" : ""}`}
+                                    className={`px-2 py-1 text-xs ${uiControl.button} ${form.provider === provider ? "border-[var(--theme-accent)] bg-[var(--theme-accent)] text-[var(--theme-background)]" : ""}`}
                                 >
                                     {provider}
                                 </button>
@@ -440,18 +446,14 @@ export default function RecurringPage() {
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
+                            className={uiControl.button}
                         >
                             {modalCopy.common.cancel}
                         </button>
                         <button
                             type="button"
                             onClick={submitForm}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
-                            style={{
-                                backgroundColor: "var(--theme-active)",
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             {editingTemplate
                                 ? modalCopy.recurring.editConfirm

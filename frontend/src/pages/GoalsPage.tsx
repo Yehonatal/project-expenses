@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { BarChart3, Pencil, Plus, Trash2 } from "lucide-react";
 import {
-    BarChart,
+    Area,
     Bar,
+    ComposedChart,
     CartesianGrid,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
+    Line,
     Legend,
 } from "recharts";
 import PageSkeleton from "../components/ui/PageSkeleton";
@@ -18,6 +20,7 @@ import Modal from "../components/Modal";
 import BudgetCreateModal from "../components/BudgetCreateModal";
 import { useBudgetPageData, type BudgetType } from "../hooks/useBudgetPageData";
 import { modalCopy } from "../content/modalCopy";
+import { uiControl } from "../utils/uiClasses";
 
 export default function GoalsPage() {
     const {
@@ -56,6 +59,15 @@ export default function GoalsPage() {
                 name: formatBudgetPeriod(budget),
                 budget: Number(budget.totalBudget) || 0,
                 spent: Number(budget.spent) || 0,
+                remaining: Math.max(
+                    0,
+                    (Number(budget.totalBudget) || 0) -
+                        (Number(budget.spent) || 0),
+                ),
+                usagePercent:
+                    ((Number(budget.spent) || 0) /
+                        Math.max(Number(budget.totalBudget) || 1, 1)) *
+                    100,
             })),
         [budgets, formatBudgetPeriod],
     );
@@ -66,6 +78,7 @@ export default function GoalsPage() {
         <>
             <PageContainer
                 title="Financial Goals"
+                subtitle="Create target plans, monitor budget usage, and quickly spot goals at risk."
                 className="space-y-6 sm:space-y-8"
             >
                 <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
@@ -124,10 +137,7 @@ export default function GoalsPage() {
                                     Remaining
                                 </div>
                                 <div className="text-2xl font-semibold">
-                                    Birr{" "}
-                                    {(
-                                        totalBudget - totalSpent
-                                    ).toLocaleString()}
+                                    Birr {Math.max(totalBudget - totalSpent, 0).toLocaleString()}
                                 </div>
                             </div>
                         </div>
@@ -174,20 +184,89 @@ export default function GoalsPage() {
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                     <div className="lg:col-span-2">
-                        <GlassCard className="p-4">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-['Playfair_Display'] tracking-[-0.01em] text-base font-semibold">
-                                    Goals Overview
-                                </h3>
-                                <span
-                                    className="text-xs"
-                                    style={{
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                >
-                                    Budget vs spent
-                                </span>
+                        <GlassCard className="space-y-4 p-4 sm:p-5">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                <div className="space-y-1">
+                                    <h3 className="font-['Playfair_Display'] text-lg font-semibold tracking-[-0.01em] sm:text-xl">
+                                        Goals Trendboard
+                                    </h3>
+                                    <p
+                                        className="text-xs sm:text-sm"
+                                        style={{
+                                            color: "var(--theme-text-secondary)",
+                                        }}
+                                    >
+                                        Track budget allocation, burn rate and
+                                        remaining runway for each goal period.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                                    <div>
+                                        <p
+                                            className="text-[10px] uppercase"
+                                            style={{
+                                                color: "var(--theme-text-secondary)",
+                                            }}
+                                        >
+                                            Goal entries
+                                        </p>
+                                        <p className="text-xl font-semibold sm:text-2xl">
+                                            {budgets.length}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p
+                                            className="text-[10px] uppercase"
+                                            style={{
+                                                color: "var(--theme-text-secondary)",
+                                            }}
+                                        >
+                                            Remaining total
+                                        </p>
+                                        <p className="text-xl font-semibold sm:text-2xl">
+                                            {Math.max(totalBudget - totalSpent, 0).toLocaleString()} ETB
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                        Budget Pool
+                                    </p>
+                                    <p className="text-sm font-semibold sm:text-base">
+                                        {totalBudget.toLocaleString()} ETB
+                                    </p>
+                                </div>
+                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                        Spent
+                                    </p>
+                                    <p className="text-sm font-semibold sm:text-base">
+                                        {totalSpent.toLocaleString()} ETB
+                                    </p>
+                                </div>
+                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                        Remaining
+                                    </p>
+                                    <p className="text-sm font-semibold sm:text-base">
+                                        {Math.max(totalBudget - totalSpent, 0).toLocaleString()} ETB
+                                    </p>
+                                </div>
+                                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                    <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                        Avg Usage
+                                    </p>
+                                    <p className="text-sm font-semibold sm:text-base">
+                                        {totalBudget > 0
+                                            ? `${((totalSpent / totalBudget) * 100).toFixed(1)}%`
+                                            : "0.0%"}
+                                    </p>
+                                </div>
+                            </div>
+
                             {chartData.length === 0 ? (
                                 <p
                                     className="text-sm"
@@ -198,43 +277,58 @@ export default function GoalsPage() {
                                     No goals yet. Create your first goal.
                                 </p>
                             ) : (
-                                <ResponsiveContainer width="100%" height={240}>
-                                    <BarChart
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <ComposedChart
                                         data={chartData}
-                                        margin={{
-                                            top: 8,
-                                            right: 8,
-                                            left: 0,
-                                            bottom: 0,
-                                        }}
+                                        margin={{ top: 6, right: 6, left: -8, bottom: 0 }}
                                     >
-                                        <CartesianGrid
-                                            strokeDasharray="2 2"
-                                            vertical={false}
-                                        />
+                                        <CartesianGrid strokeDasharray="2 2" />
                                         <XAxis
                                             dataKey="name"
                                             tick={{ fontSize: 10 }}
-                                            minTickGap={16}
+                                            minTickGap={18}
                                         />
                                         <YAxis tick={{ fontSize: 10 }} />
                                         <Tooltip
-                                            formatter={(value) =>
-                                                `Birr ${Number(value || 0).toLocaleString()}`
-                                            }
+                                            formatter={(value, name) => {
+                                                if (name === "Usage") {
+                                                    return `${Number(value || 0).toFixed(1)}%`;
+                                                }
+
+                                                return `${Number(value || 0).toLocaleString()} ETB`;
+                                            }}
                                         />
                                         <Legend />
-                                        <Bar
+                                        <Area
+                                            type="monotone"
                                             dataKey="budget"
-                                            name="Budget"
-                                            fill="var(--theme-secondary)"
+                                            name="Budget Area"
+                                            fill="rgba(129, 140, 248, 0.15)"
+                                            stroke="none"
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="spent"
+                                            name="Spent Line"
+                                            stroke="var(--theme-secondary)"
+                                            strokeWidth={2}
+                                            dot={{ r: 2 }}
                                         />
                                         <Bar
-                                            dataKey="spent"
-                                            name="Spent"
-                                            fill="var(--theme-accent)"
+                                            dataKey="remaining"
+                                            name="Remaining"
+                                            fill="rgba(208, 139, 91, 0.25)"
+                                            barSize={8}
                                         />
-                                    </BarChart>
+                                        <Line
+                                            type="monotone"
+                                            dataKey="usagePercent"
+                                            name="Usage"
+                                            stroke="var(--theme-primary)"
+                                            strokeWidth={1.5}
+                                            dot={false}
+                                        />
+                                    </ComposedChart>
                                 </ResponsiveContainer>
                             )}
                         </GlassCard>
@@ -311,9 +405,7 @@ export default function GoalsPage() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                handleDelete(budget._id)
-                                            }
+                                            onClick={() => handleDelete(budget._id)}
                                             className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] inline-flex items-center gap-1 text-xs"
                                             style={{ color: "#b91c1c" }}
                                         >
@@ -403,6 +495,7 @@ export default function GoalsPage() {
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 title={modalCopy.goals.createTitle}
+                description="Build a measurable goal with amount, period and pacing details."
                 maxWidthClass="max-w-4xl"
             >
                 <BudgetCreateModal
@@ -431,13 +524,12 @@ export default function GoalsPage() {
                 isOpen={Boolean(editingId)}
                 onClose={handleCancelEdit}
                 title={modalCopy.goals.editTitle}
+                description="Update the budget type or amount without losing progress history."
                 maxWidthClass="max-w-3xl"
             >
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Goal Type
-                        </label>
+                        <label className={uiControl.label}>Goal Type</label>
                         <select
                             value={editForm.type}
                             onChange={(e) =>
@@ -446,8 +538,7 @@ export default function GoalsPage() {
                                     type: e.target.value as BudgetType,
                                 })
                             }
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02]"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.select}
                         >
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
@@ -457,9 +548,7 @@ export default function GoalsPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Total Budget
-                        </label>
+                        <label className={uiControl.label}>Total Budget</label>
                         <input
                             type="number"
                             value={editForm.totalBudget || ""}
@@ -469,8 +558,7 @@ export default function GoalsPage() {
                                     totalBudget: Number(e.target.value),
                                 })
                             }
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02]"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.input}
                         />
                     </div>
 
@@ -478,19 +566,14 @@ export default function GoalsPage() {
                         <button
                             type="button"
                             onClick={handleCancelEdit}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
-                            style={{ color: "var(--theme-text)" }}
+                            className={uiControl.button}
                         >
                             {modalCopy.common.cancel}
                         </button>
                         <button
                             type="button"
                             onClick={handleSaveEdit}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
-                            style={{
-                                backgroundColor: "var(--theme-active)",
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             {modalCopy.goals.editConfirm}
                         </button>

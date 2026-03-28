@@ -13,11 +13,23 @@ export default function ExpenseTable({
     onEdit,
     onDelete,
 }: ExpenseTableProps) {
+    const includedExpenses = expenses.filter((exp) => exp.included);
+    const excludedExpenses = expenses.filter((exp) => !exp.included);
+
+    const includedTotal = includedExpenses.reduce(
+        (sum, exp) => sum + exp.amount,
+        0,
+    );
+    const excludedTotal = excludedExpenses.reduce(
+        (sum, exp) => sum + exp.amount,
+        0,
+    );
+
     const grouped = expenses.reduce<Record<string, Expense[]>>((acc, exp) => {
         const d = new Date(exp.date);
         const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
             2,
-            "0"
+            "0",
         )}`;
         if (!acc[ym]) acc[ym] = [];
         acc[ym].push(exp);
@@ -28,7 +40,7 @@ export default function ExpenseTable({
         Record<string, boolean>
     >({});
     const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
-        {}
+        {},
     );
 
     const toggleMonth = (ym: string) => {
@@ -66,9 +78,54 @@ export default function ExpenseTable({
 
     return (
         <div
-            className="mt-6 space-y-6 font-sans"
+            className="mt-4 space-y-3 font-sans"
             style={{ color: "var(--theme-text)" }}
         >
+            <section className="relative overflow-hidden border border-[var(--theme-border)]/40 bg-[var(--theme-surface)] p-3">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.1),transparent_50%)]" />
+                <div className="relative grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                    <div className="border border-[var(--theme-border)]/40 bg-[var(--theme-background)] px-2 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
+                            Entries
+                        </p>
+                        <p className="text-sm font-semibold">
+                            {expenses.length}
+                        </p>
+                    </div>
+                    <div className="border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wide text-emerald-700">
+                            Included
+                        </p>
+                        <p className="text-sm font-semibold text-emerald-700">
+                            Birr {includedTotal.toFixed(0)}
+                        </p>
+                    </div>
+                    <div className="border border-amber-500/30 bg-amber-500/10 px-2 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wide text-amber-700">
+                            Excluded
+                        </p>
+                        <p className="text-sm font-semibold text-amber-700">
+                            Birr {excludedTotal.toFixed(0)}
+                        </p>
+                    </div>
+                    <div className="border border-[var(--theme-border)]/40 bg-[var(--theme-background)] px-2 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
+                            Included Ratio
+                        </p>
+                        <p className="text-sm font-semibold">
+                            {expenses.length
+                                ? Math.round(
+                                      (includedExpenses.length /
+                                          expenses.length) *
+                                          100,
+                                  )
+                                : 0}
+                            %
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             {sortedMonths.map((ym) => (
                 <MonthSection
                     key={ym}

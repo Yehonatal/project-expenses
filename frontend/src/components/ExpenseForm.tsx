@@ -3,6 +3,7 @@ import API from "../api/api";
 import type { Expense } from "../types/expense";
 import { Plus } from "lucide-react";
 import Toast from "./Toast";
+import { uiControl } from "../utils/uiClasses";
 
 type ExpenseFormData = {
     date: string;
@@ -99,7 +100,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         if (value) {
             // template select stores template id when loaded from server, or description for older local entries
             const template = templates.find((t) =>
-                t._id ? t._id === value : t.description === value
+                t._id ? t._id === value : t.description === value,
             );
             if (template) {
                 setForm((prev) => ({
@@ -113,7 +114,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
     };
 
     const handleChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     ) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
@@ -123,8 +124,8 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                 type === "checkbox" && name === "included"
                     ? !checked
                     : type === "checkbox"
-                    ? checked
-                    : value,
+                      ? checked
+                      : value,
         }));
     };
 
@@ -194,35 +195,25 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
     return (
         <>
             <Toast message={toast?.message} type={toast?.type} />
-            <form onSubmit={handleSubmit} className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px] rounded-none shadow-none p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Date
-                        </label>
+                        <label className={uiControl.label}>Date</label>
                         <input
                             type="date"
                             name="date"
                             value={form.date}
                             onChange={handleChange}
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
-                            style={{
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.input}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Template
-                        </label>
+                        <label className={uiControl.label}>Template</label>
                         <select
                             name="template"
                             onChange={handleTemplateChange}
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
-                            style={{
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.select}
                         >
                             <option value="">Select Template</option>
                             {templates.map((t) => (
@@ -237,36 +228,26 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Description
-                        </label>
+                        <label className={uiControl.label}>Description</label>
                         <input
                             type="text"
                             name="description"
                             placeholder="Enter description"
                             value={form.description}
                             onChange={handleChange}
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
-                            style={{
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.input}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Type
-                        </label>
+                        <label className={uiControl.label}>Type</label>
                         <input
                             list="type-suggestions"
                             name="type"
                             value={form.type}
                             onChange={handleChange}
                             placeholder="Enter type"
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
-                            style={{
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.input}
                         />
                         <datalist id="type-suggestions">
                             {types.map((t) => (
@@ -276,9 +257,7 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Amount
-                        </label>
+                        <label className={uiControl.label}>Amount</label>
                         <input
                             type="number"
                             name="amount"
@@ -286,17 +265,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                             value={form.amount}
                             onChange={handleChange}
                             step="1"
-                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm text-right"
-                            style={{
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.inputRight}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-theme-text-secondary">
-                            Options
-                        </label>
+                        <label className={uiControl.label}>Options</label>
                         <div className="space-y-2">
                             <label className="flex items-center gap-2 cursor-pointer select-none text-sm">
                                 <input
@@ -304,12 +278,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                     name="included"
                                     checked={!form.included}
                                     onChange={handleChange}
-                                    className="w-4 h-4 cursor-pointer rounded"
+                                    className={uiControl.checkbox}
                                     style={{
                                         accentColor: "var(--theme-accent)",
                                     }}
                                 />
-                                <span className="text-theme-text-secondary">
+                                <span className="text-[var(--theme-text-secondary)]">
                                     Exclude from total
                                 </span>
                             </label>
@@ -320,12 +294,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                     name="isRecurring"
                                     checked={form.isRecurring}
                                     onChange={handleChange}
-                                    className="w-4 h-4 cursor-pointer rounded"
+                                    className={uiControl.checkbox}
                                     style={{
                                         accentColor: "var(--theme-accent)",
                                     }}
                                 />
-                                <span className="text-theme-text-secondary">
+                                <span className="text-[var(--theme-text-secondary)]">
                                     Recurring
                                 </span>
                             </label>
@@ -334,17 +308,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
 
                     {form.isRecurring && (
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-theme-text-secondary">
-                                Frequency
-                            </label>
+                            <label className={uiControl.label}>Frequency</label>
                             <select
                                 name="frequency"
                                 value={form.frequency}
                                 onChange={handleChange}
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl text-sm"
-                                style={{
-                                    color: "var(--theme-text)",
-                                }}
+                                className={uiControl.select}
                             >
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly">Monthly</option>
@@ -357,14 +326,10 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                     <button
                         type="submit"
                         aria-label="Add expense"
-                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl flex items-center gap-2 text-sm font-medium"
-                        style={{
-                            backgroundColor: "var(--theme-accent)",
-                            color: "var(--theme-background)",
-                        }}
+                        className={uiControl.buttonPrimary}
                     >
                         <Plus className="w-4 h-4" />
-                        Add Expense
+                        {editExpense ? "Save Expense" : "Add Expense"}
                     </button>
                 </div>
             </form>

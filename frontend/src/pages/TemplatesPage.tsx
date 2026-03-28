@@ -5,6 +5,7 @@ import { Trash2, Plus } from "lucide-react";
 import Toast from "../components/Toast";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import { useTemplatesPageData } from "../hooks/useTemplatesPageData";
+import { uiControl } from "../utils/uiClasses";
 
 export default function TemplatesPage() {
     const {
@@ -25,7 +26,11 @@ export default function TemplatesPage() {
     }
 
     return (
-        <PageContainer title="Templates" className="space-y-6 sm:space-y-8">
+        <PageContainer
+            title="Templates"
+            subtitle="Save reusable entries for subscriptions, bills, and repeating payments."
+            className="space-y-6 sm:space-y-8"
+        >
             <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1 space-y-2">
@@ -115,7 +120,7 @@ export default function TemplatesPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label
-                                        className="text-sm font-medium"
+                                        className={uiControl.label}
                                         style={{
                                             color: "var(--theme-text-secondary)",
                                         }}
@@ -127,14 +132,13 @@ export default function TemplatesPage() {
                                         value={form.description}
                                         onChange={handleChange}
                                         placeholder="Description"
-                                        className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
-                                        style={{ color: "var(--theme-text)" }}
+                                        className={uiControl.input}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label
-                                        className="text-sm font-medium"
+                                        className={uiControl.label}
                                         style={{
                                             color: "var(--theme-text-secondary)",
                                         }}
@@ -148,10 +152,7 @@ export default function TemplatesPage() {
                                             value={form.type}
                                             onChange={handleChange}
                                             placeholder="Type"
-                                            className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
-                                            style={{
-                                                color: "var(--theme-text)",
-                                            }}
+                                            className={uiControl.input}
                                         />
                                         <datalist id="template-type-suggestions">
                                             {types.map((t) => (
@@ -163,7 +164,7 @@ export default function TemplatesPage() {
 
                                 <div className="space-y-2">
                                     <label
-                                        className="text-sm font-medium"
+                                        className={uiControl.label}
                                         style={{
                                             color: "var(--theme-text-secondary)",
                                         }}
@@ -177,8 +178,7 @@ export default function TemplatesPage() {
                                         placeholder="0.00"
                                         type="number"
                                         step="0.01"
-                                        className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] rounded-xl"
-                                        style={{ color: "var(--theme-text)" }}
+                                        className={uiControl.input}
                                     />
                                 </div>
                             </div>
@@ -186,11 +186,7 @@ export default function TemplatesPage() {
                             <div className="flex justify-end pt-4">
                                 <button
                                     type="submit"
-                                    className="inline-flex w-full items-center justify-center gap-2 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 font-medium backdrop-blur-[20px] transition-colors hover:bg-white/5 sm:w-auto"
-                                    style={{
-                                        backgroundColor: "var(--theme-accent)",
-                                        color: "var(--theme-background)",
-                                    }}
+                                    className={`w-full sm:w-auto ${uiControl.buttonPrimary}`}
                                 >
                                     <Plus className="w-4 h-4" />
                                     Add Template

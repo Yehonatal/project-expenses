@@ -32,14 +32,25 @@ export default function SummaryPage() {
     }
 
     const { totals, monthlyBreakdown, recentExpenses, templates } = summary;
+    const hour = new Date().getHours();
+    const greeting =
+        hour < 12
+            ? "Good morning"
+            : hour < 17
+              ? "Good afternoon"
+              : "Good evening";
 
     return (
-        <PageContainer title="Home" className="space-y-5 sm:space-y-6">
-            <div className="border border-[var(--theme-glass-border)] bg-gradient-to-br from-white/60 to-white/10 p-4 sm:p-5">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <PageContainer
+            title="Home"
+            subtitle="Your live financial overview with recent activity and recurring signals."
+            className="space-y-5 sm:space-y-6"
+        >
+            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1">
-                        <h1 className="font-['Playfair_Display'] text-2xl font-semibold tracking-[-0.01em] sm:text-4xl">
-                            Good morning
+                        <h1 className="font-['Playfair_Display'] text-3xl font-semibold tracking-[-0.01em] sm:text-5xl">
+                            {greeting}
                         </h1>
                         <p
                             className="mt-2 text-xs sm:text-sm"
@@ -49,26 +60,26 @@ export default function SummaryPage() {
                             updated {updatedLabel}.
                         </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-2 gap-5 sm:gap-8">
                         <div>
                             <p
-                                className="text-xs"
+                                className="text-[10px] uppercase"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
                                 Net worth
                             </p>
-                            <p className="text-2xl font-semibold sm:text-4xl">
+                            <p className="text-3xl font-semibold sm:text-5xl">
                                 {formatMoneyBirr(totalSpent)}
                             </p>
                         </div>
                         <div>
                             <p
-                                className="text-xs"
+                                className="text-[10px] uppercase"
                                 style={{ color: "var(--theme-text-secondary)" }}
                             >
                                 Messages
                             </p>
-                            <p className="text-2xl font-semibold sm:text-4xl">
+                            <p className="text-3xl font-semibold sm:text-5xl">
                                 {totalCount.toLocaleString()}
                             </p>
                         </div>
@@ -102,26 +113,21 @@ export default function SummaryPage() {
                                         ],
                                 }}
                             />
-                            <div className="p-3">
+                            <div className="space-y-2 p-3">
                                 <p
-                                    className="text-xs uppercase"
+                                    className="text-[10px] uppercase"
                                     style={{
                                         color: "var(--theme-text-secondary)",
                                     }}
                                 >
                                     {item.type}
                                 </p>
-                                <p className="mt-1 text-3xl leading-none sm:text-4xl">
+                                <p className="text-4xl leading-none">
                                     {item.total.toLocaleString()}
                                 </p>
-                                <p
-                                    className="text-xs mt-2"
-                                    style={{
-                                        color: "var(--theme-text-secondary)",
-                                    }}
-                                >
+                                <div className="border-t border-[var(--theme-border)] pt-2 text-xs text-[var(--theme-text-secondary)]">
                                     {item.count} transactions
-                                </p>
+                                </div>
                             </div>
                         </GlassCard>
                     ))
@@ -129,7 +135,7 @@ export default function SummaryPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p
                         className="text-[10px] uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -140,7 +146,7 @@ export default function SummaryPage() {
                         {formatMoneyBirr(totals.totalIncluded)}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p
                         className="text-[10px] uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -151,7 +157,7 @@ export default function SummaryPage() {
                         {formatMoneyBirr(totals.totalExcluded)}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p
                         className="text-[10px] uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -162,7 +168,7 @@ export default function SummaryPage() {
                         {totals.countIncluded}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <p
                         className="text-[10px] uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
@@ -173,7 +179,7 @@ export default function SummaryPage() {
                         {totals.countExcluded}
                     </p>
                 </div>
-                <div className="border border-[var(--theme-border)] bg-[var(--theme-glass)] rounded-none shadow-none p-3 col-span-2 md:col-span-2 xl:col-span-4 flex items-center justify-between">
+                <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2 md:col-span-2 xl:col-span-4 flex items-center justify-between">
                     <div>
                         <p
                             className="text-[10px] uppercase"
@@ -187,7 +193,7 @@ export default function SummaryPage() {
                     </div>
                     <Link
                         to="/recurrings"
-                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                        className="border border-[var(--theme-border)] bg-[var(--theme-background)] px-2 py-1 text-xs transition-colors hover:bg-[var(--theme-hover)]"
                     >
                         View all
                     </Link>
@@ -202,7 +208,7 @@ export default function SummaryPage() {
                         </h3>
                         <Link
                             to="/expenses"
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                            className="border border-[var(--theme-border)] bg-[var(--theme-background)] px-2 py-1 text-xs transition-colors hover:bg-[var(--theme-hover)]"
                         >
                             Open expenses
                         </Link>
@@ -253,7 +259,7 @@ export default function SummaryPage() {
                         </h3>
                         <Link
                             to="/charts"
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-xs"
+                            className="border border-[var(--theme-border)] bg-[var(--theme-background)] px-2 py-1 text-xs transition-colors hover:bg-[var(--theme-hover)]"
                         >
                             Open charts
                         </Link>

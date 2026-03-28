@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import SegmentedControl from "./ui/SegmentedControl";
 import type { BudgetType } from "../hooks/useBudgetPageData";
 import { modalCopy } from "../content/modalCopy";
+import { uiControl } from "../utils/uiClasses";
 
 type WeeklyForm = {
     startDate: string;
@@ -70,18 +71,6 @@ export default function BudgetCreateModal({
 
     return (
         <div className="space-y-6">
-            <div className="space-y-2">
-                <h4 className="text-lg font-semibold">
-                    {modalCopy.goals.createTitle}
-                </h4>
-                <p
-                    className="text-xs"
-                    style={{ color: "var(--theme-text-secondary)" }}
-                >
-                    Set up a new financial goal to track your progress.
-                </p>
-            </div>
-
             <div className="grid grid-cols-4 gap-2">
                 {steps.map((label, index) => {
                     const position = index + 1;
@@ -143,7 +132,7 @@ export default function BudgetCreateModal({
                         {activeTab === "weekly" && (
                             <input
                                 type="number"
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                                 value={weeklyForm.totalBudget || ""}
                                 onChange={(e) =>
                                     setWeeklyForm({
@@ -156,7 +145,7 @@ export default function BudgetCreateModal({
                         {activeTab === "monthly" && (
                             <input
                                 type="number"
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                                 value={monthlyForm.totalBudget || ""}
                                 onChange={(e) =>
                                     setMonthlyForm({
@@ -169,7 +158,7 @@ export default function BudgetCreateModal({
                         {activeTab === "multi-month" && (
                             <input
                                 type="number"
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                                 value={multiMonthForm.totalBudget || ""}
                                 onChange={(e) =>
                                     setMultiMonthForm({
@@ -182,7 +171,7 @@ export default function BudgetCreateModal({
                         {activeTab === "yearly" && (
                             <input
                                 type="number"
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                                 value={yearlyForm.totalBudget || ""}
                                 onChange={(e) =>
                                     setYearlyForm({
@@ -227,7 +216,7 @@ export default function BudgetCreateModal({
                                                   startDate: e.target.value,
                                               })
                                     }
-                                    className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                    className={uiControl.input}
                                 />
                             </div>
                             <div>
@@ -256,7 +245,7 @@ export default function BudgetCreateModal({
                                                   endDate: e.target.value,
                                               })
                                     }
-                                    className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                    className={uiControl.input}
                                 />
                             </div>
                         </div>
@@ -274,7 +263,7 @@ export default function BudgetCreateModal({
                                         month: e.target.value,
                                     })
                                 }
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                             />
                         </div>
                     )}
@@ -291,7 +280,7 @@ export default function BudgetCreateModal({
                                         year: Number(e.target.value),
                                     })
                                 }
-                                className="w-full border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] mt-1"
+                                className={uiControl.input}
                             />
                         </div>
                     )}
@@ -356,7 +345,7 @@ export default function BudgetCreateModal({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
+                    className={uiControl.button}
                 >
                     {modalCopy.common.cancel}
                 </button>
@@ -364,7 +353,7 @@ export default function BudgetCreateModal({
                     <button
                         type="button"
                         onClick={() => setStep((prev) => Math.max(1, prev - 1))}
-                        className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
+                        className={uiControl.button}
                         disabled={step === 1}
                     >
                         Back
@@ -375,11 +364,7 @@ export default function BudgetCreateModal({
                             onClick={() =>
                                 setStep((prev) => Math.min(4, prev + 1))
                             }
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
-                            style={{
-                                backgroundColor: "var(--theme-active)",
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             Next
                         </button>
@@ -387,11 +372,7 @@ export default function BudgetCreateModal({
                         <button
                             type="button"
                             onClick={onSave}
-                            className="border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[20px] rounded-none transition-colors hover:bg-white/5 active:bg-white/[0.02] text-sm"
-                            style={{
-                                backgroundColor: "var(--theme-active)",
-                                color: "var(--theme-text)",
-                            }}
+                            className={uiControl.buttonPrimary}
                         >
                             {modalCopy.goals.createConfirm}
                         </button>

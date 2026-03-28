@@ -56,12 +56,12 @@ export default function Sidebar({
         <aside
             className={`fixed inset-y-2 left-2 z-40 flex h-[calc(100vh-1rem)] flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-surface)] p-2 shadow-xl transition-transform duration-300 lg:sticky lg:top-2 lg:z-10 lg:translate-x-0 lg:bg-[var(--theme-glass)] lg:shadow-none ${
                 mobileOpen ? "translate-x-0" : "-translate-x-[110%]"
-            } ${collapsed ? "w-[88px] lg:w-[88px]" : "w-[292px] lg:w-[292px]"}`}
+            } ${collapsed ? "w-[88px] lg:w-[78px]" : "w-[292px] lg:w-[292px]"}`}
         >
             <div className="flex items-start justify-between gap-2">
                 <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="truncate text-[14px] font-semibold tracking-[0.03em]">
-                        {collapsed ? "C" : "Cashn't"}
+                        {collapsed ? "" : "Cashn't"}
                     </span>
                     {!collapsed && (
                         <span className="truncate text-[10px] text-[var(--theme-text-secondary)]">

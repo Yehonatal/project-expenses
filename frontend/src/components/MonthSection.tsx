@@ -1,6 +1,7 @@
 import type { Expense } from "../types/expense";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import DateGroup from "./DateGroup";
+import ExpenseCard from "./ExpenseCard";
 
 const monthNames = [
     "Jan",
@@ -44,6 +45,7 @@ export default function MonthSection({
     const monthTotal = expenses
         .filter((e) => e.included)
         .reduce((sum, e) => sum + e.amount, 0);
+    const monthCount = expenses.length;
 
     const groupedByDate = expenses.reduce<Record<string, Expense[]>>(
         (acc, exp) => {
@@ -58,100 +60,106 @@ export default function MonthSection({
 
     return (
         <section
-            className="overflow-hidden border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] backdrop-blur-[24px]"
+            className="overflow-hidden border border-[var(--theme-border)]/40 bg-[var(--theme-surface)]"
             key={ym}
         >
             <header
                 onClick={() => onToggleMonth(ym)}
-                className="px-4 select-none  py-2 transition-all duration-200"
+                className="cursor-pointer select-none border-b border-[var(--theme-border)]/40 bg-[var(--theme-background)] px-3 py-2.5 transition-colors hover:bg-[var(--theme-hover)]"
                 aria-expanded={isExpanded}
                 aria-controls={`month-${ym}`}
             >
-                <div
-                    className="flex items-center space-x-3 font-semibold text-base"
-                    style={{ color: "var(--theme-text)" }}
-                >
-                    {isExpanded ? (
-                        <ChevronDown
-                            className="w-5 h-5"
-                            style={{ color: "var(--theme-accent)" }}
-                        />
-                    ) : (
-                        <ChevronRight
-                            className="w-5 h-5"
-                            style={{ color: "var(--theme-accent)" }}
-                        />
-                    )}
-                    <span>
-                        {monthNames[monthIndex]} {year}
-                    </span>
-                    <span
-                        className="ml-3 text-xs font-semibold"
-                        style={{ color: "#2563eb" }}
-                    >
-                        Included: Birr {monthTotal.toFixed(2)}
-                    </span>
-                </div>
-            </header>{" "}
-            {isExpanded && (
-                <div
-                    id={`month-${ym}`}
-                    style={{ borderTop: `1px solid var(--theme-border)` }}
-                >
-                    <table
-                        className="hidden md:table table-fixed w-full text-left text-xs"
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                        className="flex items-center gap-2 font-semibold"
                         style={{ color: "var(--theme-text)" }}
                     >
-                        <thead
-                            className="border-b border-[var(--theme-glass-border)] bg-[var(--theme-glass)]"
-                            style={{
-                                color: "var(--theme-text-secondary)",
-                                fontSize: "0.75rem",
-                            }}
+                        {isExpanded ? (
+                            <ChevronDown
+                                className="h-4 w-4"
+                                style={{ color: "var(--theme-accent)" }}
+                            />
+                        ) : (
+                            <ChevronRight
+                                className="h-4 w-4"
+                                style={{ color: "var(--theme-accent)" }}
+                            />
+                        )}
+                        <span className="text-sm font-semibold sm:text-base">
+                            {monthNames[monthIndex]} {year}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className="border border-[var(--theme-border)] bg-[var(--theme-surface)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
+                            {monthCount} entries
+                        </span>
+                        <span className="border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-700">
+                            Included Birr {monthTotal.toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+            </header>
+            {isExpanded && (
+                <div id={`month-${ym}`} className="space-y-2 p-2">
+                    <div className="hidden overflow-x-auto md:block">
+                        <table
+                            className="w-full min-w-[740px] table-fixed text-left text-xs"
+                            style={{ color: "var(--theme-text)" }}
                         >
-                            <tr>
-                                <th className="px-3 py-2 w-24 font-medium text-xs align-middle">
-                                    Date
-                                </th>
-                                <th className="px-3 py-2 font-medium text-xs align-middle">
-                                    Description
-                                </th>
-                                <th className="px-3 py-2 font-medium text-xs align-middle">
-                                    Type
-                                </th>
-                                <th className="px-3 py-2 text-right w-24 font-medium text-xs align-middle">
-                                    Amount
-                                </th>
-                                <th className="px-3 py-2 text-center w-20 font-medium text-xs align-middle">
-                                    Included
-                                </th>
-                                <th className="px-3 py-2 text-center w-20 font-medium text-xs align-middle">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(groupedByDate).map(
-                                ([dateKey, exps], idx) => (
-                                    <DateGroup
-                                        key={idx}
-                                        ym={ym}
-                                        dateKey={dateKey}
-                                        expenses={exps}
-                                        isExpanded={
-                                            expandedDates[`${ym}|${dateKey}`] ??
-                                            false
-                                        }
-                                        onToggle={() => toggleDate(ym, dateKey)}
-                                        onEdit={onEdit}
-                                        onDelete={onDelete}
-                                    />
-                                ),
-                            )}
-                        </tbody>
-                    </table>
+                            <thead
+                                className="border-y border-[var(--theme-border)]/40 bg-[var(--theme-background)]"
+                                style={{
+                                    color: "var(--theme-text-secondary)",
+                                    fontSize: "0.75rem",
+                                }}
+                            >
+                                <tr>
+                                    <th className="w-24 px-2 py-1.5 align-middle text-[11px] font-medium">
+                                        Date
+                                    </th>
+                                    <th className="px-2 py-1.5 align-middle text-[11px] font-medium">
+                                        Description
+                                    </th>
+                                    <th className="px-2 py-1.5 align-middle text-[11px] font-medium">
+                                        Type
+                                    </th>
+                                    <th className="w-28 px-2 py-1.5 text-right align-middle text-[11px] font-medium">
+                                        Amount
+                                    </th>
+                                    <th className="w-20 px-2 py-1.5 text-center align-middle text-[11px] font-medium">
+                                        Included
+                                    </th>
+                                    <th className="w-20 px-2 py-1.5 text-center align-middle text-[11px] font-medium">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(groupedByDate).map(
+                                    ([dateKey, exps], idx) => (
+                                        <DateGroup
+                                            key={idx}
+                                            ym={ym}
+                                            dateKey={dateKey}
+                                            expenses={exps}
+                                            isExpanded={
+                                                expandedDates[
+                                                    `${ym}|${dateKey}`
+                                                ] ?? false
+                                            }
+                                            onToggle={() =>
+                                                toggleDate(ym, dateKey)
+                                            }
+                                            onEdit={onEdit}
+                                            onDelete={onDelete}
+                                        />
+                                    ),
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div className="flex flex-col md:hidden p-3 space-y-2">
+                    <div className="flex flex-col space-y-1.5 md:hidden">
                         {Object.entries(groupedByDate).map(
                             ([dateKey, exps]) => {
                                 const isExpandedDate =
@@ -163,51 +171,50 @@ export default function MonthSection({
                                 return (
                                     <section
                                         key={dateKey}
-                                        className="space-y-2"
+                                        className="space-y-1.5 border border-[var(--theme-border)]/40 bg-[var(--theme-background)] p-1.5"
                                     >
                                         <header
                                             onClick={() =>
                                                 toggleDate(ym, dateKey)
                                             }
-                                            className="cursor-pointer select-none border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] px-3 py-2 font-semibold transition-colors hover:bg-white/5"
+                                            className="cursor-pointer select-none border border-[var(--theme-border)]/40 bg-[var(--theme-surface)] px-2.5 py-1.5 font-semibold transition-colors hover:bg-[var(--theme-hover)]"
                                         >
-                                            <div className="flex items-center space-x-3">
-                                                {isExpandedDate ? (
-                                                    <ChevronDown
-                                                        className="w-4 h-4"
-                                                        style={{
-                                                            color: "var(--theme-accent)",
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <ChevronRight
-                                                        className="w-4 h-4"
-                                                        style={{
-                                                            color: "var(--theme-accent)",
-                                                        }}
-                                                    />
-                                                )}
-                                                <span className="text-sm">
-                                                    {
-                                                        monthNames[
-                                                            new Date(
-                                                                dateKey,
-                                                            ).getMonth()
-                                                        ]
-                                                    }{" "}
-                                                    {new Date(
-                                                        dateKey,
-                                                    ).getDate()}
-                                                </span>
-                                            </div>
-                                            <div
-                                                className="text-xs font-semibold"
-                                                style={{
-                                                    color: "#2563eb",
-                                                }}
-                                            >
-                                                Day Total: Birr{" "}
-                                                {dayTotal.toFixed(2)}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center space-x-2">
+                                                    {isExpandedDate ? (
+                                                        <ChevronDown
+                                                            className="w-3.5 h-3.5"
+                                                            style={{
+                                                                color: "var(--theme-accent)",
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <ChevronRight
+                                                            className="w-3.5 h-3.5"
+                                                            style={{
+                                                                color: "var(--theme-accent)",
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <span className="text-xs">
+                                                        {
+                                                            monthNames[
+                                                                new Date(
+                                                                    dateKey,
+                                                                ).getMonth()
+                                                            ]
+                                                        }{" "}
+                                                        {new Date(
+                                                            dateKey,
+                                                        ).getDate()}
+                                                    </span>
+                                                    <span className="border border-[var(--theme-border)]/40 bg-[var(--theme-background)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--theme-text-secondary)]">
+                                                        {exps.length}
+                                                    </span>
+                                                </div>
+                                                <div className="text-[11px] font-semibold text-emerald-700">
+                                                    Birr {dayTotal.toFixed(2)}
+                                                </div>
                                             </div>
                                         </header>
                                         {isExpandedDate &&
@@ -229,5 +236,3 @@ export default function MonthSection({
         </section>
     );
 }
-
-import ExpenseCard from "./ExpenseCard";
