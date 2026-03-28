@@ -7,7 +7,22 @@ const expenseSchema = new mongoose.Schema(
         amount: { type: Number, required: true, min: 0 },
         included: { type: Boolean, default: true },
         type: { type: String, required: true, trim: true },
+        tags: {
+            type: [String],
+            default: [],
+        },
         userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        workspaceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Workspace",
+            default: null,
+            index: true,
+        },
+        createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
@@ -29,7 +44,7 @@ const expenseSchema = new mongoose.Schema(
     },
     {
         timestamps: true,
-    }
+    },
 );
 
 module.exports = mongoose.model("Expense", expenseSchema);

@@ -6,6 +6,21 @@ export interface Expense {
     amount: number;
     included: boolean;
     type: string;
+    tags?: string[];
+    workspaceId?:
+        | string
+        | {
+              _id: string;
+              name: string;
+              inviteCode?: string;
+          }
+        | null;
+    createdBy?: {
+        _id: string;
+        name: string;
+        email?: string;
+        picture?: string | null;
+    };
     createdAt: string;
     // Recurring expense fields
     isRecurring?: boolean;
@@ -32,4 +47,47 @@ export interface Budget {
     spent: number;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ExpenseFilterParams {
+    from?: string;
+    to?: string;
+    included?: boolean;
+    type?: string;
+    tags?: string;
+    minAmount?: string;
+    maxAmount?: string;
+    isRecurring?: boolean;
+    keyword?: string;
+    scope?: "all" | "personal" | "shared";
+    workspaceId?: string;
+    memberId?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface PaginatedExpensesResponse {
+    items: Expense[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    includedTotal: number;
+    recurringCount: number;
+}
+
+export interface ExpenseFilterPreset {
+    _id: string;
+    userId: string;
+    name: string;
+    filters: ExpenseFilterParams;
+    isDefault?: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ExpenseFilterPresetPayload {
+    name: string;
+    filters: ExpenseFilterParams;
+    isDefault?: boolean;
 }

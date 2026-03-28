@@ -1,12 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
-import API, { getBudgets } from "../api/api";
-import type { Budget, Expense } from "../types/expense";
+import API, { getBudgets, getExpensesPaged } from "../api/api";
+import type { Budget, Expense, ExpenseFilterParams } from "../types/expense";
 
-export function useExpensePageData(expenseUpdateTrigger?: number) {
+const DEFAULT_PAGE_SIZE = 20;
+
+export function useExpensePageData(
+    expenseUpdateTrigger?: number,
+    expenseQuery?: ExpenseFilterParams,
+) {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [total, setTotal] = useState<number>(0);
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: DEFAULT_PAGE_SIZE,
+        total: 0,
+        totalPages: 1,
+    });
+    const [recurringCount, setRecurringCount] = useState(0);
+
+    const queryKey = useMemo(
+        () => JSON.stringify(expenseQuery || {}),
+        [expenseQuery],
+    );
 
     useEffect(() => {
         setLoading(true);
@@ -15,17 +32,25 @@ export function useExpensePageData(expenseUpdateTrigger?: number) {
             setLoading(false);
         };
         void load();
-    }, [expenseUpdateTrigger]);
+    }, [expenseUpdateTrigger, queryKey]);
 
     const fetchExpenses = async () => {
         try {
-            const res = await API.get<Expense[]>("/expenses");
-            const next = res.data || [];
-            setExpenses(next);
-            const includedTotal = next
-                .filter((e) => e.included)
-                .reduce((sum, e) => sum + e.amount, 0);
-            setTotal(includedTotal);
+            const res = await getExpensesPaged({
+                ...expenseQuery,
+                page: expenseQuery?.page || 1,
+                limit: expenseQuery?.limit || DEFAULT_PAGE_SIZE,
+            });
+            const paged = res.data;
+            setExpenses(paged.items || []);
+            setTotal(paged.includedTotal || 0);
+            setRecurringCount(paged.recurringCount || 0);
+            setPagination({
+                page: paged.page || 1,
+                limit: paged.limit || DEFAULT_PAGE_SIZE,
+                total: paged.total || 0,
+                totalPages: paged.totalPages || 1,
+            });
         } catch (error) {
             console.error("Failed to fetch expenses:", error);
         }
@@ -40,50 +65,22 @@ export function useExpensePageData(expenseUpdateTrigger?: number) {
         }
     };
 
-    const recurringCount = useMemo(
-        () => expenses.filter((e) => e.isRecurring).length,
-        [expenses],
-    );
-
-    const addExpense = (expense: Expense) => {
-        setExpenses((prev) => [expense, ...prev]);
-        if (expense.included) setTotal((prev) => prev + expense.amount);
+    const addExpense = async (_expense: Expense) => {
+        await fetchExpenses();
     };
 
     const deleteExpense = async (expenseId: string) => {
         await API.delete(`/expenses/${expenseId}`);
-        setExpenses((prev) => {
-            const next = prev.filter((e) => e._id !== expenseId);
-            const included = next.filter((e) => e.included);
-            setTotal(included.reduce((s, e) => s + e.amount, 0));
-            return next;
-        });
+        await fetchExpenses();
     };
 
-    const mergeUpdatedExpense = (updatedExpense: Expense) => {
+    const mergeUpdatedExpense = async (updatedExpense: Expense) => {
         setExpenses((prev) =>
             prev.map((exp) =>
                 exp._id === updatedExpense._id ? updatedExpense : exp,
             ),
         );
-
-        const oldExpense = expenses.find((e) => e._id === updatedExpense._id);
-        if (!oldExpense) return;
-
-        const oldIncluded = oldExpense.included;
-        const newIncluded = updatedExpense.included;
-
-        if (oldIncluded !== newIncluded) {
-            setTotal((prev) =>
-                newIncluded
-                    ? prev + updatedExpense.amount
-                    : prev - updatedExpense.amount,
-            );
-        } else if (oldIncluded && oldExpense.amount !== updatedExpense.amount) {
-            setTotal(
-                (prev) => prev - oldExpense.amount + updatedExpense.amount,
-            );
-        }
+        await fetchExpenses();
     };
 
     return {
@@ -92,6 +89,7 @@ export function useExpensePageData(expenseUpdateTrigger?: number) {
         budgets,
         loading,
         recurringCount,
+        pagination,
         addExpense,
         deleteExpense,
         mergeUpdatedExpense,

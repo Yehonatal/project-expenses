@@ -1,9 +1,10 @@
-import { useState } from "react";
-import type { Expense } from "../types/expense";
+import { useEffect, useMemo, useState } from "react";
+import type { Expense, ExpenseFilterPreset } from "../types/expense";
+import type { Workspace, WorkspaceMember } from "../types/workspace";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
 import Modal from "../components/Modal";
-import { RotateCcw, Plus } from "lucide-react";
+import { RotateCcw, Plus, Save, Star, Trash2 } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
 import { formatBudgetPeriod } from "../utils/dateFormatter";
@@ -11,22 +12,37 @@ import PageSkeleton from "../components/ui/PageSkeleton";
 import { useExpensePageData } from "../hooks/useExpensePageData";
 import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
+import {
+    createExpenseFilterPreset,
+    createWorkspace,
+    deleteExpenseFilterPreset,
+    getExpenseFilterPresets,
+    getWorkspaceMembers,
+    getWorkspaces,
+    joinWorkspace,
+    setDefaultExpenseFilterPreset,
+} from "../api/api";
+
+const DEFAULT_FILTERS = {
+    keyword: "",
+    fromDate: "",
+    toDate: "",
+    minAmount: "",
+    maxAmount: "",
+    includeMode: "all" as "all" | "included" | "excluded",
+    recurringMode: "all" as "all" | "recurring" | "non-recurring",
+    scope: "all" as "all" | "personal" | "shared",
+    workspaceId: "",
+    memberId: "",
+    category: "all",
+    tag: "",
+};
 
 export default function ExpensePage({
     expenseUpdateTrigger,
 }: {
     expenseUpdateTrigger?: number;
 }) {
-    const {
-        expenses,
-        total,
-        budgets,
-        loading,
-        recurringCount,
-        addExpense,
-        deleteExpense,
-        mergeUpdatedExpense,
-    } = useExpensePageData(expenseUpdateTrigger);
     const [showRecurringModal, setShowRecurringModal] = useState(false);
     const [recurringModalContent, setRecurringModalContent] = useState<{
         title: string;
@@ -40,6 +56,310 @@ export default function ExpensePage({
     const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(
         null,
     );
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [debouncedFilters, setDebouncedFilters] = useState(filters);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+    const [filterPresets, setFilterPresets] = useState<ExpenseFilterPreset[]>(
+        [],
+    );
+    const [presetName, setPresetName] = useState("");
+    const [presetStatus, setPresetStatus] = useState("");
+    const [presetBusy, setPresetBusy] = useState(false);
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>(
+        [],
+    );
+    const [workspaceName, setWorkspaceName] = useState("");
+    const [joinCode, setJoinCode] = useState("");
+    const [workspaceStatus, setWorkspaceStatus] = useState("");
+    const [workspaceBusy, setWorkspaceBusy] = useState(false);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setDebouncedFilters(filters);
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [filters]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedFilters]);
+
+    const toPresetQuery = useMemo(
+        () =>
+            (current = filters) => ({
+                from: current.fromDate || undefined,
+                to: current.toDate || undefined,
+                included:
+                    current.includeMode === "all"
+                        ? undefined
+                        : current.includeMode === "included",
+                type: current.category === "all" ? undefined : current.category,
+                tags: current.tag.trim() || undefined,
+                minAmount: current.minAmount || undefined,
+                maxAmount: current.maxAmount || undefined,
+                isRecurring:
+                    current.recurringMode === "all"
+                        ? undefined
+                        : current.recurringMode === "recurring",
+                keyword: current.keyword.trim() || undefined,
+                scope: current.scope === "all" ? undefined : current.scope,
+                workspaceId: current.workspaceId || undefined,
+                memberId: current.memberId || undefined,
+            }),
+        [filters],
+    );
+
+    const loadWorkspaces = async () => {
+        try {
+            const res = await getWorkspaces();
+            setWorkspaces(res.data || []);
+        } catch (error) {
+            console.error("Failed to load workspaces:", error);
+        }
+    };
+
+    const loadPresets = async () => {
+        try {
+            const res = await getExpenseFilterPresets();
+            const presets = res.data || [];
+            setFilterPresets(presets);
+
+            const defaultPreset = presets.find((preset) => preset.isDefault);
+            if (defaultPreset) {
+                applyPreset(defaultPreset);
+            }
+        } catch (error) {
+            console.error("Failed to load filter presets:", error);
+        }
+    };
+
+    useEffect(() => {
+        void loadPresets();
+        void loadWorkspaces();
+    }, []);
+
+    useEffect(() => {
+        if (!filters.workspaceId) {
+            setWorkspaceMembers([]);
+            return;
+        }
+
+        const loadMembers = async () => {
+            try {
+                const res = await getWorkspaceMembers(filters.workspaceId);
+                setWorkspaceMembers(res.data?.members || []);
+            } catch (error) {
+                console.error("Failed to load workspace members:", error);
+                setWorkspaceMembers([]);
+            }
+        };
+
+        void loadMembers();
+    }, [filters.workspaceId]);
+
+    const applyPreset = (preset: ExpenseFilterPreset) => {
+        const saved = preset.filters || {};
+        setFilters({
+            keyword: saved.keyword || "",
+            fromDate: saved.from || "",
+            toDate: saved.to || "",
+            minAmount: saved.minAmount || "",
+            maxAmount: saved.maxAmount || "",
+            includeMode:
+                saved.included === undefined
+                    ? "all"
+                    : saved.included
+                      ? "included"
+                      : "excluded",
+            recurringMode:
+                saved.isRecurring === undefined
+                    ? "all"
+                    : saved.isRecurring
+                      ? "recurring"
+                      : "non-recurring",
+            scope: saved.scope || "all",
+            workspaceId: saved.workspaceId || "",
+            memberId: saved.memberId || "",
+            category: saved.type || "all",
+            tag: saved.tags || "",
+        });
+
+        if (saved.limit && Number.isFinite(Number(saved.limit))) {
+            setPageSize(Number(saved.limit));
+        }
+
+        setPage(1);
+        setPresetStatus(`Applied \"${preset.name}\" preset.`);
+    };
+
+    const handleSavePreset = async () => {
+        const name = presetName.trim();
+        if (!name) {
+            setPresetStatus("Enter a preset name before saving.");
+            return;
+        }
+
+        setPresetBusy(true);
+        try {
+            await createExpenseFilterPreset({
+                name,
+                filters: { ...toPresetQuery(filters), limit: pageSize },
+            });
+            setPresetName("");
+            await loadPresets();
+            setPresetStatus(`Saved \"${name}\" preset.`);
+        } catch (error) {
+            console.error("Failed to save preset:", error);
+            setPresetStatus("Could not save preset right now.");
+        } finally {
+            setPresetBusy(false);
+        }
+    };
+
+    const handleDeletePreset = async (presetId: string) => {
+        setPresetBusy(true);
+        try {
+            await deleteExpenseFilterPreset(presetId);
+            setFilterPresets((prev) =>
+                prev.filter((item) => item._id !== presetId),
+            );
+            setPresetStatus("Preset deleted.");
+        } catch (error) {
+            console.error("Failed to delete preset:", error);
+            setPresetStatus("Could not delete preset right now.");
+        } finally {
+            setPresetBusy(false);
+        }
+    };
+
+    const handleSetDefaultPreset = async (presetId: string) => {
+        setPresetBusy(true);
+        try {
+            const res = await setDefaultExpenseFilterPreset(presetId);
+            const updated = res.data;
+            setFilterPresets((prev) =>
+                prev.map((item) => ({
+                    ...item,
+                    isDefault: item._id === updated._id,
+                })),
+            );
+            setPresetStatus(`\"${updated.name}\" is now your default preset.`);
+        } catch (error) {
+            console.error("Failed to set default preset:", error);
+            setPresetStatus("Could not set default preset right now.");
+        } finally {
+            setPresetBusy(false);
+        }
+    };
+
+    const handleCreateWorkspace = async () => {
+        const name = workspaceName.trim();
+        if (!name) {
+            setWorkspaceStatus("Enter a workspace name.");
+            return;
+        }
+
+        setWorkspaceBusy(true);
+        try {
+            await createWorkspace({ name });
+            setWorkspaceName("");
+            await loadWorkspaces();
+            setWorkspaceStatus("Workspace created.");
+        } catch (error) {
+            console.error("Failed to create workspace:", error);
+            setWorkspaceStatus("Could not create workspace right now.");
+        } finally {
+            setWorkspaceBusy(false);
+        }
+    };
+
+    const handleJoinWorkspace = async () => {
+        const inviteCode = joinCode.trim().toUpperCase();
+        if (!inviteCode) {
+            setWorkspaceStatus("Enter an invite code.");
+            return;
+        }
+
+        setWorkspaceBusy(true);
+        try {
+            await joinWorkspace({ inviteCode });
+            setJoinCode("");
+            await loadWorkspaces();
+            setWorkspaceStatus("Joined workspace.");
+        } catch (error) {
+            console.error("Failed to join workspace:", error);
+            setWorkspaceStatus("Invite code invalid or unavailable.");
+        } finally {
+            setWorkspaceBusy(false);
+        }
+    };
+
+    const expenseQuery = useMemo(
+        () => ({
+            from: debouncedFilters.fromDate || undefined,
+            to: debouncedFilters.toDate || undefined,
+            included:
+                debouncedFilters.includeMode === "all"
+                    ? undefined
+                    : debouncedFilters.includeMode === "included",
+            type:
+                debouncedFilters.category === "all"
+                    ? undefined
+                    : debouncedFilters.category,
+            tags: debouncedFilters.tag.trim() || undefined,
+            minAmount: debouncedFilters.minAmount || undefined,
+            maxAmount: debouncedFilters.maxAmount || undefined,
+            isRecurring:
+                debouncedFilters.recurringMode === "all"
+                    ? undefined
+                    : debouncedFilters.recurringMode === "recurring",
+            keyword: debouncedFilters.keyword.trim() || undefined,
+            scope:
+                debouncedFilters.scope === "all"
+                    ? undefined
+                    : debouncedFilters.scope,
+            workspaceId: debouncedFilters.workspaceId || undefined,
+            memberId: debouncedFilters.memberId || undefined,
+            page,
+            limit: pageSize,
+        }),
+        [debouncedFilters, page, pageSize],
+    );
+
+    const {
+        expenses,
+        total,
+        budgets,
+        loading,
+        recurringCount,
+        pagination,
+        addExpense,
+        deleteExpense,
+        mergeUpdatedExpense,
+    } = useExpensePageData(expenseUpdateTrigger, expenseQuery);
+
+    const uniqueCategories = useMemo(
+        () => Array.from(new Set(expenses.map((exp) => exp.type))).sort(),
+        [expenses],
+    );
+
+    const uniqueTags = useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    expenses.flatMap((exp) =>
+                        (exp.tags || []).map((tag) => tag.toLowerCase()),
+                    ),
+                ),
+            ).sort(),
+        [expenses],
+    );
+
+    const hasNextPage = page < pagination.totalPages;
+    const hasPrevPage = page > 1;
 
     const handleEdit = (expense: Expense) => {
         setEditingExpense(expense);
@@ -168,10 +488,10 @@ export default function ExpensePage({
                         className="text-xs font-semibold uppercase"
                         style={{ color: "var(--theme-text-secondary)" }}
                     >
-                        Next action
+                        Filtered results
                     </div>
                     <div className="text-lg font-semibold sm:text-xl">
-                        Add expense
+                        {pagination.total}
                     </div>
                 </div>
             </div>
@@ -203,7 +523,486 @@ export default function ExpensePage({
                             </button>
                         </div>
                         <p className="text-xs text-[var(--theme-text-secondary)]">
-                            Auto-create due recurring expenses
+                            Auto-create due recurring expenses • Showing{" "}
+                            {expenses.length} entries on this page
+                        </p>
+                    </GlassCard>
+
+                    <GlassCard className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                            <h3 className="text-sm font-semibold">
+                                Advanced Search & Filters
+                            </h3>
+                            <button
+                                type="button"
+                                className={uiControl.button}
+                                onClick={() => setFilters(DEFAULT_FILTERS)}
+                            >
+                                Clear filters
+                            </button>
+                        </div>
+
+                        <div className="space-y-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
+                                Shared household/workspaces
+                            </p>
+
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <div className="flex gap-2">
+                                    <input
+                                        className={uiControl.input}
+                                        value={workspaceName}
+                                        onChange={(e) =>
+                                            setWorkspaceName(e.target.value)
+                                        }
+                                        placeholder="Create workspace name"
+                                    />
+                                    <button
+                                        type="button"
+                                        className={uiControl.buttonPrimary}
+                                        onClick={() =>
+                                            void handleCreateWorkspace()
+                                        }
+                                        disabled={workspaceBusy}
+                                    >
+                                        Create
+                                    </button>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <input
+                                        className={uiControl.input}
+                                        value={joinCode}
+                                        onChange={(e) =>
+                                            setJoinCode(e.target.value)
+                                        }
+                                        placeholder="Invite code"
+                                    />
+                                    <button
+                                        type="button"
+                                        className={uiControl.button}
+                                        onClick={() =>
+                                            void handleJoinWorkspace()
+                                        }
+                                        disabled={workspaceBusy}
+                                    >
+                                        Join
+                                    </button>
+                                </div>
+                            </div>
+
+                            {workspaces.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {workspaces.map((workspace) => (
+                                        <button
+                                            key={workspace._id}
+                                            type="button"
+                                            className={`border px-2 py-1 text-xs transition-colors ${filters.workspaceId === workspace._id ? "bg-[var(--theme-active)]" : "bg-[var(--theme-background)]"}`}
+                                            style={{
+                                                borderColor:
+                                                    "var(--theme-border)",
+                                            }}
+                                            onClick={() =>
+                                                setFilters((prev) => ({
+                                                    ...prev,
+                                                    workspaceId:
+                                                        prev.workspaceId ===
+                                                        workspace._id
+                                                            ? ""
+                                                            : workspace._id,
+                                                    scope:
+                                                        prev.workspaceId ===
+                                                        workspace._id
+                                                            ? prev.scope
+                                                            : "shared",
+                                                    memberId: "",
+                                                }))
+                                            }
+                                        >
+                                            {workspace.name} (
+                                            {workspace.members.length})
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {workspaceStatus && (
+                                <p className="text-xs text-[var(--theme-text-secondary)]">
+                                    {workspaceStatus}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">
+                                Saved presets
+                            </p>
+
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <input
+                                    className={uiControl.input}
+                                    value={presetName}
+                                    onChange={(e) =>
+                                        setPresetName(e.target.value)
+                                    }
+                                    placeholder="e.g. monthly essentials"
+                                />
+                                <button
+                                    type="button"
+                                    className={uiControl.buttonPrimary}
+                                    onClick={() => void handleSavePreset()}
+                                    disabled={presetBusy}
+                                >
+                                    <Save className="h-4 w-4" />
+                                    Save preset
+                                </button>
+                            </div>
+
+                            {filterPresets.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {filterPresets.map((preset) => (
+                                        <div
+                                            key={preset._id}
+                                            className="inline-flex items-center gap-1 border border-[var(--theme-border)] bg-[var(--theme-background)] p-1"
+                                        >
+                                            <button
+                                                type="button"
+                                                className="px-2 py-1 text-xs font-medium hover:bg-[var(--theme-hover)]"
+                                                onClick={() =>
+                                                    applyPreset(preset)
+                                                }
+                                            >
+                                                {preset.name}
+                                                {preset.isDefault
+                                                    ? " (default)"
+                                                    : ""}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="inline-flex h-6 w-6 items-center justify-center text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover)]"
+                                                onClick={() =>
+                                                    void handleSetDefaultPreset(
+                                                        preset._id,
+                                                    )
+                                                }
+                                                aria-label={`Set ${preset.name} as default`}
+                                                title={`Set ${preset.name} as default`}
+                                                disabled={presetBusy}
+                                            >
+                                                <Star
+                                                    className={`h-3.5 w-3.5 ${preset.isDefault ? "text-amber-500" : ""}`}
+                                                />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="inline-flex h-6 w-6 items-center justify-center text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover)]"
+                                                onClick={() =>
+                                                    void handleDeletePreset(
+                                                        preset._id,
+                                                    )
+                                                }
+                                                aria-label={`Delete ${preset.name}`}
+                                                title={`Delete ${preset.name}`}
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-[var(--theme-text-secondary)]">
+                                    No presets yet. Save your current filter
+                                    setup to reuse it.
+                                </p>
+                            )}
+
+                            {presetStatus && (
+                                <p className="text-xs text-[var(--theme-text-secondary)]">
+                                    {presetStatus}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            <div>
+                                <label className={uiControl.label}>Scope</label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.scope}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            scope: e.target.value as
+                                                | "all"
+                                                | "personal"
+                                                | "shared",
+                                        }))
+                                    }
+                                >
+                                    <option value="all">All spending</option>
+                                    <option value="personal">
+                                        Personal only
+                                    </option>
+                                    <option value="shared">Shared only</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Workspace
+                                </label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.workspaceId}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            workspaceId: e.target.value,
+                                            scope: e.target.value
+                                                ? "shared"
+                                                : prev.scope,
+                                            memberId: "",
+                                        }))
+                                    }
+                                >
+                                    <option value="">All workspaces</option>
+                                    {workspaces.map((workspace) => (
+                                        <option
+                                            key={workspace._id}
+                                            value={workspace._id}
+                                        >
+                                            {workspace.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {filters.workspaceId && (
+                                    <p className="mt-1 text-[11px] text-[var(--theme-text-secondary)]">
+                                        Invite:{" "}
+                                        {workspaces.find(
+                                            (w) =>
+                                                w._id === filters.workspaceId,
+                                        )?.inviteCode || "-"}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Member
+                                </label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.memberId}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            memberId: e.target.value,
+                                        }))
+                                    }
+                                    disabled={!filters.workspaceId}
+                                >
+                                    <option value="">All members</option>
+                                    {workspaceMembers.map((member) => (
+                                        <option
+                                            key={member.userId._id}
+                                            value={member.userId._id}
+                                        >
+                                            {member.userId.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Keyword
+                                </label>
+                                <input
+                                    className={uiControl.input}
+                                    value={filters.keyword}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            keyword: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="description, type, tag"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    From date
+                                </label>
+                                <input
+                                    type="date"
+                                    className={uiControl.input}
+                                    value={filters.fromDate}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            fromDate: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    To date
+                                </label>
+                                <input
+                                    type="date"
+                                    className={uiControl.input}
+                                    value={filters.toDate}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            toDate: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Min amount
+                                </label>
+                                <input
+                                    type="number"
+                                    className={uiControl.inputRight}
+                                    value={filters.minAmount}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            minAmount: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="0"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Max amount
+                                </label>
+                                <input
+                                    type="number"
+                                    className={uiControl.inputRight}
+                                    value={filters.maxAmount}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            maxAmount: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="5000"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Include mode
+                                </label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.includeMode}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            includeMode: e.target.value as
+                                                | "all"
+                                                | "included"
+                                                | "excluded",
+                                        }))
+                                    }
+                                >
+                                    <option value="all">All</option>
+                                    <option value="included">
+                                        Included only
+                                    </option>
+                                    <option value="excluded">
+                                        Excluded only
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Recurring
+                                </label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.recurringMode}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            recurringMode: e.target.value as
+                                                | "all"
+                                                | "recurring"
+                                                | "non-recurring",
+                                        }))
+                                    }
+                                >
+                                    <option value="all">All</option>
+                                    <option value="recurring">
+                                        Recurring only
+                                    </option>
+                                    <option value="non-recurring">
+                                        Non-recurring only
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>
+                                    Category
+                                </label>
+                                <select
+                                    className={uiControl.select}
+                                    value={filters.category}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            category: e.target.value,
+                                        }))
+                                    }
+                                >
+                                    <option value="all">All categories</option>
+                                    {uniqueCategories.map((category) => (
+                                        <option key={category} value={category}>
+                                            {category}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className={uiControl.label}>Tag</label>
+                                <input
+                                    list="expense-tag-suggestions"
+                                    className={uiControl.input}
+                                    value={filters.tag}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            tag: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="e.g. transport"
+                                />
+                                <datalist id="expense-tag-suggestions">
+                                    {uniqueTags.map((tag) => (
+                                        <option key={tag} value={tag} />
+                                    ))}
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
+                            Live filtering by date range, amount,
+                            include/exclude, recurring-only,
+                            scope/workspace/member, category, keyword, and tags.
                         </p>
                     </GlassCard>
 
@@ -212,6 +1011,56 @@ export default function ExpensePage({
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                     />
+
+                    <div className="flex flex-col gap-3 border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-[var(--theme-text-secondary)]">
+                            Showing page {page} of {pagination.totalPages} •{" "}
+                            {expenses.length} items this page •{" "}
+                            {pagination.total} total matches
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <select
+                                className={uiControl.select}
+                                value={pageSize}
+                                onChange={(e) => {
+                                    const nextSize = Number(e.target.value);
+                                    setPageSize(nextSize);
+                                    setPage(1);
+                                }}
+                            >
+                                <option value={20}>20 / page</option>
+                                <option value={50}>50 / page</option>
+                                <option value={100}>100 / page</option>
+                            </select>
+                            <button
+                                type="button"
+                                className={uiControl.button}
+                                disabled={!hasPrevPage}
+                                onClick={() =>
+                                    setPage((current) =>
+                                        Math.max(1, current - 1),
+                                    )
+                                }
+                            >
+                                Previous
+                            </button>
+                            <button
+                                type="button"
+                                className={uiControl.button}
+                                disabled={!hasNextPage}
+                                onClick={() =>
+                                    setPage((current) =>
+                                        Math.min(
+                                            pagination.totalPages,
+                                            current + 1,
+                                        ),
+                                    )
+                                }
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="space-y-6">
@@ -388,6 +1237,30 @@ export default function ExpensePage({
                             )}
                         </GlassCard>
                     )}
+
+                    <GlassCard>
+                        <h3 className="text-sm font-semibold">
+                            Search Snapshot
+                        </h3>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[var(--theme-text-secondary)] uppercase">
+                                    Results
+                                </p>
+                                <p className="text-base font-semibold">
+                                    {pagination.total}
+                                </p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[var(--theme-text-secondary)] uppercase">
+                                    Recurring
+                                </p>
+                                <p className="text-base font-semibold">
+                                    {recurringCount}
+                                </p>
+                            </div>
+                        </div>
+                    </GlassCard>
                 </div>
             </div>
 
@@ -433,6 +1306,8 @@ export default function ExpensePage({
                     onAdd={(createdExpense) => {
                         addExpense(createdExpense);
                     }}
+                    workspaces={workspaces}
+                    defaultWorkspaceId={filters.workspaceId || undefined}
                 />
             </Modal>
 
@@ -450,6 +1325,7 @@ export default function ExpensePage({
                             setEditingExpense(null);
                         }}
                         editExpense={editingExpense}
+                        workspaces={workspaces}
                     />
                 )}
             </Modal>

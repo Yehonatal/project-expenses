@@ -49,6 +49,14 @@ export default function ExpenseRow({ exp, onEdit, onDelete }: ExpenseRowProps) {
                             auto
                         </span>
                     )}
+                    {(exp.tags || []).slice(0, 2).map((tag) => (
+                        <span
+                            key={tag}
+                            className="inline-flex items-center border border-[var(--theme-border)]/50 bg-[var(--theme-background)] px-1 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]"
+                        >
+                            #{tag}
+                        </span>
+                    ))}
                 </div>
             </td>
             <td

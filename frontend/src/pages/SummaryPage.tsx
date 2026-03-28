@@ -32,6 +32,27 @@ export default function SummaryPage() {
     }
 
     const { totals, monthlyBreakdown, recentExpenses, templates } = summary;
+    const health = summary.healthScore || {
+        totalScore: 50,
+        band: "fair",
+        spendStabilityScore: 50,
+        budgetAdherenceScore: 50,
+        savingsTrendScore: 50,
+    };
+
+    const healthBandLabel: Record<string, string> = {
+        excellent: "Excellent",
+        good: "Good",
+        fair: "Fair",
+        "needs-attention": "Needs Attention",
+    };
+
+    const healthBandTone: Record<string, string> = {
+        excellent: "text-emerald-600",
+        good: "text-teal-600",
+        fair: "text-amber-600",
+        "needs-attention": "text-rose-600",
+    };
     const hour = new Date().getHours();
     const greeting =
         hour < 12
@@ -199,6 +220,63 @@ export default function SummaryPage() {
                     </Link>
                 </div>
             </div>
+
+            <GlassCard className="p-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p
+                            className="text-[10px] uppercase"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Financial Health Score
+                        </p>
+                        <div className="mt-1 flex items-end gap-2">
+                            <p className="text-4xl font-semibold leading-none">
+                                {health.totalScore}
+                            </p>
+                            <span
+                                className={`text-sm font-semibold ${healthBandTone[health.band]}`}
+                            >
+                                {healthBandLabel[health.band]}
+                            </span>
+                        </div>
+                        <p
+                            className="mt-1 text-xs"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                            Blend of spend stability, budget adherence, and
+                            savings trend.
+                        </p>
+                    </div>
+
+                    <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 md:max-w-[560px]">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Stability
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {health.spendStabilityScore}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Budget Adherence
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {health.budgetAdherenceScore}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Savings Trend
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {health.savingsTrendScore}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </GlassCard>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
                 <GlassCard className="p-4">

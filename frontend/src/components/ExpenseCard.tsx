@@ -60,6 +60,14 @@ export default function ExpenseCard({
                                 <RotateCcw className="h-2.5 w-2.5" /> auto
                             </span>
                         )}
+                        {(exp.tags || []).slice(0, 2).map((tag) => (
+                            <span
+                                key={tag}
+                                className="inline-flex border border-[var(--theme-border)]/50 bg-[var(--theme-background)] px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-[var(--theme-text-secondary)]"
+                            >
+                                #{tag}
+                            </span>
+                        ))}
                     </div>
                     <span
                         className="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"

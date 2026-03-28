@@ -33,6 +33,13 @@ export type DashboardData = {
     typeBreakdown: TypeBreakdownItem[];
     recentExpenses: Expense[];
     templates: TemplateSummary[];
+    healthScore?: {
+        totalScore: number;
+        band: "excellent" | "good" | "fair" | "needs-attention";
+        spendStabilityScore: number;
+        budgetAdherenceScore: number;
+        savingsTrendScore: number;
+    };
     updatedAt: string;
 };
 

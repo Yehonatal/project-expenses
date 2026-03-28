@@ -1,5 +1,13 @@
 import axios from "axios";
 import type { Template } from "../types/template";
+import type {
+    Expense,
+    ExpenseFilterParams,
+    ExpenseFilterPreset,
+    ExpenseFilterPresetPayload,
+    PaginatedExpensesResponse,
+} from "../types/expense";
+import type { Workspace } from "../types/workspace";
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_RENDER_URL || "http://localhost:5000/api",
@@ -31,14 +39,37 @@ export const setBudget = (data: {
 export const deleteBudget = (id: string) => API.delete(`/budgets/${id}`);
 
 // Expense APIs
-export const getExpenses = (params?: {
-    startDate?: string;
-    endDate?: string;
-    type?: string;
-    limit?: number;
-    page?: number;
-}) => API.get("/expenses", { params });
+export const getExpenses = (params?: ExpenseFilterParams) =>
+    API.get<Expense[]>("/expenses", { params });
+
+export const getExpensesPaged = (params: ExpenseFilterParams) =>
+    API.get<PaginatedExpensesResponse>("/expenses", { params });
 export const getExpenseStats = () => API.get("/expenses/stats");
+export const getExpenseFilterPresets = () =>
+    API.get<ExpenseFilterPreset[]>("/expenses/filter-presets");
+
+export const createExpenseFilterPreset = (
+    payload: ExpenseFilterPresetPayload,
+) => API.post<ExpenseFilterPreset>("/expenses/filter-presets", payload);
+
+export const deleteExpenseFilterPreset = (id: string) =>
+    API.delete(`/expenses/filter-presets/${id}`);
+
+export const setDefaultExpenseFilterPreset = (id: string) =>
+    API.patch<ExpenseFilterPreset>(`/expenses/filter-presets/${id}/default`);
+
+export const getWorkspaces = () => API.get<Workspace[]>("/workspaces");
+
+export const createWorkspace = (payload: { name: string }) =>
+    API.post<Workspace>("/workspaces", payload);
+
+export const joinWorkspace = (payload: { inviteCode: string }) =>
+    API.post<Workspace>("/workspaces/join", payload);
+
+export const getWorkspaceMembers = (workspaceId: string) =>
+    API.get<Pick<Workspace, "_id" | "name" | "inviteCode" | "members">>(
+        `/workspaces/${workspaceId}/members`,
+    );
 
 // Template/recurring APIs
 export const getTemplates = (params?: {

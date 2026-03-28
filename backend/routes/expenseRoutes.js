@@ -10,6 +10,26 @@ router.post("/", auth, controller.addExpense);
 // GET    /api/expenses        -> get all (supports query filters)
 router.get("/", auth, controller.getExpenses);
 
+// GET    /api/expenses/filter-presets -> list saved filter presets
+router.get("/filter-presets", auth, controller.getExpenseFilterPresets);
+
+// POST   /api/expenses/filter-presets -> create or overwrite a saved filter preset
+router.post("/filter-presets", auth, controller.createExpenseFilterPreset);
+
+// DELETE /api/expenses/filter-presets/:id -> delete a saved filter preset
+router.delete(
+    "/filter-presets/:id",
+    auth,
+    controller.deleteExpenseFilterPreset,
+);
+
+// PATCH  /api/expenses/filter-presets/:id/default -> mark preset as default
+router.patch(
+    "/filter-presets/:id/default",
+    auth,
+    controller.setDefaultExpenseFilterPreset,
+);
+
 // GET    /api/expenses/summary -> summary data
 router.get("/summary", auth, controller.getSummary);
 

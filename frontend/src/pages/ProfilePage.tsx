@@ -10,7 +10,7 @@ import Papa from "papaparse";
 import jsPDF from "jspdf";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
-import type { ProfileExpense } from "../types/profile";
+import type { Expense } from "../types/expense";
 import { useProfilePageData } from "../hooks/useProfilePageData";
 
 export default function ProfilePage() {
@@ -25,12 +25,12 @@ export default function ProfilePage() {
             const response = await getExpenses();
             const expenses = response.data;
 
-            const csvData = expenses.map((expense: ProfileExpense) => ({
+            const csvData = expenses.map((expense: Expense) => ({
                 Date: new Date(expense.date).toLocaleDateString(),
                 Description: expense.description,
                 Amount: expense.amount,
                 Type: expense.type,
-                Recurring: expense.recurring ? "Yes" : "No",
+                Recurring: expense.isRecurring ? "Yes" : "No",
             }));
 
             const csv = Papa.unparse(csvData);
@@ -87,7 +87,7 @@ export default function ProfilePage() {
             doc.line(20, yPosition, 190, yPosition);
             yPosition += 5;
 
-            expenses.slice(0, 20).forEach((expense: ProfileExpense) => {
+            expenses.slice(0, 20).forEach((expense: Expense) => {
                 if (yPosition > 270) {
                     doc.addPage();
                     yPosition = 20;

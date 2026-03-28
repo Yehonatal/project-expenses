@@ -3,7 +3,68 @@ const mongoose = require("mongoose");
 const Type = require("../models/typeModel");
 const Template = require("../models/templateModel");
 const Budget = require("../models/budgetModel");
+const ExpenseFilterPreset = require("../models/expenseFilterPresetModel");
+const Workspace = require("../models/workspaceModel");
 const { normalizeType } = require("../utils/normalizeType");
+
+const normalizeTags = (tags) => {
+    if (!tags) return [];
+    const input = Array.isArray(tags)
+        ? tags
+        : String(tags)
+              .split(",")
+              .map((t) => t.trim());
+
+    return Array.from(
+        new Set(
+            input
+                .map((tag) =>
+                    String(tag || "")
+                        .trim()
+                        .toLowerCase(),
+                )
+                .filter(Boolean),
+        ),
+    );
+};
+
+const sanitizePresetFilters = (filters = {}) => {
+    const normalized = {};
+
+    const assignString = (key) => {
+        if (filters[key] == null) return;
+        const value = String(filters[key]).trim();
+        if (value) normalized[key] = value;
+    };
+
+    assignString("from");
+    assignString("to");
+    assignString("type");
+    assignString("tags");
+    assignString("minAmount");
+    assignString("maxAmount");
+    assignString("keyword");
+    assignString("workspaceId");
+    assignString("memberId");
+
+    if (["all", "personal", "shared"].includes(String(filters.scope))) {
+        normalized.scope = String(filters.scope);
+    }
+
+    if (typeof filters.included === "boolean") {
+        normalized.included = filters.included;
+    }
+
+    if (typeof filters.isRecurring === "boolean") {
+        normalized.isRecurring = filters.isRecurring;
+    }
+
+    if (Number.isFinite(Number(filters.limit))) {
+        normalized.limit = Math.min(Math.max(Number(filters.limit), 1), 200);
+    }
+
+    return normalized;
+};
 
 // Helper to calculate next due date for recurring expenses
 const calculateNextDueDate = (currentDate, frequency) => {
@@ -64,6 +125,90 @@ const updateOverlappingBudgets = async (userId, expenseDate) => {
     }
 };
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const computeSpendStabilityScore = (monthlyTotals) => {
+    if (!monthlyTotals.length) {
+        return 50;
+    }
+
+    const mean =
+        monthlyTotals.reduce((sum, value) => sum + value, 0) /
+        monthlyTotals.length;
+    if (mean <= 0) {
+        return 65;
+    }
+
+    const variance =
+        monthlyTotals.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+        monthlyTotals.length;
+    const stdDev = Math.sqrt(variance);
+    const coefficientOfVariation = stdDev / mean;
+
+    return clamp(Math.round(100 - coefficientOfVariation * 70), 0, 100);
+};
+
+const computeBudgetAdherenceScore = (budgets) => {
+    if (!budgets.length) {
+        return 55;
+    }
+
+    const perBudgetScores = budgets.map((budget) => {
+        const totalBudget = Number(budget.totalBudget) || 0;
+        const spent = Number(budget.spent) || 0;
+
+        if (totalBudget <= 0) {
+            return 50;
+        }
+
+        const utilization = spent / totalBudget;
+        if (utilization <= 1) {
+            return 100;
+        }
+
+        return clamp(Math.round(100 - (utilization - 1) * 160), 0, 100);
+    });
+
+    return Math.round(
+        perBudgetScores.reduce((sum, score) => sum + score, 0) /
+            perBudgetScores.length,
+    );
+};
+
+const computeSavingsTrendScore = (monthlyTotals) => {
+    if (monthlyTotals.length < 2) {
+        return 50;
+    }
+
+    const recentSlice = monthlyTotals.slice(-3);
+    const previousSlice = monthlyTotals.slice(-6, -3);
+
+    const recentAvg =
+        recentSlice.reduce((sum, value) => sum + value, 0) / recentSlice.length;
+    const previousAvg = previousSlice.length
+        ? previousSlice.reduce((sum, value) => sum + value, 0) /
+          previousSlice.length
+        : recentAvg;
+
+    if (previousAvg <= 0 && recentAvg <= 0) {
+        return 80;
+    }
+
+    if (previousAvg <= 0 && recentAvg > 0) {
+        return 40;
+    }
+
+    const savingsChangeRatio = (previousAvg - recentAvg) / previousAvg;
+    return clamp(Math.round(50 + savingsChangeRatio * 50), 0, 100);
+};
+
+const getHealthBand = (score) => {
+    if (score >= 80) return "excellent";
+    if (score >= 65) return "good";
+    if (score >= 45) return "fair";
+    return "needs-attention";
+};
+
 /**
  * Add new expense
  * body: { date, description, amount, included, type, isRecurring, frequency }
@@ -76,6 +221,8 @@ exports.addExpense = async (req, res) => {
             amount,
             included,
             type,
+            tags,
+            workspaceId,
             isRecurring,
             frequency,
         } = req.body;
@@ -100,13 +247,41 @@ exports.addExpense = async (req, res) => {
         }
 
         const expenseDate = date ? new Date(date) : new Date();
+        let validatedWorkspaceId = null;
+
+        if (workspaceId) {
+            if (!mongoose.isValidObjectId(workspaceId)) {
+                return res
+                    .status(400)
+                    .json({ message: "Invalid workspace ID" });
+            }
+
+            const workspace = await Workspace.findOne({
+                _id: workspaceId,
+                "members.userId": req.user._id,
+            })
+                .select("_id")
+                .lean();
+
+            if (!workspace) {
+                return res.status(403).json({
+                    message: "Not a member of the selected workspace",
+                });
+            }
+
+            validatedWorkspaceId = workspace._id;
+        }
+
         const expense = new Expense({
             date: expenseDate,
             description,
             amount,
             included: included !== undefined ? !!included : true,
             type,
+            tags: normalizeTags(tags),
             userId: req.user._id,
+            workspaceId: validatedWorkspaceId,
+            createdBy: req.user._id,
             isRecurring: !!isRecurring,
             frequency: isRecurring ? frequency : undefined,
             nextDueDate: isRecurring
@@ -148,8 +323,69 @@ exports.addExpense = async (req, res) => {
  */
 exports.getExpenses = async (req, res) => {
     try {
-        const { from, to, included, type } = req.query;
-        const filter = { userId: req.user._id };
+        const {
+            from,
+            to,
+            included,
+            type,
+            tags,
+            minAmount,
+            maxAmount,
+            isRecurring,
+            keyword,
+            scope,
+            workspaceId,
+            memberId,
+            page,
+            limit,
+        } = req.query;
+        const filter = {};
+
+        const memberships = await Workspace.find({
+            "members.userId": req.user._id,
+        })
+            .select("_id")
+            .lean();
+        const accessibleWorkspaceIds = memberships.map((item) => item._id);
+
+        const personalScopeFilter = {
+            userId: req.user._id,
+            $or: [{ workspaceId: { $exists: false } }, { workspaceId: null }],
+        };
+
+        let sharedScopeFilter = {
+            workspaceId: { $in: accessibleWorkspaceIds },
+        };
+
+        if (workspaceId) {
+            if (!mongoose.isValidObjectId(workspaceId)) {
+                return res
+                    .status(400)
+                    .json({ message: "Invalid workspace ID" });
+            }
+
+            const isAccessible = accessibleWorkspaceIds.some(
+                (id) => id.toString() === workspaceId,
+            );
+
+            if (!isAccessible) {
+                return res.status(403).json({
+                    message: "Not a member of the selected workspace",
+                });
+            }
+
+            sharedScopeFilter = {
+                workspaceId: new mongoose.Types.ObjectId(workspaceId),
+            };
+        }
+
+        if (scope === "personal") {
+            Object.assign(filter, personalScopeFilter);
+        } else if (scope === "shared") {
+            Object.assign(filter, sharedScopeFilter);
+        } else {
+            filter.$or = [personalScopeFilter, sharedScopeFilter];
+        }
 
         if (from || to) {
             filter.date = {};
@@ -166,14 +402,235 @@ exports.getExpenses = async (req, res) => {
             filter.type = type;
         }
 
+        if (memberId) {
+            if (!mongoose.isValidObjectId(memberId)) {
+                return res.status(400).json({ message: "Invalid member ID" });
+            }
+            filter.createdBy = new mongoose.Types.ObjectId(memberId);
+        }
+
+        if (minAmount !== undefined || maxAmount !== undefined) {
+            filter.amount = {};
+            if (minAmount !== undefined && minAmount !== "") {
+                filter.amount.$gte = Number(minAmount);
+            }
+            if (maxAmount !== undefined && maxAmount !== "") {
+                filter.amount.$lte = Number(maxAmount);
+            }
+        }
+
+        if (isRecurring !== undefined && isRecurring !== "") {
+            if (isRecurring === "true") filter.isRecurring = true;
+            else if (isRecurring === "false") filter.isRecurring = false;
+        }
+
+        if (keyword) {
+            const keywordRegex = {
+                $regex: String(keyword).trim(),
+                $options: "i",
+            };
+            const keywordCondition = {
+                $or: [
+                    { description: keywordRegex },
+                    { type: keywordRegex },
+                    { tags: keywordRegex },
+                ],
+            };
+
+            if (filter.$or) {
+                filter.$and = [{ $or: filter.$or }, keywordCondition];
+                delete filter.$or;
+            } else {
+                Object.assign(filter, keywordCondition);
+            }
+        }
+
+        if (tags) {
+            const parsedTags = normalizeTags(tags);
+            if (parsedTags.length) {
+                filter.tags = { $in: parsedTags };
+            }
+        }
+
+        const requestedPage = Number.parseInt(page, 10);
+        const requestedLimit = Number.parseInt(limit, 10);
+        const hasPagination =
+            Number.isFinite(requestedPage) || Number.isFinite(requestedLimit);
+        const currentPage =
+            Number.isFinite(requestedPage) && requestedPage > 0
+                ? requestedPage
+                : 1;
+        const pageSize =
+            Number.isFinite(requestedLimit) && requestedLimit > 0
+                ? Math.min(requestedLimit, 200)
+                : 20;
+
         // By default sort newest first
-        const expenses = await Expense.find(filter).sort({
-            date: -1,
-            createdAt: -1,
+        const baseQuery = Expense.find(filter)
+            .sort({
+                date: -1,
+                createdAt: -1,
+            })
+            .populate("createdBy", "name email picture")
+            .populate("workspaceId", "name inviteCode");
+
+        if (!hasPagination) {
+            const expenses = await baseQuery;
+            return res.json(expenses);
+        }
+
+        const [expenses, total, totalsAgg] = await Promise.all([
+            baseQuery
+                .clone()
+                .skip((currentPage - 1) * pageSize)
+                .limit(pageSize),
+            Expense.countDocuments(filter),
+            Expense.aggregate([
+                { $match: filter },
+                {
+                    $group: {
+                        _id: null,
+                        includedTotal: {
+                            $sum: {
+                                $cond: ["$included", "$amount", 0],
+                            },
+                        },
+                        recurringCount: {
+                            $sum: {
+                                $cond: ["$isRecurring", 1, 0],
+                            },
+                        },
+                    },
+                },
+            ]),
+        ]);
+
+        const totals = totalsAgg[0] || {
+            includedTotal: 0,
+            recurringCount: 0,
+        };
+
+        return res.json({
+            items: expenses,
+            total,
+            page: currentPage,
+            limit: pageSize,
+            totalPages: Math.max(1, Math.ceil(total / pageSize)),
+            includedTotal: totals.includedTotal,
+            recurringCount: totals.recurringCount,
         });
-        res.json(expenses);
     } catch (err) {
         console.error("getExpenses error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getExpenseFilterPresets = async (req, res) => {
+    try {
+        const presets = await ExpenseFilterPreset.find({ userId: req.user._id })
+            .sort({ updatedAt: -1 })
+            .limit(20)
+            .lean();
+
+        res.json(presets);
+    } catch (err) {
+        console.error("getExpenseFilterPresets error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.createExpenseFilterPreset = async (req, res) => {
+    try {
+        const name = String(req.body?.name || "").trim();
+        if (!name) {
+            return res.status(400).json({ message: "Preset name is required" });
+        }
+
+        const filters = sanitizePresetFilters(req.body?.filters || {});
+        const shouldSetDefault = Boolean(req.body?.isDefault);
+
+        if (shouldSetDefault) {
+            await ExpenseFilterPreset.updateMany(
+                { userId: req.user._id, isDefault: true },
+                { $set: { isDefault: false } },
+            );
+        }
+
+        const preset = await ExpenseFilterPreset.findOneAndUpdate(
+            { userId: req.user._id, name },
+            {
+                $set: {
+                    userId: req.user._id,
+                    name,
+                    filters,
+                    ...(shouldSetDefault ? { isDefault: true } : {}),
+                },
+            },
+            {
+                new: true,
+                upsert: true,
+                runValidators: true,
+                setDefaultsOnInsert: true,
+            },
+        );
+
+        res.status(201).json(preset);
+    } catch (err) {
+        console.error("createExpenseFilterPreset error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.setDefaultExpenseFilterPreset = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const target = await ExpenseFilterPreset.findOne({
+            _id: id,
+            userId: req.user._id,
+        });
+
+        if (!target) {
+            return res.status(404).json({ message: "Preset not found" });
+        }
+
+        await ExpenseFilterPreset.updateMany(
+            { userId: req.user._id, isDefault: true },
+            { $set: { isDefault: false } },
+        );
+
+        target.isDefault = true;
+        await target.save();
+
+        res.json(target);
+    } catch (err) {
+        console.error("setDefaultExpenseFilterPreset error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.deleteExpenseFilterPreset = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const deleted = await ExpenseFilterPreset.findOneAndDelete({
+            _id: id,
+            userId: req.user._id,
+        });
+
+        if (!deleted) {
+            return res.status(404).json({ message: "Preset not found" });
+        }
+
+        res.json({ message: "Deleted", id: deleted._id });
+    } catch (err) {
+        console.error("deleteExpenseFilterPreset error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -191,6 +648,9 @@ exports.updateExpense = async (req, res) => {
 
         const updates = req.body;
         if (updates.date) updates.date = new Date(updates.date);
+        if (Object.prototype.hasOwnProperty.call(updates, "tags")) {
+            updates.tags = normalizeTags(updates.tags);
+        }
 
         const updated = await Expense.findByIdAndUpdate(id, updates, {
             new: true,
@@ -422,6 +882,25 @@ exports.getDashboard = async (req, res) => {
             .select("description type price")
             .lean();
 
+        const budgets = await Budget.find({ userId })
+            .sort({ updatedAt: -1 })
+            .limit(12)
+            .select("totalBudget spent")
+            .lean();
+
+        const monthlyTotals = monthlyAgg
+            .map((m) => Number(m.total) || 0)
+            .reverse();
+
+        const spendStabilityScore = computeSpendStabilityScore(monthlyTotals);
+        const budgetAdherenceScore = computeBudgetAdherenceScore(budgets);
+        const savingsTrendScore = computeSavingsTrendScore(monthlyTotals);
+        const totalScore = Math.round(
+            spendStabilityScore * 0.4 +
+                budgetAdherenceScore * 0.35 +
+                savingsTrendScore * 0.25,
+        );
+
         res.json({
             totals: totalsAgg[0] || {
                 totalIncluded: 0,
@@ -444,6 +923,13 @@ exports.getDashboard = async (req, res) => {
             })),
             recentExpenses,
             templates,
+            healthScore: {
+                totalScore,
+                band: getHealthBand(totalScore),
+                spendStabilityScore,
+                budgetAdherenceScore,
+                savingsTrendScore,
+            },
             updatedAt: new Date().toISOString(),
         });
     } catch (err) {
@@ -788,6 +1274,9 @@ exports.generateRecurringExpenses = async (req, res) => {
                 included: recurringExpense.included,
                 type: recurringExpense.type,
                 userId: recurringExpense.userId,
+                workspaceId: recurringExpense.workspaceId || null,
+                createdBy:
+                    recurringExpense.createdBy || recurringExpense.userId,
                 isRecurring: false, // Generated instances are not recurring themselves
                 parentExpenseId: recurringExpense._id, // Reference to the original
             });

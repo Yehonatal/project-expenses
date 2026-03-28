@@ -8,6 +8,7 @@ import {
     LogOut,
     Sparkles,
     Repeat,
+    Users,
     PanelLeftClose,
     PanelLeftOpen,
     X,
@@ -36,6 +37,7 @@ const navItems = [
     { to: "/expenses", label: "Expenses", icon: List },
     { to: "/goals", label: "Goals", icon: DollarSign },
     { to: "/recurrings", label: "Recurrings", icon: Repeat },
+    { to: "/workspaces", label: "Workspaces", icon: Users },
     { to: "/charts", label: "Charts", icon: PieChart },
     { to: "/profile", label: "Profile", icon: User },
 ];

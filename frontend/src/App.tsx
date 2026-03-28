@@ -4,24 +4,26 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { PanelLeft } from "lucide-react";
 import Sidebar from "./components/Sidebar";
-import GeminiModal from "./components/GeminiModal";
-import ExpensePage from "./pages/ExpensePage";
-import SummaryPage from "./pages/SummaryPage";
-import TemplatesPage from "./pages/TemplatesPage";
 import LoginPage from "./pages/LoginPage";
-import ProfilePage from "./pages/ProfilePage";
-import GoalsPage from "./pages/GoalsPage";
-import RecurringPage from "./pages/RecurringPage";
-import ChartsPage from "./pages/ChartsPage";
 import AppShellLoading from "./components/ui/AppShellLoading";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Toast from "./components/Toast";
 import { useAuthSession } from "./hooks/useAuthSession";
 import ScrollToTop from "./components/ScrollToTop";
 import ThemeSelector from "./components/ThemeSelector";
+
+const GeminiModal = lazy(() => import("./components/GeminiModal.tsx"));
+const ExpensePage = lazy(() => import("./pages/ExpensePage.tsx"));
+const SummaryPage = lazy(() => import("./pages/SummaryPage.tsx"));
+const TemplatesPage = lazy(() => import("./pages/TemplatesPage.tsx"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.tsx"));
+const GoalsPage = lazy(() => import("./pages/GoalsPage.tsx"));
+const RecurringPage = lazy(() => import("./pages/RecurringPage.tsx"));
+const ChartsPage = lazy(() => import("./pages/ChartsPage.tsx"));
+const WorkspacesPage = lazy(() => import("./pages/WorkspacesPage.tsx"));
 
 export default function App() {
     const { user, loading, logout } = useAuthSession();
@@ -120,81 +122,91 @@ export default function App() {
                                 <div className="hidden lg:flex lg:justify-end lg:pb-1">
                                     <ThemeSelector />
                                 </div>
-                                <Routes>
-                                    <Route
-                                        path="/"
-                                        element={
-                                            <Navigate to="/home" replace />
-                                        }
-                                    />
-                                    <Route
-                                        path="/home"
-                                        element={<SummaryPage />}
-                                    />
-                                    <Route
-                                        path="/charts"
-                                        element={<ChartsPage />}
-                                    />
-                                    <Route
-                                        path="/recurrings"
-                                        element={<RecurringPage />}
-                                    />
-                                    <Route
-                                        path="/expenses"
-                                        element={
-                                            <ExpensePage
-                                                expenseUpdateTrigger={
-                                                    expenseUpdateTrigger
-                                                }
-                                            />
-                                        }
-                                    />
-                                    <Route
-                                        path="/summary"
-                                        element={
-                                            <Navigate to="/home" replace />
-                                        }
-                                    />
-                                    <Route
-                                        path="/dashboard"
-                                        element={
-                                            <Navigate to="/home" replace />
-                                        }
-                                    />
-                                    <Route
-                                        path="/templates"
-                                        element={<TemplatesPage />}
-                                    />
-                                    <Route
-                                        path="/goals"
-                                        element={<GoalsPage />}
-                                    />
-                                    <Route
-                                        path="/budget"
-                                        element={
-                                            <Navigate to="/goals" replace />
-                                        }
-                                    />
-                                    <Route
-                                        path="/profile"
-                                        element={<ProfilePage />}
-                                    />
-                                    <Route
-                                        path="*"
-                                        element={
-                                            <Navigate to="/home" replace />
-                                        }
-                                    />
-                                </Routes>
+                                <Suspense fallback={<AppShellLoading />}>
+                                    <Routes>
+                                        <Route
+                                            path="/"
+                                            element={
+                                                <Navigate to="/home" replace />
+                                            }
+                                        />
+                                        <Route
+                                            path="/home"
+                                            element={<SummaryPage />}
+                                        />
+                                        <Route
+                                            path="/charts"
+                                            element={<ChartsPage />}
+                                        />
+                                        <Route
+                                            path="/recurrings"
+                                            element={<RecurringPage />}
+                                        />
+                                        <Route
+                                            path="/workspaces"
+                                            element={<WorkspacesPage />}
+                                        />
+                                        <Route
+                                            path="/expenses"
+                                            element={
+                                                <ExpensePage
+                                                    expenseUpdateTrigger={
+                                                        expenseUpdateTrigger
+                                                    }
+                                                />
+                                            }
+                                        />
+                                        <Route
+                                            path="/summary"
+                                            element={
+                                                <Navigate to="/home" replace />
+                                            }
+                                        />
+                                        <Route
+                                            path="/dashboard"
+                                            element={
+                                                <Navigate to="/home" replace />
+                                            }
+                                        />
+                                        <Route
+                                            path="/templates"
+                                            element={<TemplatesPage />}
+                                        />
+                                        <Route
+                                            path="/goals"
+                                            element={<GoalsPage />}
+                                        />
+                                        <Route
+                                            path="/budget"
+                                            element={
+                                                <Navigate to="/goals" replace />
+                                            }
+                                        />
+                                        <Route
+                                            path="/profile"
+                                            element={<ProfilePage />}
+                                        />
+                                        <Route
+                                            path="*"
+                                            element={
+                                                <Navigate to="/home" replace />
+                                            }
+                                        />
+                                    </Routes>
+                                </Suspense>
                             </main>
                         </div>
 
-                        <GeminiModal
-                            isOpen={showGeminiModal}
-                            onClose={handleCloseGemini}
-                            onAddExpenses={handleExpensesAdded}
-                            onToast={handleToast}
-                        />
+                        {showGeminiModal && (
+                            <Suspense fallback={null}>
+                                <GeminiModal
+                                    isOpen={showGeminiModal}
+                                    onClose={handleCloseGemini}
+                                    onAddExpenses={handleExpensesAdded}
+                                    onToast={handleToast}
+                                />
+                            </Suspense>
+                        )}
                     </div>
                 )}
             </Router>

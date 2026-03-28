@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import API from "../api/api";
 import type { Expense } from "../types/expense";
+import type { Workspace } from "../types/workspace";
 import { Plus, Pencil, Trash2, Send, ListChecks, X } from "lucide-react";
 import Toast from "./Toast";
 import { uiControl } from "../utils/uiClasses";
@@ -11,6 +12,8 @@ type ExpenseFormData = {
     amount: string;
     included: boolean;
     type: string;
+    tagsInput: string;
+    workspaceId: string;
     isRecurring: boolean;
     frequency: "weekly" | "monthly";
 };
@@ -21,6 +24,8 @@ type QueuedExpense = {
     amount: number;
     included: boolean;
     type: string;
+    tags: string[];
+    workspaceId?: string;
     isRecurring: boolean;
     frequency: "weekly" | "monthly";
 };
@@ -28,9 +33,16 @@ type QueuedExpense = {
 type ExpenseFormProps = {
     onAdd: (expense: Expense) => void;
     editExpense?: Expense | null;
+    workspaces?: Workspace[];
+    defaultWorkspaceId?: string;
 };
 
-export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
+export default function ExpenseForm({
+    onAdd,
+    editExpense,
+    workspaces = [],
+    defaultWorkspaceId,
+}: ExpenseFormProps) {
     const today = new Date().toISOString().split("T")[0];
 
     const [templates, setTemplates] = useState<
@@ -65,6 +77,8 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         amount: "",
         included: true,
         type: "",
+        tagsInput: "",
+        workspaceId: defaultWorkspaceId || "",
         isRecurring: false,
         frequency: "monthly",
     });
@@ -77,6 +91,11 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                 amount: editExpense.amount.toString(),
                 included: editExpense.included,
                 type: editExpense.type,
+                tagsInput: (editExpense.tags || []).join(", "),
+                workspaceId:
+                    typeof editExpense.workspaceId === "string"
+                        ? editExpense.workspaceId
+                        : editExpense.workspaceId?._id || "",
                 isRecurring: editExpense.isRecurring || false,
                 frequency: editExpense.frequency || "monthly",
             });
@@ -117,6 +136,8 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
             amount: "",
             included: true,
             type: "",
+            tagsInput: "",
+            workspaceId: defaultWorkspaceId || "",
             isRecurring: false,
             frequency: "monthly",
         });
@@ -178,7 +199,10 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
             return null;
         }
         if (!Number.isFinite(amount) || amount <= 0) {
-            setToast({ message: "Amount must be greater than 0", type: "error" });
+            setToast({
+                message: "Amount must be greater than 0",
+                type: "error",
+            });
             return null;
         }
 
@@ -188,6 +212,15 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
             amount,
             included: form.included,
             type: form.type.trim().toLowerCase(),
+            tags: Array.from(
+                new Set(
+                    form.tagsInput
+                        .split(",")
+                        .map((tag) => tag.trim().toLowerCase())
+                        .filter(Boolean),
+                ),
+            ),
+            workspaceId: form.workspaceId || undefined,
             isRecurring: form.isRecurring,
             frequency: form.frequency,
         };
@@ -222,6 +255,8 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
             amount: String(item.amount),
             included: item.included,
             type: item.type,
+            tagsInput: item.tags.join(", "),
+            workspaceId: item.workspaceId || "",
             isRecurring: item.isRecurring,
             frequency: item.frequency,
         });
@@ -262,7 +297,9 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         const queueSnapshot = [...queuedExpenses];
 
         const uniqueTypes = Array.from(
-            new Set(queueSnapshot.map((item) => item.type.trim().toLowerCase())),
+            new Set(
+                queueSnapshot.map((item) => item.type.trim().toLowerCase()),
+            ),
         );
         for (const type of uniqueTypes) {
             await ensureTypeExists(type);
@@ -307,14 +344,29 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                 await ensureTypeExists(enteredType);
             }
 
-            const res = await API.put<Expense>(`/expenses/${editExpense?._id}`, {
-                ...form,
-                amount: parseFloat(form.amount),
-                type: form.type.trim().toLowerCase(),
-            });
+            const res = await API.put<Expense>(
+                `/expenses/${editExpense?._id}`,
+                {
+                    ...form,
+                    amount: parseFloat(form.amount),
+                    type: form.type.trim().toLowerCase(),
+                    tags: Array.from(
+                        new Set(
+                            form.tagsInput
+                                .split(",")
+                                .map((tag) => tag.trim().toLowerCase())
+                                .filter(Boolean),
+                        ),
+                    ),
+                    workspaceId: form.workspaceId || undefined,
+                },
+            );
 
             onAdd(res.data);
-            setToast({ message: "Expense updated successfully!", type: "success" });
+            setToast({
+                message: "Expense updated successfully!",
+                type: "success",
+            });
         } catch (err) {
             console.error(err);
             setToast({ message: "Failed to update expense", type: "error" });
@@ -395,6 +447,43 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                         </datalist>
                     </div>
 
+                    <div className="space-y-2 md:col-span-2 lg:col-span-2">
+                        <label className={uiControl.label}>Workspace</label>
+                        <select
+                            name="workspaceId"
+                            value={form.workspaceId || ""}
+                            onChange={handleChange}
+                            className={uiControl.select}
+                        >
+                            <option value="">Personal</option>
+                            {workspaces.map((workspace) => (
+                                <option
+                                    key={workspace._id}
+                                    value={workspace._id}
+                                >
+                                    {workspace.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2 lg:col-span-2">
+                        <label className={uiControl.label}>
+                            Tags (comma separated)
+                        </label>
+                        <input
+                            type="text"
+                            name="tagsInput"
+                            placeholder="home, transport, urgent"
+                            value={form.tagsInput}
+                            onChange={handleChange}
+                            className={uiControl.input}
+                        />
+                        <p className="text-[11px] text-[var(--theme-text-secondary)]">
+                            Tags help with smarter filtering and analytics.
+                        </p>
+                    </div>
+
                     <div className="space-y-2">
                         <label className={uiControl.label}>Amount</label>
                         <input
@@ -466,16 +555,20 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
                                 <ListChecks className="h-4 w-4" />
-                                <h3 className="text-sm font-semibold">Queued Expenses</h3>
+                                <h3 className="text-sm font-semibold">
+                                    Queued Expenses
+                                </h3>
                             </div>
                             <span className="text-xs text-[var(--theme-text-secondary)]">
-                                {queuedExpenses.length} item{queuedExpenses.length === 1 ? "" : "s"}
+                                {queuedExpenses.length} item
+                                {queuedExpenses.length === 1 ? "" : "s"}
                             </span>
                         </div>
 
                         {queuedExpenses.length === 0 ? (
                             <p className="text-xs text-[var(--theme-text-secondary)]">
-                                Add expenses to the queue, review them here, then submit all as individual records.
+                                Add expenses to the queue, review them here,
+                                then submit all as individual records.
                             </p>
                         ) : (
                             <div className="space-y-2 max-h-56 overflow-y-auto">
@@ -489,14 +582,37 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                                 {item.description}
                                             </p>
                                             <p className="text-[11px] text-[var(--theme-text-secondary)]">
-                                                {item.date} • {item.type} • Birr {item.amount.toFixed(2)} • {item.included ? "Included" : "Excluded"}
-                                                {item.isRecurring ? ` • ${item.frequency}` : ""}
+                                                {item.date} • {item.type} • Birr{" "}
+                                                {item.amount.toFixed(2)} •{" "}
+                                                {item.included
+                                                    ? "Included"
+                                                    : "Excluded"}
+                                                {item.workspaceId
+                                                    ? " • Shared"
+                                                    : " • Personal"}
+                                                {item.isRecurring
+                                                    ? ` • ${item.frequency}`
+                                                    : ""}
                                             </p>
+                                            {item.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {item.tags.map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="border border-[var(--theme-border)] bg-[var(--theme-surface)] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[var(--theme-text-secondary)]"
+                                                        >
+                                                            #{tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <button
                                                 type="button"
-                                                onClick={() => handleQueueEdit(index)}
+                                                onClick={() =>
+                                                    handleQueueEdit(index)
+                                                }
                                                 className={uiControl.button}
                                                 title="Edit queued expense"
                                             >
@@ -504,8 +620,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleQueueRemove(index)}
-                                                className={uiControl.buttonDanger}
+                                                onClick={() =>
+                                                    handleQueueRemove(index)
+                                                }
+                                                className={
+                                                    uiControl.buttonDanger
+                                                }
                                                 title="Remove queued expense"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -549,13 +669,18 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                                 className={uiControl.buttonPrimary}
                             >
                                 <Plus className="w-4 h-4" />
-                                {editingQueueIndex !== null ? "Update in list" : "Add to list"}
+                                {editingQueueIndex !== null
+                                    ? "Update in list"
+                                    : "Add to list"}
                             </button>
                             <button
                                 type="button"
                                 className={uiControl.button}
                                 onClick={() => void handleQueueSubmit()}
-                                disabled={queuedExpenses.length === 0 || isSubmittingQueue}
+                                disabled={
+                                    queuedExpenses.length === 0 ||
+                                    isSubmittingQueue
+                                }
                             >
                                 <Send className="h-4 w-4" />
                                 {isSubmittingQueue

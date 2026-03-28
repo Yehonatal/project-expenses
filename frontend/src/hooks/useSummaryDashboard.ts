@@ -69,6 +69,18 @@ export function useSummaryDashboard() {
                         templates: Array.isArray(res.data?.templates)
                             ? res.data.templates
                             : [],
+                        healthScore: {
+                            totalScore: res.data?.healthScore?.totalScore ?? 50,
+                            band: res.data?.healthScore?.band ?? "fair",
+                            spendStabilityScore:
+                                res.data?.healthScore?.spendStabilityScore ??
+                                50,
+                            budgetAdherenceScore:
+                                res.data?.healthScore?.budgetAdherenceScore ??
+                                50,
+                            savingsTrendScore:
+                                res.data?.healthScore?.savingsTrendScore ?? 50,
+                        },
                         updatedAt:
                             res.data?.updatedAt ?? new Date().toISOString(),
                     };
