@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 interface ModalProps {
@@ -11,6 +12,8 @@ interface ModalProps {
     maxWidthClass?: string;
 }
 
+let openModalCount = 0;
+
 export default function Modal({
     isOpen,
     onClose,
@@ -20,6 +23,23 @@ export default function Modal({
     actions,
     maxWidthClass = "max-w-2xl",
 }: ModalProps) {
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const body = document.body;
+        const prevOverflow = body.style.overflow;
+
+        openModalCount += 1;
+        body.style.overflow = "hidden";
+
+        return () => {
+            openModalCount = Math.max(0, openModalCount - 1);
+            if (openModalCount === 0) {
+                body.style.overflow = prevOverflow;
+            }
+        };
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (

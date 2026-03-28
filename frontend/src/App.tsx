@@ -21,6 +21,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Toast from "./components/Toast";
 import { useAuthSession } from "./hooks/useAuthSession";
 import ScrollToTop from "./components/ScrollToTop";
+import ThemeSelector from "./components/ThemeSelector";
 
 export default function App() {
     const { user, loading, logout } = useAuthSession();
@@ -109,9 +110,15 @@ export default function App() {
                                     >
                                         <PanelLeft size={16} />
                                     </button>
-                                    <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--theme-text-secondary)]">
-                                        Cashn't
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <ThemeSelector />
+                                        <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--theme-text-secondary)]">
+                                            Cashn't
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="hidden lg:flex lg:justify-end lg:pb-1">
+                                    <ThemeSelector />
                                 </div>
                                 <Routes>
                                     <Route

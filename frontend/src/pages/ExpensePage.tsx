@@ -432,7 +432,6 @@ export default function ExpensePage({
                 <ExpenseForm
                     onAdd={(createdExpense) => {
                         addExpense(createdExpense);
-                        setShowCreateModal(false);
                     }}
                 />
             </Modal>
@@ -462,7 +461,7 @@ export default function ExpensePage({
                     setDeletingExpenseId(null);
                 }}
                 title={modalCopy.expense.deleteTitle}
-                description="This action permanently removes the selected expense from your records."
+                description="Permanently removes the selected expense from your records."
                 actions={
                     <>
                         <button

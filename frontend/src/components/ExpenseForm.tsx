@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import API from "../api/api";
 import type { Expense } from "../types/expense";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2, Send, ListChecks, X } from "lucide-react";
 import Toast from "./Toast";
 import { uiControl } from "../utils/uiClasses";
 
@@ -9,6 +9,16 @@ type ExpenseFormData = {
     date: string;
     description: string;
     amount: string;
+    included: boolean;
+    type: string;
+    isRecurring: boolean;
+    frequency: "weekly" | "monthly";
+};
+
+type QueuedExpense = {
+    date: string;
+    description: string;
+    amount: number;
     included: boolean;
     type: string;
     isRecurring: boolean;
@@ -49,6 +59,16 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         };
     }, []);
 
+    const [form, setForm] = useState<ExpenseFormData>({
+        date: today,
+        description: "",
+        amount: "",
+        included: true,
+        type: "",
+        isRecurring: false,
+        frequency: "monthly",
+    });
+
     useEffect(() => {
         if (editExpense) {
             setForm({
@@ -63,17 +83,12 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         }
     }, [editExpense]);
 
-    const [form, setForm] = useState<ExpenseFormData>({
-        date: today,
-        description: "",
-        amount: "",
-        included: true,
-        type: "",
-        isRecurring: false,
-        frequency: "monthly",
-    });
-
     const [types, setTypes] = useState<string[]>([]);
+    const [queuedExpenses, setQueuedExpenses] = useState<QueuedExpense[]>([]);
+    const [editingQueueIndex, setEditingQueueIndex] = useState<number | null>(
+        null,
+    );
+    const [isSubmittingQueue, setIsSubmittingQueue] = useState(false);
     const [toast, setToast] = useState<
         { message: string; type: "success" | "error" | "info" } | undefined
     >(undefined);
@@ -95,10 +110,21 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         };
     }, []);
 
+    const resetForm = () => {
+        setForm({
+            date: today,
+            description: "",
+            amount: "",
+            included: true,
+            type: "",
+            isRecurring: false,
+            frequency: "monthly",
+        });
+    };
+
     const handleTemplateChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
         if (value) {
-            // template select stores template id when loaded from server, or description for older local entries
             const template = templates.find((t) =>
                 t._id ? t._id === value : t.description === value,
             );
@@ -129,67 +155,180 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
         }));
     };
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const ensureTypeExists = async (rawType: string) => {
+        const enteredType = rawType.trim();
+        if (!enteredType || types.includes(enteredType)) return;
+        const norm = enteredType.toLowerCase();
         try {
-            // if the entered type is new, persist it to /api/types so it appears in suggestions
-            const enteredType = form.type?.trim();
-            if (enteredType && !types.includes(enteredType)) {
-                const norm = enteredType.trim().toLowerCase();
-                try {
-                    await API.post("/types", { name: norm });
-                    setToast({ message: `Saved type "${norm}"`, type: "info" });
-                } catch {
-                    // non-fatal — continue to try creating the expense
-                    console.warn("Failed to create type");
-                }
-            }
+            await API.post("/types", { name: norm });
+            setTypes((prev) => (prev.includes(norm) ? prev : [...prev, norm]));
+        } catch {
+            console.warn("Failed to create type", norm);
+        }
+    };
 
-            const res = editExpense
-                ? await API.put<Expense>(`/expenses/${editExpense._id}`, {
-                      ...form,
-                      amount: parseFloat(form.amount),
-                  })
-                : await API.post<Expense>("/expenses", {
-                      ...form,
-                      amount: parseFloat(form.amount),
-                  });
-            onAdd(res.data);
-            if (!editExpense) {
-                setForm({
-                    date: today,
-                    description: "",
-                    amount: "",
-                    included: true,
-                    type: "",
-                    isRecurring: false,
-                    frequency: "monthly",
-                });
-            }
-            // refresh types from server in background
-            void (async () => {
-                try {
-                    const r = await API.get<string[]>("/types");
-                    setTypes(r.data || []);
-                } catch {
-                    // ignore
-                }
-            })();
+    const buildPayloadFromForm = (): QueuedExpense | null => {
+        const amount = parseFloat(form.amount);
+        if (!form.description.trim()) {
+            setToast({ message: "Description is required", type: "error" });
+            return null;
+        }
+        if (!form.type.trim()) {
+            setToast({ message: "Type is required", type: "error" });
+            return null;
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+            setToast({ message: "Amount must be greater than 0", type: "error" });
+            return null;
+        }
+
+        return {
+            date: form.date,
+            description: form.description.trim(),
+            amount,
+            included: form.included,
+            type: form.type.trim().toLowerCase(),
+            isRecurring: form.isRecurring,
+            frequency: form.frequency,
+        };
+    };
+
+    const handleQueueAddOrUpdate = () => {
+        const payload = buildPayloadFromForm();
+        if (!payload) return;
+
+        if (editingQueueIndex !== null) {
+            setQueuedExpenses((prev) =>
+                prev.map((item, idx) =>
+                    idx === editingQueueIndex ? payload : item,
+                ),
+            );
+            setToast({ message: "Queued expense updated", type: "success" });
+            setEditingQueueIndex(null);
+        } else {
+            setQueuedExpenses((prev) => [...prev, payload]);
+            setToast({ message: "Expense queued", type: "info" });
+        }
+
+        resetForm();
+    };
+
+    const handleQueueEdit = (index: number) => {
+        const item = queuedExpenses[index];
+        if (!item) return;
+        setForm({
+            date: item.date,
+            description: item.description,
+            amount: String(item.amount),
+            included: item.included,
+            type: item.type,
+            isRecurring: item.isRecurring,
+            frequency: item.frequency,
+        });
+        setEditingQueueIndex(index);
+    };
+
+    const handleQueueRemove = (index: number) => {
+        setQueuedExpenses((prev) => prev.filter((_, idx) => idx !== index));
+        if (editingQueueIndex === index) {
+            setEditingQueueIndex(null);
+            resetForm();
+        } else if (editingQueueIndex !== null && index < editingQueueIndex) {
+            setEditingQueueIndex((prev) => (prev === null ? null : prev - 1));
+        }
+    };
+
+    const handleQueueSubmit = async () => {
+        if (editingQueueIndex !== null) {
             setToast({
-                message: editExpense
-                    ? "Expense updated successfully!"
-                    : "Expense added successfully!",
-                type: "success",
+                message: "Finish updating the item in edit mode before submit",
+                type: "info",
             });
-        } catch (err) {
-            console.error(err);
+            return;
+        }
+
+        if (queuedExpenses.length === 0) {
             setToast({
-                message: editExpense
-                    ? "Failed to update expense"
-                    : "Failed to add expense",
+                message: "Add at least one expense to the queue first",
+                type: "info",
+            });
+            return;
+        }
+
+        setIsSubmittingQueue(true);
+        let successCount = 0;
+        let failureCount = 0;
+
+        const queueSnapshot = [...queuedExpenses];
+
+        const uniqueTypes = Array.from(
+            new Set(queueSnapshot.map((item) => item.type.trim().toLowerCase())),
+        );
+        for (const type of uniqueTypes) {
+            await ensureTypeExists(type);
+        }
+
+        for (const item of queueSnapshot) {
+            try {
+                const res = await API.post<Expense>("/expenses", item);
+                onAdd(res.data);
+                successCount += 1;
+            } catch (error) {
+                console.error("Failed to submit queued expense:", error);
+                failureCount += 1;
+            }
+        }
+
+        if (successCount > 0) {
+            setQueuedExpenses([]);
+            resetForm();
+        }
+
+        if (failureCount > 0) {
+            setToast({
+                message: `${successCount} submitted, ${failureCount} failed.`,
                 type: "error",
             });
+        } else {
+            setToast({
+                message: `Submitted ${successCount} expense${successCount === 1 ? "" : "s"} successfully!`,
+                type: "success",
+            });
         }
+
+        setIsSubmittingQueue(false);
+    };
+
+    const handleSingleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        try {
+            const enteredType = form.type?.trim().toLowerCase();
+            if (enteredType) {
+                await ensureTypeExists(enteredType);
+            }
+
+            const res = await API.put<Expense>(`/expenses/${editExpense?._id}`, {
+                ...form,
+                amount: parseFloat(form.amount),
+                type: form.type.trim().toLowerCase(),
+            });
+
+            onAdd(res.data);
+            setToast({ message: "Expense updated successfully!", type: "success" });
+        } catch (err) {
+            console.error(err);
+            setToast({ message: "Failed to update expense", type: "error" });
+        }
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (editExpense) {
+            await handleSingleSubmit(e);
+            return;
+        }
+
+        handleQueueAddOrUpdate();
     };
 
     return (
@@ -322,15 +461,109 @@ export default function ExpenseForm({ onAdd, editExpense }: ExpenseFormProps) {
                     )}
                 </div>
 
-                <div className="flex justify-end pt-4">
-                    <button
-                        type="submit"
-                        aria-label="Add expense"
-                        className={uiControl.buttonPrimary}
-                    >
-                        <Plus className="w-4 h-4" />
-                        {editExpense ? "Save Expense" : "Add Expense"}
-                    </button>
+                {!editExpense && (
+                    <div className="space-y-3 border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <ListChecks className="h-4 w-4" />
+                                <h3 className="text-sm font-semibold">Queued Expenses</h3>
+                            </div>
+                            <span className="text-xs text-[var(--theme-text-secondary)]">
+                                {queuedExpenses.length} item{queuedExpenses.length === 1 ? "" : "s"}
+                            </span>
+                        </div>
+
+                        {queuedExpenses.length === 0 ? (
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                Add expenses to the queue, review them here, then submit all as individual records.
+                            </p>
+                        ) : (
+                            <div className="space-y-2 max-h-56 overflow-y-auto">
+                                {queuedExpenses.map((item, index) => (
+                                    <div
+                                        key={`${item.description}-${index}`}
+                                        className="flex items-start justify-between gap-3 border border-[var(--theme-border)] bg-[var(--theme-background)] p-2"
+                                    >
+                                        <div className="min-w-0 space-y-1">
+                                            <p className="truncate text-sm font-semibold">
+                                                {item.description}
+                                            </p>
+                                            <p className="text-[11px] text-[var(--theme-text-secondary)]">
+                                                {item.date} • {item.type} • Birr {item.amount.toFixed(2)} • {item.included ? "Included" : "Excluded"}
+                                                {item.isRecurring ? ` • ${item.frequency}` : ""}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleQueueEdit(index)}
+                                                className={uiControl.button}
+                                                title="Edit queued expense"
+                                            >
+                                                <Pencil className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleQueueRemove(index)}
+                                                className={uiControl.buttonDanger}
+                                                title="Remove queued expense"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div className="flex flex-wrap justify-end gap-2 pt-2">
+                    {editExpense ? (
+                        <button
+                            type="submit"
+                            aria-label="Save expense"
+                            className={uiControl.buttonPrimary}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Save Expense
+                        </button>
+                    ) : (
+                        <>
+                            {editingQueueIndex !== null && (
+                                <button
+                                    type="button"
+                                    className={uiControl.button}
+                                    onClick={() => {
+                                        setEditingQueueIndex(null);
+                                        resetForm();
+                                    }}
+                                >
+                                    <X className="h-4 w-4" />
+                                    Cancel edit
+                                </button>
+                            )}
+                            <button
+                                type="submit"
+                                aria-label="Add expense to queue"
+                                className={uiControl.buttonPrimary}
+                            >
+                                <Plus className="w-4 h-4" />
+                                {editingQueueIndex !== null ? "Update in list" : "Add to list"}
+                            </button>
+                            <button
+                                type="button"
+                                className={uiControl.button}
+                                onClick={() => void handleQueueSubmit()}
+                                disabled={queuedExpenses.length === 0 || isSubmittingQueue}
+                            >
+                                <Send className="h-4 w-4" />
+                                {isSubmittingQueue
+                                    ? "Submitting..."
+                                    : `Submit all (${queuedExpenses.length})`}
+                            </button>
+                        </>
+                    )}
                 </div>
             </form>
         </>

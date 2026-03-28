@@ -13,7 +13,6 @@ import {
     X,
 } from "lucide-react";
 import { useState } from "react";
-import ThemeSelector from "./ThemeSelector";
 
 interface UserData {
     _id: string;
@@ -188,7 +187,6 @@ export default function Sidebar({
                         collapsed ? "justify-center" : "items-center gap-3"
                     }`}
                 >
-                    <ThemeSelector />
                     <button
                         onClick={onLogout}
                         className="inline-flex h-10 w-10 items-center justify-center border border-[var(--theme-glass-border)] bg-[var(--theme-glass)] transition-colors hover:bg-white/5"
