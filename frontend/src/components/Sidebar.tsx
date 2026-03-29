@@ -11,6 +11,7 @@ import {
     Users,
     CloudUpload,
     TrendingUp,
+    FileJson,
     PanelLeftClose,
     PanelLeftOpen,
     X,
@@ -41,6 +42,7 @@ const navItems = [
     { to: "/recurrings", label: "Recurrings", icon: Repeat },
     { to: "/workspaces", label: "Workspaces", icon: Users },
     { to: "/queued-expenses", label: "Queued", icon: CloudUpload },
+    { to: "/import-data", label: "Import", icon: FileJson },
     { to: "/forecast", label: "Forecast", icon: TrendingUp },
     { to: "/charts", label: "Charts", icon: PieChart },
 ];

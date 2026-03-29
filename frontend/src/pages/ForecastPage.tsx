@@ -17,8 +17,8 @@ import PageContainer from "../components/ui/PageContainer";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import GlassCard from "../components/ui/GlassCard";
 import { monthNames } from "../hooks/useSummaryDashboard";
-import { getExpenseForecast } from "../api/api";
-import type { ForecastData } from "../types/dashboard";
+import { getExpenseForecast, getImportSynergyOverview } from "../api/api";
+import type { ForecastData, ImportSynergyOverview } from "../types/dashboard";
 import { formatMoneyBirr } from "../utils/formatters";
 import { Loader2, Wallet } from "lucide-react";
 import InfoTooltip from "../components/ui/InfoTooltip";
@@ -66,6 +66,10 @@ export default function ForecastPage() {
         refreshing: false,
         error: null,
     });
+    const [importOverview, setImportOverview] =
+        useState<ImportSynergyOverview | null>(null);
+    const [importAccountKey, setImportAccountKey] = useState("ALL");
+    const [importOverviewLoading, setImportOverviewLoading] = useState(false);
 
     useEffect(() => {
         let mounted = true;
@@ -114,6 +118,33 @@ export default function ForecastPage() {
         const timeout = setTimeout(() => setContentVisible(true), 70);
         return () => clearTimeout(timeout);
     }, [state.data, state.loading, windowMonths, scenario]);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadImportOverview = async () => {
+            try {
+                setImportOverviewLoading(true);
+                const res = await getImportSynergyOverview({
+                    accountKey: importAccountKey,
+                });
+                if (!mounted) return;
+                setImportOverview(res.data);
+            } catch (err) {
+                if (!mounted) return;
+                setImportOverview(null);
+                console.error("Failed to load import forecast overlay", err);
+            } finally {
+                if (mounted) setImportOverviewLoading(false);
+            }
+        };
+
+        void loadImportOverview();
+
+        return () => {
+            mounted = false;
+        };
+    }, [importAccountKey]);
 
     const forecastSeries = useMemo(
         () =>
@@ -301,6 +332,77 @@ export default function ForecastPage() {
                 className={`border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5 ${revealClass}`}
                 style={revealStyle(70)}
             >
+                {importOverview && (
+                    <div className="mb-4 border border-[var(--theme-border)] bg-[var(--theme-background)] p-3 sm:p-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Imported cashflow baseline
+                                </p>
+                                <p className="text-xs text-[var(--theme-text-secondary)]">
+                                    Forecast signal generated from imported
+                                    credits and debits.
+                                </p>
+                            </div>
+                            <select
+                                value={importAccountKey}
+                                onChange={(event) =>
+                                    setImportAccountKey(event.target.value)
+                                }
+                                className="h-9 min-w-[220px] border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs"
+                            >
+                                {importOverview.accountOptions.map((option) => (
+                                    <option key={option.key} value={option.key}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Baseline monthly net
+                                </p>
+                                <p className="text-sm font-semibold">
+                                    {formatMoneyBirr(
+                                        importOverview.forecast
+                                            .baselineMonthlyNet,
+                                    )}
+                                </p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Next month projected net
+                                </p>
+                                <p className="text-sm font-semibold">
+                                    {formatMoneyBirr(
+                                        importOverview.forecast
+                                            .nextMonthProjectedNet,
+                                    )}
+                                </p>
+                            </div>
+                            <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-2">
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    Next 6 months projected net
+                                </p>
+                                <p className="text-sm font-semibold">
+                                    {formatMoneyBirr(
+                                        importOverview.forecast
+                                            .next6MonthsProjectedNet,
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+
+                        {importOverviewLoading && (
+                            <p className="mt-2 text-xs text-[var(--theme-text-secondary)]">
+                                Updating import forecast signal...
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">

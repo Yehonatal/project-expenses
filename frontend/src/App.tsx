@@ -27,6 +27,7 @@ const ChartsPage = lazy(() => import("./pages/ChartsPage.tsx"));
 const WorkspacesPage = lazy(() => import("./pages/WorkspacesPage.tsx"));
 const QueuedExpensesPage = lazy(() => import("./pages/QueuedExpensesPage.tsx"));
 const ForecastPage = lazy(() => import("./pages/ForecastPage.tsx"));
+const ImportDataPage = lazy(() => import("./pages/ImportDataPage.tsx"));
 
 export default function App() {
     const { user, loading, logout } = useAuthSession();
@@ -185,6 +186,10 @@ export default function App() {
                                                         replace
                                                     />
                                                 }
+                                            />
+                                            <Route
+                                                path="/import-data"
+                                                element={<ImportDataPage />}
                                             />
                                             <Route
                                                 path="/home"

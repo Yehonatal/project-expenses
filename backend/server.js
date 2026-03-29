@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const workspaceRoutes = require("./routes/workspaceRoutes");
+const importRoutes = require("./routes/importRoutes");
 const typesController = require("./controllers/typesController");
 const User = require("./models/userModel");
 
@@ -26,7 +27,11 @@ if (!MONGO_URI) {
     process.exit(1);
 }
 
-app.use(express.json());
+app.use(
+    express.json({
+        limit: "25mb",
+    }),
+);
 
 app.use(
     cors({
@@ -99,6 +104,7 @@ app.use("/api/types", typesRoutes);
 app.use("/api/budgets", budgetRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/imports", importRoutes);
 
 // fallback in case routes wiring fails elsewhere — provide direct endpoint
 app.get("/api/types", async (req, res, next) => {

@@ -7,8 +7,19 @@ import type {
     ExpenseFilterPresetPayload,
     PaginatedExpensesResponse,
 } from "../types/expense";
-import type { ForecastData, InsightsData } from "../types/dashboard";
+import type {
+    ForecastData,
+    ImportSynergyOverview,
+    InsightsData,
+} from "../types/dashboard";
 import type { Workspace } from "../types/workspace";
+import type {
+    BankAccount,
+    ImportBatch,
+    ImportBatchDetailsResponse,
+    ImportDataPayload,
+    ImportJsonResponse,
+} from "../types/importData";
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_RENDER_URL || "http://localhost:5000/api",
@@ -46,7 +57,8 @@ export const getExpenses = (params?: ExpenseFilterParams) =>
 export const getExpensesPaged = (params: ExpenseFilterParams) =>
     API.get<PaginatedExpensesResponse>("/expenses", { params });
 export const getExpenseStats = () => API.get("/expenses/stats");
-export const getExpenseInsights = () => API.get<InsightsData>("/expenses/insights");
+export const getExpenseInsights = () =>
+    API.get<InsightsData>("/expenses/insights");
 export const getExpenseForecast = (params?: {
     scenario?: "conservative" | "baseline" | "aggressive";
     window?: 1 | 3 | 6 | 12;
@@ -94,3 +106,39 @@ export const removeTemplate = (id: string) => API.delete(`/templates/${id}`);
 // Export APIs
 export const exportExpenses = (format: "csv" | "pdf") =>
     API.get(`/expenses/export/${format}`, { responseType: "blob" });
+
+// Import APIs
+export const importJsonData = (data: {
+    fileName?: string | null;
+    payload: ImportDataPayload;
+}) => API.post<ImportJsonResponse>("/imports/json", data);
+
+export const getImportBatches = (params?: { limit?: number }) =>
+    API.get<ImportBatch[]>("/imports/batches", { params });
+
+export const getImportBatchDetails = (
+    id: string,
+    params?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        transactionType?: "DEBIT" | "CREDIT";
+    },
+) => API.get<ImportBatchDetailsResponse>(`/imports/batches/${id}`, { params });
+
+export const getBankAccounts = () =>
+    API.get<BankAccount[]>("/imports/accounts");
+
+export const createBankAccount = (data: {
+    accountNumber: string;
+    bankId?: number | null;
+    bankName?: string | null;
+    bankShortName?: string | null;
+    accountHolderName?: string | null;
+    balance?: number | null;
+}) => API.post<BankAccount>("/imports/accounts", data);
+
+export const getImportSynergyOverview = (params?: {
+    batchId?: string;
+    accountKey?: string;
+}) => API.get<ImportSynergyOverview>("/imports/synergy", { params });

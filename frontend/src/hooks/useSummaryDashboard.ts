@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import API, { getExpenseForecast, getExpenseInsights } from "../api/api";
+import API, {
+    getExpenseForecast,
+    getExpenseInsights,
+    getImportSynergyOverview,
+} from "../api/api";
 import type { Expense } from "../types/expense";
 import type {
     DashboardData,
     ForecastData,
+    ImportSynergyOverview,
     InsightsData,
     TrendsData,
 } from "../types/dashboard";
@@ -28,6 +33,12 @@ export function useSummaryDashboard() {
     const [trends, setTrends] = useState<TrendsData | null>(null);
     const [insights, setInsights] = useState<InsightsData | null>(null);
     const [forecast, setForecast] = useState<ForecastData | null>(null);
+    const [importSynergy, setImportSynergy] =
+        useState<ImportSynergyOverview | null>(null);
+    const [selectedImportAccountKey, setSelectedImportAccountKey] =
+        useState<string>("ALL");
+    const [importSynergyLoading, setImportSynergyLoading] =
+        useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>(
@@ -131,6 +142,34 @@ export function useSummaryDashboard() {
         };
     }, []);
 
+    useEffect(() => {
+        let mounted = true;
+
+        const loadImportSynergy = async () => {
+            try {
+                setImportSynergyLoading(true);
+                const response = await getImportSynergyOverview({
+                    accountKey: selectedImportAccountKey,
+                });
+
+                if (!mounted) return;
+                setImportSynergy(response.data);
+            } catch (err) {
+                if (!mounted) return;
+                setImportSynergy(null);
+                console.error("Failed to fetch import synergy overview:", err);
+            } finally {
+                if (mounted) setImportSynergyLoading(false);
+            }
+        };
+
+        void loadImportSynergy();
+
+        return () => {
+            mounted = false;
+        };
+    }, [selectedImportAccountKey]);
+
     const toggleType = async (type: string) => {
         const isExpanded = expandedTypes[type];
         if (isExpanded) {
@@ -206,6 +245,10 @@ export function useSummaryDashboard() {
         trends,
         insights,
         forecast,
+        importSynergy,
+        importSynergyLoading,
+        selectedImportAccountKey,
+        setSelectedImportAccountKey,
         loading,
         error,
         expandedTypes,
