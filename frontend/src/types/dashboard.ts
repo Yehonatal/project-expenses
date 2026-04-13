@@ -153,3 +153,58 @@ export type ForecastData = {
         recurringTreatment: string;
     };
 };
+
+export type ImportSynergyOverview = {
+    batch: {
+        _id: string | null;
+        sourceFileName: string | null;
+        exportDate: string | null;
+        createdAt: string | null;
+    };
+    accountOptions: Array<{
+        key: string;
+        label: string;
+    }>;
+    selectedAccountKey: string;
+    accounts: Array<{
+        key: string;
+        accountNumber: string | null;
+        accountHolderName: string | null;
+        bankId: number | null;
+        balance: number | null;
+        settledBalance: number | null;
+        debitTotal: number;
+        creditTotal: number;
+        netFlow: number;
+        txCount: number;
+    }>;
+    aggregate: {
+        totalBalance: number;
+        debitTotal: number;
+        creditTotal: number;
+        netFlow: number;
+        txCount: number;
+    };
+    monthlyNet: Array<{
+        year: number;
+        month: number;
+        debit: number;
+        credit: number;
+        net: number;
+    }>;
+    forecast: {
+        baselineMonthlyNet: number;
+        nextMonthProjectedNet: number;
+        next6MonthsProjectedNet: number;
+    };
+    expenseOverlay: {
+        currentMonthExpenseTotal: number;
+        currentMonthExpenseCount: number;
+        recentExpense: {
+            description: string;
+            type: string;
+            amount: number;
+            date: string;
+        } | null;
+    };
+};

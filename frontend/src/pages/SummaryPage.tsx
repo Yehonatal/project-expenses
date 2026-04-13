@@ -7,7 +7,7 @@ import { monthNames, useSummaryDashboard } from "../hooks/useSummaryDashboard";
 import { formatMoneyBirr } from "../utils/formatters";
 import InfoTooltip from "../components/ui/InfoTooltip";
 
-const accountColors = ["#c06ecf", "#3f4ea3", "#b0764e", "#8da84d", "#d89fa0"];
+const accountColors = ["#1f4f8f", "#2b7a4b", "#c06a22", "#8a3a2f", "#4d5b8a"];
 
 export default function SummaryPage() {
     const {
@@ -20,6 +20,10 @@ export default function SummaryPage() {
         insightsFeed,
         insightsUpdatedAt,
         forecast,
+        importSynergy,
+        importSynergyLoading,
+        selectedImportAccountKey,
+        setSelectedImportAccountKey,
         updatedLabel,
         nowLabel,
     } = useSummaryDashboard();
@@ -78,6 +82,11 @@ export default function SummaryPage() {
             ? "border-emerald-600/40 bg-emerald-600/12 text-emerald-600"
             : "border-rose-600/40 bg-rose-600/12 text-rose-600";
 
+    const selectedImportAccount = importSynergy?.accounts?.find(
+        (account) => account.key === selectedImportAccountKey,
+    );
+    const showImportSection = Boolean(importSynergy && !importSynergyLoading);
+
     return (
         <PageContainer
             title="Home"
@@ -124,6 +133,162 @@ export default function SummaryPage() {
                     </div>
                 </div>
             </div>
+
+            {showImportSection && importSynergy && (
+                <GlassCard className="space-y-4 p-4 sm:p-5">
+                    <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <h3 className="app-heading text-lg font-semibold tracking-[-0.01em] inline-flex items-center gap-1">
+                                Imported Accounts Intelligence
+                                <InfoTooltip label="Imported bank accounts are now wired into Home with account-level drill-down and an all-accounts aggregate mode." />
+                            </h3>
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                Source:{" "}
+                                {importSynergy.batch.sourceFileName ||
+                                    "Imported JSON"}{" "}
+                                | Imported {updatedLabel}
+                            </p>
+                        </div>
+
+                        <select
+                            value={selectedImportAccountKey}
+                            onChange={(event) =>
+                                setSelectedImportAccountKey(event.target.value)
+                            }
+                            className="h-10 min-w-[220px] border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-sm"
+                        >
+                            {importSynergy.accountOptions.map((option) => (
+                                <option key={option.key} value={option.key}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex gap-4">
+                        {importSynergy.accounts.map((account, index) => (
+                            <button
+                                key={account.key}
+                                type="button"
+                                onClick={() =>
+                                    setSelectedImportAccountKey(account.key)
+                                }
+                                className={`relative min-w-[220px] border bg-[var(--theme-surface)] p-3 text-left transition-transform ${index === 0 ? "" : "-ml-8"} ${selectedImportAccountKey === account.key ? "z-20 scale-[1.02] border-[var(--theme-accent)]" : "z-10 border-[var(--theme-border)] hover:z-20 hover:scale-[1.01]"}`}
+                                style={{
+                                    boxShadow: `inset 0 3px 0 ${accountColors[index % accountColors.length]}`,
+                                }}
+                            >
+                                <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                    {account.accountNumber || account.key}
+                                </p>
+                                <p className="mt-1 text-xl font-semibold">
+                                    {formatMoneyBirr(account.balance || 0)}
+                                </p>
+                                <p className="mt-1 text-[11px] text-[var(--theme-text-secondary)]">
+                                    {account.txCount} imported transactions
+                                </p>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 col-span-2">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                {selectedImportAccountKey === "ALL"
+                                    ? "Aggregate account balance"
+                                    : "Selected account balance"}
+                            </p>
+                            <p className="text-xl font-semibold">
+                                {selectedImportAccountKey === "ALL"
+                                    ? formatMoneyBirr(
+                                          importSynergy.aggregate.totalBalance,
+                                      )
+                                    : formatMoneyBirr(
+                                          selectedImportAccount?.balance || 0,
+                                      )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Imported Debits
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    importSynergy.aggregate.debitTotal,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Imported Credits
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    importSynergy.aggregate.creditTotal,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Imported Net Flow
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    importSynergy.aggregate.netFlow,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                Next Month Net
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    importSynergy.forecast
+                                        .nextMonthProjectedNet,
+                                )}
+                            </p>
+                        </div>
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                                6M Net Projection
+                            </p>
+                            <p className="text-lg font-semibold">
+                                {formatMoneyBirr(
+                                    importSynergy.forecast
+                                        .next6MonthsProjectedNet,
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="border border-[var(--theme-border)] bg-[var(--theme-background)] p-3">
+                        <p className="text-[10px] uppercase text-[var(--theme-text-secondary)]">
+                            Expense Card (Existing app data)
+                        </p>
+                        <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm">
+                                This month:{" "}
+                                {formatMoneyBirr(
+                                    importSynergy.expenseOverlay
+                                        .currentMonthExpenseTotal,
+                                )}{" "}
+                                across{" "}
+                                {
+                                    importSynergy.expenseOverlay
+                                        .currentMonthExpenseCount
+                                }{" "}
+                                expenses
+                            </p>
+                            <p className="text-xs text-[var(--theme-text-secondary)]">
+                                Latest:{" "}
+                                {importSynergy.expenseOverlay.recentExpense
+                                    ?.description || "-"}
+                            </p>
+                        </div>
+                    </div>
+                </GlassCard>
+            )}
 
             <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-5">
                 {topTypes.length === 0 ? (
