@@ -59,11 +59,13 @@ export interface ExpenseFilterParams {
     from?: string;
     to?: string;
     included?: boolean;
+    includeMode?: "all" | "included" | "excluded";
     type?: string;
     tags?: string;
     minAmount?: string;
     maxAmount?: string;
     isRecurring?: boolean;
+    recurringMode?: "all" | "recurring" | "non-recurring";
     keyword?: string;
     scope?: "all" | "personal" | "shared";
     workspaceId?: string;

@@ -91,7 +91,7 @@ export function useExpensePageData(
         };
     }, [fetchBudgets]);
 
-    const addExpense = async (_expense?: Expense) => {
+    const addExpense = async () => {
         await fetchExpenses();
         await fetchBudgets();
     };
@@ -101,7 +101,9 @@ export function useExpensePageData(
 
         if (result.queued) {
             setExpenses((prev) =>
-                prev.filter((exp) => (exp._id || exp.id?.toString()) !== expenseId),
+                prev.filter(
+                    (exp) => (exp._id || exp.id?.toString()) !== expenseId,
+                ),
             );
             setPagination((prev) => ({
                 ...prev,

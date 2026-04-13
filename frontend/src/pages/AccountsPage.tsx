@@ -4,8 +4,7 @@ import PageContainer from "../components/ui/PageContainer";
 import PageSkeleton from "../components/ui/PageSkeleton";
 import { getBankAccounts, getBanks } from "../api/api";
 import type { BankAccount, Bank } from "../types/importData";
-import { Copy, Plus, Activity } from "lucide-react";
-import { uiControl } from "../utils/uiClasses";
+import { Activity } from "lucide-react";
 
 const amountFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,

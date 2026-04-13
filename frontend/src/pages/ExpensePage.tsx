@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Expense, ExpenseFilterPreset } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
@@ -13,7 +13,6 @@ import {
     Loader2,
     ChevronLeft,
     ChevronRight,
-    X,
 } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
@@ -128,6 +127,7 @@ export default function ExpensePage({
 
     useEffect(() => {
         void loadPresets();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const applyPreset = (preset: ExpenseFilterPreset) => {
@@ -149,7 +149,7 @@ export default function ExpensePage({
         }
 
         setPage(1);
-        setPresetStatus(`Applied \"${preset.name}\" preset.`);
+        setPresetStatus(`Applied "${preset.name}" preset.`);
     };
 
     const handleSavePreset = async () => {
@@ -167,7 +167,7 @@ export default function ExpensePage({
             });
             setPresetName("");
             await loadPresets();
-            setPresetStatus(`Saved \"${name}\" preset.`);
+            setPresetStatus(`Saved "${name}" preset.`);
         } catch (error) {
             console.error("Failed to save preset:", error);
             setPresetStatus("Could not save preset right now.");
@@ -203,7 +203,7 @@ export default function ExpensePage({
                     isDefault: item._id === updated._id,
                 })),
             );
-            setPresetStatus(`\"${updated.name}\" is now your default preset.`);
+            setPresetStatus(`"${updated.name}" is now your default preset.`);
         } catch (error) {
             console.error("Failed to set default preset:", error);
             setPresetStatus("Could not set default preset right now.");
@@ -310,11 +310,6 @@ export default function ExpensePage({
         window.addEventListener("online", onOnline);
         return () => window.removeEventListener("online", onOnline);
     }, [syncOfflineQueue]);
-
-    const uniqueCategories = useMemo(
-        () => Array.from(new Set(expenses.map((exp) => exp.type))).sort(),
-        [expenses],
-    );
 
     const uniqueTags = useMemo(
         () =>
@@ -1233,7 +1228,7 @@ export default function ExpensePage({
                 description="Capture a new expense with type, amount, and optional recurring metadata."
             >
                 <ExpenseForm
-                    onAdd={(createdExpense, options) => {
+                    onAdd={(_, options) => {
                         if (options?.queued) {
                             setToast({
                                 message:
@@ -1241,7 +1236,7 @@ export default function ExpensePage({
                                 type: "info",
                             });
                         }
-                        void addExpense(createdExpense);
+                        void addExpense();
                     }}
                 />
             </Modal>

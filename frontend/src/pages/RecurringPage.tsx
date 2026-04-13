@@ -405,7 +405,12 @@ export default function RecurringPage() {
                                 onChange={(e) =>
                                     setForm((prev) => ({
                                         ...prev,
-                                        frequency: e.target.value as any,
+                                        frequency: e.target.value as
+                                            | "daily"
+                                            | "weekly"
+                                            | "monthly"
+                                            | "yearly"
+                                            | "custom",
                                     }))
                                 }
                             >

@@ -76,7 +76,7 @@ export function useTemplatesPageData() {
             try {
                 const norm = usedType.trim().toLowerCase();
                 await API.post("/types", { name: norm });
-                setToast({ message: `Saved type \"${norm}\"`, type: "info" });
+                setToast({ message: `Saved type "${norm}"`, type: "info" });
             } catch {
                 // non-fatal
             }

@@ -141,7 +141,10 @@ export function useSummaryDashboard() {
                 if (accountsRes.status === "fulfilled") {
                     const accounts = accountsRes.value.data || [];
                     const computedBalance = accounts.reduce(
-                        (acc: number, a: any) => acc + (a.balance || 0),
+                        (
+                            acc: number,
+                            a: import("../types/importData").BankAccount,
+                        ) => acc + (a.balance || 0),
                         0,
                     );
                     setTotalAccountBalance(computedBalance);

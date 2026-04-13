@@ -135,7 +135,7 @@ export const getBanks = () =>
     );
 
 export const syncImportBatch = (id: string) =>
-    API.post<{ message: string; syncStatus: any }>(
+    API.post<{ message: string; syncStatus: unknown }>(
         `/imports/batches/${id}/sync`,
     );
 

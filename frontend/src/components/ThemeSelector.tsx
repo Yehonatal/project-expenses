@@ -11,7 +11,7 @@ import {
     X,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
-import type { Theme } from "../contexts/ThemeContext";
+import type { Theme } from "../types/theme";
 import { uiControl } from "../utils/uiClasses";
 
 const themeOptions: {
