@@ -18,6 +18,7 @@ import {
     getImportBatchDetails,
     getImportBatches,
     importJsonData,
+    syncImportBatch,
 } from "../api/api";
 import type {
     BankAccount,
@@ -87,6 +88,7 @@ export default function ImportDataPage() {
     const [newHolderName, setNewHolderName] = useState("");
     const [newBalance, setNewBalance] = useState("");
     const [creatingAccount, setCreatingAccount] = useState(false);
+    const [syncingBatch, setSyncingBatch] = useState(false);
 
     const payloadSummary = useMemo(() => {
         if (!parsedPayload) return null;
@@ -257,7 +259,9 @@ export default function ImportDataPage() {
             setPage(1);
             await loadBatches(importedBatchId);
             await loadBankAccounts();
-            setStatus("Import finished. Data stored successfully.");
+            setStatus(
+                "Import finished. Data stored successfully in Expenses, Types, and Logs.",
+            );
         } catch (error) {
             console.error("Failed to import JSON:", error);
             setStatus("Import failed. Please try again.");
@@ -274,6 +278,23 @@ export default function ImportDataPage() {
     const onTypeChange = (value: "ALL" | "DEBIT" | "CREDIT") => {
         setPage(1);
         setTransactionType(value);
+    };
+
+    const handleSyncBatch = async () => {
+        if (!selectedBatch) return;
+        try {
+            setSyncingBatch(true);
+            setStatus("Syncing...");
+            const res = await syncImportBatch(selectedBatch._id);
+            setStatus(res.data.message);
+            await loadBatches(selectedBatch._id);
+            await loadBankAccounts();
+        } catch (err) {
+            console.error("Failed to sync batch", err);
+            setStatus("Failed to sync batch data.");
+        } finally {
+            setSyncingBatch(false);
+        }
     };
 
     const handleCreateAccount = async () => {
@@ -553,43 +574,72 @@ export default function ImportDataPage() {
             )}
 
             {selectedBatch && (
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
-                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                        <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
-                            Debit total
-                        </div>
-                        <div className="text-base font-semibold">
-                            ETB{" "}
-                            {amountFormatter.format(
-                                selectedBatch.stats.debitTotal || 0,
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-3">
+                        <h2 className="text-lg font-bold">
+                            Import Batch Details
+                        </h2>
+                        <button
+                            type="button"
+                            className={uiControl.buttonPrimary}
+                            onClick={handleSyncBatch}
+                            disabled={
+                                syncingBatch ||
+                                (selectedBatch.syncStatus?.accounts &&
+                                    selectedBatch.syncStatus?.banks &&
+                                    selectedBatch.syncStatus?.categories)
+                            }
+                        >
+                            {syncingBatch ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4" />
                             )}
-                        </div>
+                            {selectedBatch.syncStatus?.accounts &&
+                            selectedBatch.syncStatus?.banks &&
+                            selectedBatch.syncStatus?.categories
+                                ? "Fully Synced"
+                                : "Sync Missing Data"}
+                        </button>
                     </div>
-                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                        <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
-                            Credit total
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
+                                Debit total
+                            </div>
+                            <div className="text-base font-semibold">
+                                ETB{" "}
+                                {amountFormatter.format(
+                                    selectedBatch.stats.debitTotal || 0,
+                                )}
+                            </div>
                         </div>
-                        <div className="text-base font-semibold">
-                            ETB{" "}
-                            {amountFormatter.format(
-                                selectedBatch.stats.creditTotal || 0,
-                            )}
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
+                                Credit total
+                            </div>
+                            <div className="text-base font-semibold">
+                                ETB{" "}
+                                {amountFormatter.format(
+                                    selectedBatch.stats.creditTotal || 0,
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                        <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
-                            Debit count
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
+                                Debit count
+                            </div>
+                            <div className="text-base font-semibold">
+                                {selectedBatch.stats.debitCount}
+                            </div>
                         </div>
-                        <div className="text-base font-semibold">
-                            {selectedBatch.stats.debitCount}
-                        </div>
-                    </div>
-                    <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
-                        <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
-                            Credit count
-                        </div>
-                        <div className="text-base font-semibold">
-                            {selectedBatch.stats.creditCount}
+                        <div className="border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                            <div className="text-[11px] uppercase text-[var(--theme-text-secondary)]">
+                                Credit count
+                            </div>
+                            <div className="text-base font-semibold">
+                                {selectedBatch.stats.creditCount}
+                            </div>
                         </div>
                     </div>
                 </div>

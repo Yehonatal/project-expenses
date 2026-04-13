@@ -3,6 +3,7 @@ import API, {
     getExpenseForecast,
     getExpenseInsights,
     getImportSynergyOverview,
+    getBankAccounts,
 } from "../api/api";
 import type { Expense } from "../types/expense";
 import type {
@@ -47,6 +48,9 @@ export function useSummaryDashboard() {
     const [typeExpenses, setTypeExpenses] = useState<Record<string, Expense[]>>(
         {},
     );
+    const [totalAccountBalance, setTotalAccountBalance] = useState<
+        number | null
+    >(null);
 
     useEffect(() => {
         let mounted = true;
@@ -54,13 +58,19 @@ export function useSummaryDashboard() {
 
         const load = async () => {
             try {
-                const [dashboardRes, trendsRes, insightsRes, forecastRes] =
-                    await Promise.allSettled([
-                        API.get<DashboardData>("/expenses/dashboard"),
-                        API.get<TrendsData>("/expenses/trends"),
-                        getExpenseInsights(),
-                        getExpenseForecast({ scenario: "baseline", window: 6 }),
-                    ]);
+                const [
+                    dashboardRes,
+                    trendsRes,
+                    insightsRes,
+                    forecastRes,
+                    accountsRes,
+                ] = await Promise.allSettled([
+                    API.get<DashboardData>("/expenses/dashboard"),
+                    API.get<TrendsData>("/expenses/trends"),
+                    getExpenseInsights(),
+                    getExpenseForecast({ scenario: "baseline", window: 6 }),
+                    getBankAccounts(),
+                ]);
 
                 if (!mounted) return;
 
@@ -126,6 +136,15 @@ export function useSummaryDashboard() {
 
                 if (forecastRes.status === "fulfilled") {
                     setForecast(forecastRes.value.data);
+                }
+
+                if (accountsRes.status === "fulfilled") {
+                    const accounts = accountsRes.value.data || [];
+                    const computedBalance = accounts.reduce(
+                        (acc: number, a: any) => acc + (a.balance || 0),
+                        0,
+                    );
+                    setTotalAccountBalance(computedBalance);
                 }
             } catch (err) {
                 if (mounted) setError("Failed to load summary");
@@ -249,6 +268,7 @@ export function useSummaryDashboard() {
         importSynergyLoading,
         selectedImportAccountKey,
         setSelectedImportAccountKey,
+        totalAccountBalance,
         loading,
         error,
         expandedTypes,

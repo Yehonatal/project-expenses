@@ -37,6 +37,12 @@ export interface ImportBatch {
     accounts: Array<Record<string, unknown>>;
     banks: Array<Record<string, unknown>>;
     categories: Array<Record<string, unknown>>;
+    syncStatus?: {
+        accounts: boolean;
+        banks: boolean;
+        categories: boolean;
+        budgets: boolean;
+    };
     createdAt: string;
     updatedAt: string;
 }
@@ -78,6 +84,14 @@ export interface ImportBatchDetailsResponse {
 export interface ImportJsonResponse {
     message: string;
     importBatch: ImportBatch;
+}
+
+export interface Bank {
+    _id: string;
+    externalId: number;
+    name: string;
+    shortName: string | null;
+    colors: string[];
 }
 
 export interface BankAccount {

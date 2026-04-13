@@ -13,7 +13,7 @@ exports.getTypes = async (req, res) => {
         // get explicit saved types
         const savedTypes = await Type.find(
             { userId },
-            { name: 1, _id: 0 }
+            { name: 1, _id: 0 },
         ).lean();
 
         const savedNames = (savedTypes || []).map((t) => t.name);
@@ -23,11 +23,52 @@ exports.getTypes = async (req, res) => {
                 ...(expenseTypes || []),
                 ...(templateTypes || []),
                 ...savedNames,
-            ])
+            ]),
         );
         res.json(all.sort());
     } catch (err) {
         console.error("getTypes error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.suggestTypes = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const query = req.query.q || "";
+
+        if (!query) {
+            return res.json([]);
+        }
+
+        const filter = {
+            userId,
+            name: { $regex: query, $options: "i" },
+        };
+
+        const types = await Type.find(filter, { name: 1, _id: 0 })
+            .limit(10)
+            .lean();
+
+        // Also check recent expenses for types matching the query
+        const expenseTypes = await Expense.find(
+            { userId, type: { $regex: query, $options: "i" } },
+            { type: 1, _id: 0 },
+        )
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .lean();
+
+        const all = Array.from(
+            new Set([
+                ...(types || []).map((t) => t.name),
+                ...(expenseTypes || []).map((e) => e.type),
+            ]),
+        ).slice(0, 10);
+
+        res.json(all.sort());
+    } catch (err) {
+        console.error("suggestTypes error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };

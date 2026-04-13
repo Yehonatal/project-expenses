@@ -54,6 +54,8 @@ const sanitizePresetFilters = (filters = {}) => {
     assignString("keyword");
     assignString("workspaceId");
     assignString("memberId");
+    assignString("includeMode");
+    assignString("recurringMode");
 
     if (["all", "personal", "shared"].includes(String(filters.scope))) {
         normalized.scope = String(filters.scope);
@@ -680,7 +682,11 @@ exports.getExpenses = async (req, res) => {
         if (from || to) {
             filter.date = {};
             if (from) filter.date.$gte = new Date(from);
-            if (to) filter.date.$lte = new Date(to);
+            if (to) {
+                const endDate = new Date(to);
+                endDate.setHours(23, 59, 59, 999);
+                filter.date.$lte = endDate;
+            }
         }
 
         if (included !== undefined) {
@@ -689,7 +695,21 @@ exports.getExpenses = async (req, res) => {
         }
 
         if (type) {
-            filter.type = type;
+            const types = Array.isArray(type)
+                ? type
+                : String(type)
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean);
+
+            if (types.length > 0) {
+                // If there's only one and it's 'all', we don't filter by type
+                if (!(types.length === 1 && types[0].toLowerCase() === "all")) {
+                    filter.type = {
+                        $in: types.map((t) => new RegExp(`^${t}$`, "i")),
+                    };
+                }
+            }
         }
 
         if (memberId) {
@@ -738,7 +758,10 @@ exports.getExpenses = async (req, res) => {
         if (tags) {
             const parsedTags = normalizeTags(tags);
             if (parsedTags.length) {
-                filter.tags = { $in: parsedTags };
+                // Use case-insensitive regex for each tag to ensure match regardless of storage case
+                filter.tags = {
+                    $in: parsedTags.map((tag) => new RegExp(`^${tag}$`, "i")),
+                };
             }
         }
 
@@ -1058,7 +1081,11 @@ exports.getSummary = async (req, res) => {
         } else if (from || to) {
             match.date = {};
             if (from) match.date.$gte = new Date(from);
-            if (to) match.date.$lte = new Date(to);
+            if (to) {
+                const endDate = new Date(to);
+                endDate.setHours(23, 59, 59, 999);
+                match.date.$lte = endDate;
+            }
         }
 
         const pipeline = [];

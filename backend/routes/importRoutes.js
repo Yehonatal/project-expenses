@@ -6,9 +6,11 @@ const router = express.Router();
 
 router.post("/json", auth, controller.importJsonData);
 router.get("/accounts", auth, controller.getBankAccounts);
+router.get("/banks", auth, controller.getBanks);
 router.post("/accounts", auth, controller.createBankAccount);
 router.get("/batches", auth, controller.getImportBatches);
 router.get("/batches/:id", auth, controller.getImportBatchDetails);
+router.post("/batches/:id/sync", auth, controller.manualSyncBatch);
 router.get("/synergy", auth, controller.getImportSynergyOverview);
 
 module.exports = router;

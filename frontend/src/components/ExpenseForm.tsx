@@ -5,6 +5,7 @@ import type { Workspace } from "../types/workspace";
 import { Plus, Pencil, Trash2, Send, ListChecks, X } from "lucide-react";
 import Toast from "./Toast";
 import { uiControl } from "../utils/uiClasses";
+import { SuggestionInput } from "./ui/SuggestionInput";
 import {
     createExpenseOfflineAware,
     updateExpenseOfflineAware,
@@ -497,19 +498,15 @@ export default function ExpenseForm({
 
                     <div className="space-y-2">
                         <label className={uiControl.label}>Type</label>
-                        <input
-                            list="type-suggestions"
+                        <SuggestionInput
                             name="type"
                             value={form.type}
-                            onChange={handleChange}
+                            onChange={(val) =>
+                                setForm((prev) => ({ ...prev, type: val }))
+                            }
                             placeholder="Enter type"
                             className={uiControl.input}
                         />
-                        <datalist id="type-suggestions">
-                            {types.map((t) => (
-                                <option key={t} value={t} />
-                            ))}
-                        </datalist>
                     </div>
 
                     {workspaces.length > 0 && (

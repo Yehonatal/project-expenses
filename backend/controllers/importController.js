@@ -3,6 +3,8 @@ const ImportBatch = require("../models/importBatchModel");
 const ImportedTransaction = require("../models/importedTransactionModel");
 const BankAccount = require("../models/bankAccountModel");
 const Expense = require("../models/expenseModel");
+const Type = require("../models/typeModel");
+const Bank = require("../models/bankModel");
 
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
 
@@ -68,17 +70,7 @@ exports.importJsonData = async (req, res) => {
         const accounts = normalizeArray(payload.accounts);
         const banks = normalizeArray(payload.banks);
         const categories = normalizeArray(payload.categories);
-
-        const bankLookup = new Map(
-            banks
-                .map((bank) => ({
-                    id: Number(bank?.id),
-                    name: toTrimmedOrNull(bank?.name),
-                    shortName: toTrimmedOrNull(bank?.shortName),
-                }))
-                .filter((bank) => Number.isFinite(bank.id))
-                .map((bank) => [bank.id, bank]),
-        );
+        const budgets = normalizeArray(payload.budgets);
 
         const importBatch = await ImportBatch.create({
             userId: req.user._id,
@@ -102,65 +94,24 @@ exports.importJsonData = async (req, res) => {
             accounts,
             banks,
             categories,
+            budgets,
         });
 
-        if (accounts.length) {
-            const accountUpserts = accounts
-                .map((account) => {
-                    const accountNumber = toTrimmedOrNull(
-                        account?.accountNumber,
-                    );
-                    if (!accountNumber) return null;
+        // Run data through the pipeline
+        const ImportDataPipeline = require("../services/importPipelineService");
+        const pipeline = new ImportDataPipeline(req.user._id, importBatch._id);
+        const pipelineStats = await pipeline.run(payload);
 
-                    const bankId = Number(account?.bank);
-                    const bankInfo = Number.isFinite(bankId)
-                        ? bankLookup.get(bankId)
-                        : null;
-
-                    return {
-                        updateOne: {
-                            filter: {
-                                userId: req.user._id,
-                                accountNumber,
-                            },
-                            update: {
-                                $set: {
-                                    bankId: Number.isFinite(bankId)
-                                        ? bankId
-                                        : null,
-                                    bankName: bankInfo?.name || null,
-                                    bankShortName: bankInfo?.shortName || null,
-                                    accountHolderName: toTrimmedOrNull(
-                                        account?.accountHolderName,
-                                    ),
-                                    balance: toNullableNumber(account?.balance),
-                                    settledBalance: toNullableNumber(
-                                        account?.settledBalance,
-                                    ),
-                                    pendingCredit: toNullableNumber(
-                                        account?.pendingCredit,
-                                    ),
-                                    profileId: toNullableNumber(
-                                        account?.profileId,
-                                    ),
-                                    source: "import",
-                                    lastImportBatchId: importBatch._id,
-                                },
-                                $setOnInsert: {
-                                    userId: req.user._id,
-                                    accountNumber,
-                                },
-                            },
-                            upsert: true,
-                        },
-                    };
-                })
-                .filter(Boolean);
-
-            if (accountUpserts.length) {
-                await BankAccount.bulkWrite(accountUpserts, { ordered: false });
-            }
-        }
+        const bankLookup = new Map(
+            banks
+                .map((bank) => ({
+                    id: Number(bank?.id),
+                    name: toTrimmedOrNull(bank?.name),
+                    shortName: toTrimmedOrNull(bank?.shortName),
+                }))
+                .filter((bank) => Number.isFinite(bank.id))
+                .map((bank) => [bank.id, bank]),
+        );
 
         let debitTotal = 0;
         let creditTotal = 0;
@@ -750,5 +701,50 @@ exports.createBankAccount = async (req, res) => {
             message: "Failed to create bank account",
             error: err.message,
         });
+    }
+};
+
+exports.manualSyncBatch = async (req, res) => {
+    try {
+        const batch = await ImportBatch.findOne({
+            _id: req.params.id,
+            userId: req.user._id,
+        });
+        if (!batch) return res.status(404).json({ message: "Batch not found" });
+
+        const ImportDataPipeline = require("../services/importPipelineService");
+        const pipeline = new ImportDataPipeline(req.user._id, batch._id);
+        const stats = await pipeline.run({
+            accounts: batch.accounts || [],
+            banks: batch.banks || [],
+            categories: batch.categories || [],
+            budgets: batch.budgets || [],
+            transactions: [], // We typically don't re-sync exported transactions here unless modified
+        });
+
+        batch.syncStatus = {
+            accounts: stats.accounts > 0 || batch.syncStatus?.accounts,
+            banks: stats.banks > 0 || batch.syncStatus?.banks,
+            categories: stats.types > 0 || batch.syncStatus?.categories,
+            budgets: stats.budgets > 0 || batch.syncStatus?.budgets,
+        };
+        await batch.save();
+
+        res.json({ message: "Sync successful", syncStatus: batch.syncStatus });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Sync failed" });
+    }
+};
+
+exports.getBanks = async (req, res) => {
+    try {
+        const banks = await Bank.find({ userId: req.user._id }).sort({
+            name: 1,
+        });
+        res.json({ message: "Banks retrieved successfully", data: banks });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
     }
 };

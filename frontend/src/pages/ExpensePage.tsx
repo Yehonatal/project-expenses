@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import type { Expense, ExpenseFilterPreset } from "../types/expense";
 import ExpenseTable from "../components/ExpenseTable";
@@ -13,6 +13,7 @@ import {
     Loader2,
     ChevronLeft,
     ChevronRight,
+    X,
 } from "lucide-react";
 import PageContainer from "../components/ui/PageContainer";
 import GlassCard from "../components/ui/GlassCard";
@@ -21,6 +22,7 @@ import PageSkeleton from "../components/ui/PageSkeleton";
 import { useExpensePageData } from "../hooks/useExpensePageData";
 import { modalCopy } from "../content/modalCopy";
 import { uiControl } from "../utils/uiClasses";
+import { SuggestionInput } from "../components/ui/SuggestionInput";
 import Toast from "../components/Toast";
 import InfoTooltip from "../components/ui/InfoTooltip";
 import {
@@ -43,7 +45,7 @@ const DEFAULT_FILTERS = {
     maxAmount: "",
     includeMode: "all" as "all" | "included" | "excluded",
     recurringMode: "all" as "all" | "recurring" | "non-recurring",
-    category: "all",
+    type: "",
     tag: "",
 };
 
@@ -98,18 +100,12 @@ export default function ExpensePage({
             (current = filters) => ({
                 from: current.fromDate || undefined,
                 to: current.toDate || undefined,
-                included:
-                    current.includeMode === "all"
-                        ? undefined
-                        : current.includeMode === "included",
-                type: current.category === "all" ? undefined : current.category,
+                includeMode: current.includeMode,
+                recurringMode: current.recurringMode,
+                type: current.type.trim() || undefined,
                 tags: current.tag.trim() || undefined,
                 minAmount: current.minAmount || undefined,
                 maxAmount: current.maxAmount || undefined,
-                isRecurring:
-                    current.recurringMode === "all"
-                        ? undefined
-                        : current.recurringMode === "recurring",
                 keyword: current.keyword.trim() || undefined,
             }),
         [filters],
@@ -142,19 +138,9 @@ export default function ExpensePage({
             toDate: saved.to || "",
             minAmount: saved.minAmount || "",
             maxAmount: saved.maxAmount || "",
-            includeMode:
-                saved.included === undefined
-                    ? "all"
-                    : saved.included
-                      ? "included"
-                      : "excluded",
-            recurringMode:
-                saved.isRecurring === undefined
-                    ? "all"
-                    : saved.isRecurring
-                      ? "recurring"
-                      : "non-recurring",
-            category: saved.type || "all",
+            includeMode: saved.includeMode || "all",
+            recurringMode: saved.recurringMode || "all",
+            type: saved.type || "",
             tag: saved.tags || "",
         });
 
@@ -234,10 +220,7 @@ export default function ExpensePage({
                 debouncedFilters.includeMode === "all"
                     ? undefined
                     : debouncedFilters.includeMode === "included",
-            type:
-                debouncedFilters.category === "all"
-                    ? undefined
-                    : debouncedFilters.category,
+            type: debouncedFilters.type.trim() || undefined,
             tags: debouncedFilters.tag.trim() || undefined,
             minAmount: debouncedFilters.minAmount || undefined,
             maxAmount: debouncedFilters.maxAmount || undefined,
@@ -388,7 +371,8 @@ export default function ExpensePage({
             setDeletingExpenseId(null);
             if (result.queued) {
                 setToast({
-                    message: "Delete queued offline. It will sync automatically.",
+                    message:
+                        "Delete queued offline. It will sync automatically.",
                     type: "info",
                 });
             }
@@ -488,11 +472,16 @@ export default function ExpensePage({
                             type="button"
                             className={uiControl.button}
                             onClick={() => void syncOfflineQueue()}
-                            disabled={syncingOfflineQueue || offlineQueueCount === 0}
+                            disabled={
+                                syncingOfflineQueue || offlineQueueCount === 0
+                            }
                         >
                             {syncingOfflineQueue ? "Syncing..." : "Sync now"}
                         </button>
-                        <Link to="/queued-expenses" className={uiControl.button}>
+                        <Link
+                            to="/queued-expenses"
+                            className={uiControl.button}
+                        >
                             View queue
                         </Link>
                     </div>
@@ -815,26 +804,19 @@ export default function ExpensePage({
                             </div>
 
                             <div>
-                                <label className={uiControl.label}>
-                                    Category
-                                </label>
-                                <select
-                                    className={uiControl.select}
-                                    value={filters.category}
-                                    onChange={(e) =>
+                                <label className={uiControl.label}>Type</label>
+                                <SuggestionInput
+                                    name="type"
+                                    value={filters.type}
+                                    onChange={(val) =>
                                         setFilters((prev) => ({
                                             ...prev,
-                                            category: e.target.value,
+                                            type: val,
                                         }))
                                     }
-                                >
-                                    <option value="all">All categories</option>
-                                    {uniqueCategories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Enter type"
+                                    className={uiControl.input}
+                                />
                             </div>
 
                             <div>
@@ -1254,7 +1236,8 @@ export default function ExpensePage({
                     onAdd={(createdExpense, options) => {
                         if (options?.queued) {
                             setToast({
-                                message: "Expense queued offline. It will sync automatically.",
+                                message:
+                                    "Expense queued offline. It will sync automatically.",
                                 type: "info",
                             });
                         }
@@ -1274,7 +1257,8 @@ export default function ExpensePage({
                         onAdd={(updatedExpense, options) => {
                             if (options?.queued) {
                                 setToast({
-                                    message: "Update queued offline. It will sync automatically.",
+                                    message:
+                                        "Update queued offline. It will sync automatically.",
                                     type: "info",
                                 });
                                 setShowEditModal(false);

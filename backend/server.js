@@ -27,8 +27,6 @@ if (!MONGO_URI) {
     process.exit(1);
 }
 
-console.log("MONGO_URI used:", process.env.MONGO_URI);
-
 app.use(
     express.json({
         limit: "25mb",

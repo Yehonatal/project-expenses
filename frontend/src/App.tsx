@@ -29,6 +29,8 @@ const QueuedExpensesPage = lazy(() => import("./pages/QueuedExpensesPage.tsx"));
 const ForecastPage = lazy(() => import("./pages/ForecastPage.tsx"));
 const ImportDataPage = lazy(() => import("./pages/ImportDataPage.tsx"));
 
+const AccountsPage = lazy(() => import("./pages/AccountsPage"));
+
 export default function App() {
     const { user, loading, logout } = useAuthSession();
     const [showGeminiModal, setShowGeminiModal] = useState(false);
@@ -210,6 +212,10 @@ export default function App() {
                                             <Route
                                                 path="/workspaces"
                                                 element={<WorkspacesPage />}
+                                            />
+                                            <Route
+                                                path="/accounts"
+                                                element={<AccountsPage />}
                                             />
                                             <Route
                                                 path="/queued-expenses"

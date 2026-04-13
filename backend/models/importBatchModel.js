@@ -54,6 +54,16 @@ const importBatchSchema = new mongoose.Schema(
             type: [mongoose.Schema.Types.Mixed],
             default: [],
         },
+        budgets: {
+            type: [mongoose.Schema.Types.Mixed],
+            default: [],
+        },
+        syncStatus: {
+            accounts: { type: Boolean, default: false },
+            banks: { type: Boolean, default: false },
+            categories: { type: Boolean, default: false },
+            budgets: { type: Boolean, default: false },
+        },
     },
     {
         timestamps: true,

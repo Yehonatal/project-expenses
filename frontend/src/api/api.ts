@@ -21,7 +21,7 @@ import type {
     ImportJsonResponse,
 } from "../types/importData";
 
-const API = axios.create({
+export const API = axios.create({
     baseURL: import.meta.env.VITE_RENDER_URL || "http://localhost:5000/api",
 });
 
@@ -128,6 +128,16 @@ export const getImportBatchDetails = (
 
 export const getBankAccounts = () =>
     API.get<BankAccount[]>("/imports/accounts");
+
+export const getBanks = () =>
+    API.get<{ message: string; data: import("../types/importData").Bank[] }>(
+        "/imports/banks",
+    );
+
+export const syncImportBatch = (id: string) =>
+    API.post<{ message: string; syncStatus: any }>(
+        `/imports/batches/${id}/sync`,
+    );
 
 export const createBankAccount = (data: {
     accountNumber: string;
